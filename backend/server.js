@@ -101,13 +101,7 @@ app.use("/api/documents", documentRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/announcements", announcementsRoutes);
 
-// Serve Frontend Dist folder
-app.use(express.static(path.join(__dirname, "public")));
-
-// Catch-all route to serve React app for non-API requests
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
-});
+// O frontend será servido pelo Nginx em produção
 
 // Error handler
 app.use((err, req, res, next) => {
