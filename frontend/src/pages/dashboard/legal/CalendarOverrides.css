@@ -1,0 +1,171 @@
+/* Customizações para o react-big-calendar para casar com o design system do JusCore AI */
+
+.rbc-calendar {
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+/* Header (Dias da Semana) */
+.rbc-header {
+  padding: 10px 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: #6b7280; /* text-gray-500 */
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dark .rbc-header {
+  color: #9ca3af; /* text-gray-400 */
+  border-bottom-color: #374151; /* gray-700 */
+}
+
+/* Grades (Dias) */
+.rbc-month-view {
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.dark .rbc-month-view {
+  border-color: #374151;
+}
+
+.rbc-month-row {
+  border-top: 1px solid #e5e7eb;
+}
+
+.dark .rbc-month-row {
+  border-top-color: #374151;
+}
+
+.rbc-day-bg {
+  border-left: 1px solid #e5e7eb;
+  transition: background-color 0.2s;
+}
+
+.dark .rbc-day-bg {
+  border-left-color: #374151;
+}
+
+.rbc-day-bg:hover {
+  background-color: #f9fafb; /* gray-50 */
+}
+
+.dark .rbc-day-bg:hover {
+  background-color: #1f2937; /* gray-800 */
+}
+
+/* Dias fora do mês */
+.rbc-off-range-bg {
+  background-color: #f3f4f6; /* gray-100 */
+}
+
+.dark .rbc-off-range-bg {
+  background-color: rgba(31, 41, 55, 0.5); /* gray-800 com opacidade */
+}
+
+/* Números dos dias */
+.rbc-date-cell {
+  padding: 4px 8px;
+  font-weight: 500;
+  color: #374151; /* gray-700 */
+}
+
+.dark .rbc-date-cell {
+  color: #d1d5db; /* gray-300 */
+}
+
+.rbc-off-range .rbc-button-link {
+  color: #9ca3af; /* gray-400 */
+}
+
+.dark .rbc-off-range .rbc-button-link {
+  color: #4b5563; /* gray-600 */
+}
+
+/* Hoje */
+.rbc-today {
+  background-color: #eff6ff; /* blue-50 */
+}
+
+.dark .rbc-today {
+  background-color: rgba(59, 130, 246, 0.1); /* blue-500 com opacidade */
+}
+
+.rbc-today .rbc-date-cell {
+  color: #2563eb; /* blue-600 */
+  font-weight: 700;
+}
+
+.dark .rbc-today .rbc-date-cell {
+  color: #60a5fa; /* blue-400 */
+}
+
+/* Eventos */
+.rbc-event {
+  padding: 2px 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.rbc-event-content {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Toolbar (Botões superiores) */
+.rbc-toolbar {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rbc-toolbar button {
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #374151;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .rbc-toolbar button {
+  background: #1f2937;
+  border-color: #374151;
+  color: #d1d5db;
+}
+
+.rbc-toolbar button:hover {
+  background: #f9fafb;
+}
+
+.dark .rbc-toolbar button:hover {
+  background: #374151;
+}
+
+.rbc-toolbar button.rbc-active {
+  background: #c29d6d; /* accent color JusCore */
+  color: white;
+  border-color: #c29d6d;
+}
+
+.dark .rbc-toolbar button.rbc-active {
+  background: #c29d6d;
+  color: white;
+  border-color: #c29d6d;
+}
+
+.rbc-toolbar .rbc-toolbar-label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  text-transform: capitalize;
+}
+
+.dark .rbc-toolbar .rbc-toolbar-label {
+  color: white;
+}

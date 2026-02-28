@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-white dark:bg-juri-950 text-gray-900 dark:text-juri-100 transition-colors duration-300;
+  }
+
+  /* White Label Override */
+  body.branded {
+    @apply bg-brand-bg;
+  }
+
+  ::selection {
+    background-color: var(--brand-primary, #D4AF37);
+    color: white;
+  }
+
+  /* Custom Scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(203, 213, 225) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--brand-primary, #d4af37);
+    border-radius: 4px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgb(148, 163, 184);
+  }
+
+  /* Dark mode scrollbar */
+  .dark *::-webkit-scrollbar-thumb {
+    background: rgb(71, 85, 105);
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: rgb(100, 116, 139);
+  }
+
+  .dark * {
+    scrollbar-color: rgb(71, 85, 105) transparent;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 30s linear infinite;
+  }
+
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+}
