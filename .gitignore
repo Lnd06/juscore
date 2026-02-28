@@ -1,0 +1,83 @@
+# 🚫 ARQUIVOS IGNORADOS - Juri_AI v1.6.5
+# NUNCA commit estas informações sensíveis!
+
+# ============================================
+# VARIÁVEIS DE AMBIENTE (CONTÉM SENHAS!)
+# ============================================
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+
+# ============================================
+# DEPENDÊNCIAS
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+yarn.lock
+
+# ============================================
+# UPLOADS E ARQUIVOS DO USUÁRIO
+# ============================================
+backend/uploads/documents/*.pdf
+backend/uploads/documents/*.doc
+backend/uploads/documents/*.docx
+uploads/
+*.pdf
+*.doc
+*.docx
+
+# ============================================
+# LOGS E BANCOS LOCAIS
+# ============================================
+logs/
+*.log
+*.sqlite
+*.sqlite3
+*.db
+
+# ============================================
+# SISTEMA OPERACIONAL
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================
+# EDITORES E IDEs
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ============================================
+# TESTES E COBERTURA
+# ============================================
+coverage/
+.nyc_output/
+*.test.js.snap
+
+# ============================================
+# BUILD E TEMP
+# ============================================
+tmp/
+temp/
+.cache/
+
+# ============================================
+# CERTIFICADOS E CHAVES PRIVADAS
+# ============================================
+*.pem
+*.key
+*.cert
+*.crt
+secrets/

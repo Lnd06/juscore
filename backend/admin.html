@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - JusCore AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/config_tailwind.js"></script>
+  <style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .sidebar-item-active {
+      background-color: #eff6ff;
+      color: #2563eb;
+      border-right: 4px solid #2563eb;
+    }
+    .dark .sidebar-item-active {
+      background-color: rgba(37, 99, 235, 0.1);
+      color: #3b82f6;
+      border-right: 4px solid #3b82f6;
+    }
+  </style>
+</head>
+
+<body class="bg-[#fcfdfd] dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-50 transition-all duration-300 hidden md:flex flex-col text-gray-500 dark:text-gray-400">
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
+      <div class="w-8 h-8 bg-gradient-to-br from-primary-600 to-juri-600 rounded-lg flex items-center justify-center text-white text-sm">⚖️</div>
+      <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-juri-600">JusCore AI Admin</h1>
+    </div>
+
+    <nav class="flex-1 py-4">
+      <button onclick="showSection('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all hover:bg-gray-50 dark:hover:bg-gray-700/50 sidebar-item-active">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        Dashboard
+      </button>
+      <button onclick="showSection('users')" id="nav-users" class="w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        Usuários
+      </button>
+      <button onclick="showSection('documents')" id="nav-documents" class="w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Documentos
+      </button>
+      <button onclick="showSection('logs')" id="nav-logs" class="w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        Logs de Atividade
+      </button>
+      <button onclick="showSection('alerts')" id="nav-alerts" class="w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        Avisos Globais
+      </button>
+      <button onclick="showSection('contacts')" id="nav-contacts" class="w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Contatos
+      </button>
+      <button onclick="showSection('violations')" id="nav-violations" class="w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all hover:bg-red-50 dark:hover:bg-red-900/10 text-gray-500 dark:text-gray-400">
+        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        Monitor de Violações
+      </button>
+    </nav>
+
+    <div class="p-4 mt-auto border-t border-gray-200 dark:border-gray-700 space-y-2">
+      <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+        <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <span class="text-xs font-semibold">Alternar Tema</span>
+      </button>
+      <button onclick="window.location.href='/'" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 text-red-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="text-xs font-semibold">Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="md:ml-64 transition-all duration-300 min-h-screen flex flex-col">
+    
+    <!-- Top Bar -->
+    <header class="h-16 bg-[#f8fafc]/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 px-8 flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <h2 id="sectionTitle" class="text-lg font-bold">Resumo Geral</h2>
+        <!-- System Health Widget -->
+        <div class="hidden lg:flex items-center gap-4 px-4 py-1.5 bg-gray-50/50 dark:bg-gray-700/50 rounded-full border border-gray-100 dark:border-gray-600">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold text-gray-400 uppercase">DB</span>
+            <div id="healthDB" class="w-2 h-2 rounded-full bg-gray-300"></div>
+          </div>
+          <div class="w-px h-3 bg-gray-200 dark:bg-gray-600"></div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold text-gray-400 uppercase">GROQ</span>
+            <div id="healthGROQ" class="w-2 h-2 rounded-full bg-gray-300"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- Notification Bell (Fase 12) -->
+        <div class="relative p-2 text-gray-400 hover:text-primary-600 transition-colors cursor-pointer" onclick="showSection('violations')" title="Violações de Política">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span id="violationBadge" class="hidden absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></span>
+        </div>
+        <div id="userBadge" class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-bold tracking-wide uppercase">
+          Admin
+        </div>
+      </div>
+    </header>
+
+    <div class="p-8 flex-1">
+      
+      <!-- Dashboard Section -->
+      <section id="dashboardSection" class="section-container">
+        
+        <!-- Quick Actions Deck -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <button onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:border-primary-500 transition-all group text-left">
+            <div class="w-8 h-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            </div>
+            <span class="text-xs font-bold text-gray-700 dark:text-gray-300">+ Novo Usuário</span>
+          </button>
+          <button onclick="showSection('alerts')" class="p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:border-orange-500 transition-all group text-left">
+            <div class="w-8 h-8 bg-orange-50 dark:bg-orange-900/20 rounded-lg flex items-center justify-center text-orange-600 mb-3 group-hover:scale-110 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+            </div>
+            <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Novo Aviso Global</span>
+          </button>
+          <button onclick="showSection('documents')" class="p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:border-green-500 transition-all group text-left">
+            <div class="w-8 h-8 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center text-green-600 mb-3 group-hover:scale-110 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            </div>
+            <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Upload de Modelo</span>
+          </button>
+          <button onclick="loadDashboard()" class="p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:border-purple-500 transition-all group text-left">
+            <div class="w-8 h-8 bg-purple-50 dark:bg-purple-900/20 rounded-lg flex items-center justify-center text-purple-600 mb-3 group-hover:scale-110 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </div>
+            <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Atualizar Dados</span>
+          </button>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Usuários</p>
+              <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+              </div>
+            </div>
+            <p class="text-3xl font-extrabold" id="statTotalUsers">-</p>
+            <p class="text-xs text-green-600 font-bold mt-2 flex items-center gap-1">
+              <span id="statNewUsers">+0</span> hoje
+            </p>
+            <div class="absolute bottom-0 left-0 w-full h-12 opacity-30 group-hover:opacity-100 transition-opacity">
+              <canvas id="sparklineUsers"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Conversas Hoje</p>
+              <div class="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-xl flex items-center justify-center text-green-600 dark:text-green-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+              </div>
+            </div>
+            <p class="text-3xl font-extrabold" id="statConversas">-</p>
+            <p class="text-xs text-gray-500 mt-2">Total: <span id="statTotalConversas">-</span></p>
+            <div class="absolute bottom-0 left-0 w-full h-12 opacity-30 group-hover:opacity-100 transition-opacity">
+              <canvas id="sparklineConversas"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Requests IA</p>
+              <div class="w-10 h-10 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center text-purple-600 dark:text-purple-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              </div>
+            </div>
+            <p class="text-3xl font-extrabold" id="statRequests">-</p>
+            <p class="text-xs text-gray-500 mt-2">Acumulado: <span id="statTotalRequests">-</span></p>
+            <div class="absolute bottom-0 left-0 w-full h-12 opacity-30 group-hover:opacity-100 transition-opacity">
+              <canvas id="sparklineIA"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Ativos (7d)</p>
+              <div class="w-10 h-10 bg-orange-50 dark:bg-orange-900/20 rounded-xl flex items-center justify-center text-orange-600 dark:text-orange-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              </div>
+            </div>
+            <p class="text-3xl font-extrabold" id="statAtivos">-</p>
+            <p class="text-xs text-gray-500 mt-2">Engajamento semanal</p>
+            <div class="absolute bottom-0 left-0 w-full h-12 opacity-30 group-hover:opacity-100 transition-opacity">
+              <canvas id="sparklineAtivos"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="text-lg font-bold">Volume de Consultas Jurídicas</h3>
+              <span class="text-xs font-bold text-gray-400 bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-full uppercase">Últimos 7 dias</span>
+            </div>
+            <div class="relative h-[300px]">
+              <canvas id="activityChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="text-lg font-bold">Distribuição de Documentos</h3>
+            </div>
+            <div class="relative h-64 w-full">
+              <canvas id="docDistribChart"></canvas>
+            </div>
+            <div id="docDistribLegend" class="mt-6 space-y-2">
+              <!-- Legend via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Trends & Sentiment Section (Fase 12) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+          <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 class="text-lg font-bold mb-6">Clima das Interações</h3>
+            <div id="sentimentDistribution" class="space-y-4">
+              <!-- Sentiment Cards via JS -->
+              <p class="text-center text-gray-400 text-xs py-8 italic">Analisando sentimentos...</p>
+            </div>
+          </div>
+          
+          <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="text-lg font-bold">Maiores Interesses (Top 5)</h3>
+              <div class="px-3 py-1 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-gray-400 text-[10px] font-bold uppercase transition-all">Ativos: <span id="topicCount">0</span></div>
+            </div>
+            <div id="topTopicsList" class="space-y-4">
+              <p class="text-center text-gray-400 text-xs py-8 italic">Categorizando pesquisas...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heatmap Section (Fase 12) -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 mt-8">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold">Intensidade de Consultas (Mapa de Calor)</h3>
+            <span class="text-[10px] font-bold text-gray-400 bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-full uppercase">Distribuição por Hora</span>
+          </div>
+          <div class="relative h-48">
+            <canvas id="heatmapChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Users Section -->
+      <section id="usersSection" class="hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div class="p-8 border-b border-gray-100 dark:border-gray-700">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h3 class="text-xl font-bold">Gestão de Usuários</h3>
+                <p class="text-sm text-gray-500 mt-1">Gerencie permissões e acesse dados dos membros.</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="exportUsersCSV()" class="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-bold rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-200 transition-all flex items-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  Exportar CSV
+                </button>
+                <button onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg shadow-primary-500/20 transition-all flex items-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                  Novo Usuário
+                </button>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+              <div class="relative">
+                <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" id="userSearch" oninput="filterUsers()" placeholder="Pesquisar..." class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 outline-none transition-all">
+              </div>
+              <select id="filterType" onchange="filterUsers()" class="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none">
+                <option value="all">Todos os Cargos</option>
+                <option value="comum">Comum</option>
+                <option value="especial">Especial</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead class="bg-gray-50 dark:bg-gray-700/50">
+                <tr>
+                  <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Nome</th>
+                  <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Email</th>
+                  <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Tipo</th>
+                  <th class="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable" class="divide-y divide-gray-100 dark:divide-gray-700">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Documents Section -->
+      <section id="documentsSection" class="hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+              <h3 class="text-xl font-bold mb-6">Upload de Modelo</h3>
+              <form id="uploadForm" class="space-y-5">
+                <div>
+                  <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Título</label>
+                  <input type="text" id="docTitulo" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Categoria</label>
+                  <select id="docCategoria" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                    <option value="contrato">Contrato</option>
+                    <option value="peticao">Petição</option>
+                    <option value="parecer">Parecer</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
+                <div>
+                   <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Arquivo PDF</label>
+                   <div onclick="document.getElementById('docFile').click()" id="dropZone" class="border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-2xl p-6 text-center hover:bg-blue-50/50 dark:hover:bg-blue-900/10 cursor-pointer transition-all">
+                     <input type="file" id="docFile" accept=".pdf" required class="hidden" onchange="updateFileName(this)">
+                     <p class="text-sm font-medium text-gray-400" id="fileName">Clique para selecionar PDF</p>
+                   </div>
+                </div>
+                <button type="submit" id="uploadBtn" class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg">Enviar Modelo</button>
+              </form>
+            </div>
+          </div>
+          <div class="lg:col-span-8">
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div class="p-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                    <h3 class="text-xl font-bold">Modelos Disponíveis</h3>
+                    <span id="docCountBadge" class="px-3 py-1 bg-gray-50 dark:bg-gray-700 rounded-full text-xs font-bold text-gray-400">0 itens</span>
+                </div>
+                <div class="overflow-x-auto p-4">
+                    <table class="w-full text-left">
+                        <thead class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                            <tr>
+                                <th class="px-6 py-4">Nome do Documento</th>
+                                <th class="px-6 py-4">Categoria</th>
+                                <th class="px-6 py-4 text-right">Gerenciar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="docsTableBody" class="divide-y divide-gray-50 dark:divide-gray-700">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Logs Section -->
+      <section id="logsSection" class="hidden section-container">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-700/20">
+            <div>
+              <h3 class="text-lg font-bold">Atividade Recente</h3>
+              <p class="text-xs text-gray-400">Últimas 20 interações no sistema</p>
+            </div>
+            <button onclick="loadLogs()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-50 dark:border-gray-700">
+                  <th class="px-8 py-5">Usuário</th>
+                  <th class="px-8 py-5">Ação</th>
+                  <th class="px-8 py-5">Detalhes</th>
+                  <th class="px-8 py-5 text-right">Data/Hora</th>
+                </tr>
+              </thead>
+              <tbody id="logsTableBody" class="divide-y divide-gray-50 dark:divide-gray-700/50">
+                <!-- Logs will be here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Alerts Section -->
+      <section id="alertsSection" class="hidden">
+        <div class="max-w-2xl bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+          <h3 class="text-xl font-bold mb-8 text-orange-600">Avisos de Sistema</h3>
+          <div class="space-y-6">
+            <div>
+              <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Mensagem Global</label>
+              <textarea id="sysAlertMsg" rows="4" placeholder="Esta mensagem aparecerá para todos os usuários..." class="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+            </div>
+            <button onclick="broadcastAlert()" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                Disparar Alerta Agora
+            </button>
+          </div>
+        </div>
+      </section>
+
+      </section>
+
+      <!-- Contacts Section -->
+      <section id="contactsSection" class="hidden">
+        <div class="max-w-2xl bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+          <h3 class="text-xl font-bold mb-8 text-blue-600">Configurações de Contato</h3>
+          <form id="contactsForm" class="space-y-5">
+            <div>
+              <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">E-mail de Contato</label>
+              <input type="email" id="contactEmail" placeholder="ex: contato@juscore.ai" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">WhatsApp (Link Completo)</label>
+              <input type="text" id="contactWhatsapp" placeholder="ex: https://wa.me/55..." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Instagram (Link Completo)</label>
+              <input type="text" id="contactInstagram" placeholder="ex: https://instagram.com/..." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-pink-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">GitHub (Link Completo)</label>
+              <input type="text" id="contactGithub" placeholder="ex: https://github.com/..." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-gray-500">
+            </div>
+            <button type="button" onclick="saveContacts()" class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all mt-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                Salvar Configurações
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Violations Section -->
+      <section id="violationsSection" class="hidden section-container">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-red-100 dark:border-red-900/20 overflow-hidden">
+          <div class="p-8 border-b border-gray-100 dark:border-gray-700 bg-red-50/30 dark:bg-red-900/10">
+            <h3 class="text-xl font-bold text-red-600">Usuários Delatados</h3>
+            <p class="text-sm text-gray-500 mt-1">Conversas que violaram as políticas de uso detectadas por IA.</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50/50 dark:bg-gray-700/30">
+                  <th class="px-8 py-4">Usuário</th>
+                  <th class="px-8 py-4">Tipo de Violação</th>
+                  <th class="px-8 py-4">Sessão</th>
+                  <th class="px-8 py-4 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="violationsTableBody" class="divide-y divide-gray-100 dark:divide-gray-700">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modals -->
+  <div id="chatHistoryModal" class="hidden fixed inset-0 z-[70] overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-gray-900/80 backdrop-blur-md" onclick="document.getElementById('chatHistoryModal').classList.add('hidden')"></div>
+      <div class="relative bg-white dark:bg-gray-800 rounded-3xl w-full max-w-4xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
+        <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-700">
+          <div>
+            <h3 class="text-xl font-bold" id="chatModalTitle">Histórico de Conversa</h3>
+            <p class="text-xs text-gray-500" id="chatModalUser">Carregando...</p>
+          </div>
+          <button onclick="document.getElementById('chatHistoryModal').classList.add('hidden')" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div id="chatContent" class="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide bg-gray-50/50 dark:bg-gray-900/50">
+          <!-- Messages -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="userSessionsModal" class="hidden fixed inset-0 z-[65] overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="document.getElementById('userSessionsModal').classList.add('hidden')"></div>
+      <div class="relative bg-white dark:bg-gray-800 rounded-3xl w-full max-w-2xl shadow-2xl border border-gray-100 dark:border-gray-700 p-8">
+        <h3 class="text-2xl font-bold mb-6">Conversas de <span id="sessionModalUserName">...</span></h3>
+        <div class="space-y-3 max-h-96 overflow-y-auto" id="userSessionsList">
+          <!-- List -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="editUserModal" class="hidden fixed inset-0 z-[60] overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-12">
+      <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="closeEditModal()"></div>
+      <div class="relative bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg shadow-2xl border border-gray-100 dark:border-gray-700 p-8 animate-in zoom-in-95 duration-200">
+        <h3 class="text-2xl font-bold mb-6">Editar Membro</h3>
+        <div class="space-y-4">
+          <input type="hidden" id="editUserId">
+          <div><label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Nome</label><input type="text" id="editUserNome" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none"></div>
+          <div><label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">E-mail</label><input type="email" id="editUserEmail" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none"></div>
+          <div><label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Nickname</label><input type="text" id="editUserApelido" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none"></div>
+          <div><label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Nível de Acesso</label><select id="editUserTipo" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none"><option value="comum">Comum</option><option value="especial">Especial</option><option value="admin">Administrador</option></select></div>
+        </div>
+        
+        <div id="editUserError" class="hidden mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm"></div>
+
+        <div class="mt-8 flex gap-3">
+          <button onclick="saveUserEdit()" id="saveEditBtn" class="flex-1 py-3 bg-primary-600 text-white font-bold rounded-xl">Salvar</button>
+          <button onclick="closeEditModal()" class="flex-1 py-3 bg-gray-50 dark:bg-gray-700 text-gray-400 font-bold rounded-xl">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="createUserModal" class="hidden fixed inset-0 z-[60] overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="document.getElementById('createUserModal').classList.add('hidden')"></div>
+      <div class="relative bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg shadow-2xl border border-gray-100 dark:border-gray-700 p-8">
+        <h3 class="text-2xl font-bold mb-6">Novo Usuário</h3>
+        <form id="userForm" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <input type="text" id="newUserNome" placeholder="Nome" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none">
+            <input type="text" id="newUserApelido" placeholder="Apelido" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none">
+          </div>
+          <input type="email" id="newUserEmail" placeholder="E-mail" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none">
+          
+          <div class="grid grid-cols-2 gap-4">
+            <input type="password" id="newUserSenha" placeholder="Senha" required minlength="6" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none">
+            <select id="newUserTipo" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none">
+              <option value="comum">Comum</option>
+              <option value="especial">Especial</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+          
+          <div id="createUserError" class="hidden p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm"></div>
+
+          <button type="submit" id="userBtn" class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl mt-4">Criar Usuário</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = window.location.origin + '/api';
+    let token = localStorage.getItem('token');
+    let chart, doughnut;
+    let sparkCharts = {}; 
+    let allUsers = [];
+    let allDocs = [];
+    let isDashboardLoading = false; // Guard contra loops
+
+    if (!token) window.location.href = '/login';
+
+    function showSection(sectionId) {
+      if (document.getElementById(sectionId + 'Section')?.classList.contains('hidden') === false) return; // Se já está nela, não faz nada
+      
+      console.log('Troca de seção para:', sectionId);
+      ['dashboard', 'users', 'documents', 'logs', 'alerts', 'violations', 'contacts'].forEach(id => {
+        const el = document.getElementById(id + 'Section');
+        if (el) el.classList.add('hidden');
+        const nav = document.getElementById('nav-' + id);
+        if (nav) nav.classList.remove('sidebar-item-active');
+      });
+      
+      const target = document.getElementById(sectionId + 'Section');
+      if (target) target.classList.remove('hidden');
+      const navItem = document.getElementById('nav-' + sectionId);
+      if (navItem) navItem.classList.add('sidebar-item-active');
+      
+      const titles = { dashboard: 'Resumo Geral', users: 'Controle de Membros', documents: 'Biblioteca Jurídica', logs: 'Logs de Atividade', alerts: 'Avisos Globais', violations: 'Violadores das Políticas', contacts: 'Configurações de Contato' };
+      document.getElementById('sectionTitle').textContent = titles[sectionId] || 'Painel';
+      
+      if (sectionId === 'dashboard') loadDashboard();
+      if (sectionId === 'documents') loadDocs();
+      if (sectionId === 'users') loadUsers();
+      if (sectionId === 'logs') loadLogs();
+      if (sectionId === 'violations') loadViolations();
+      if (sectionId === 'contacts') loadContacts();
+    }
+
+    async function loadContacts() {
+      try {
+        const res = await fetch(`${API_URL}/admin/settings/contact`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('contactEmail').value = data.contact_email || '';
+          document.getElementById('contactWhatsapp').value = data.contact_whatsapp || '';
+          document.getElementById('contactInstagram').value = data.contact_instagram || '';
+          document.getElementById('contactGithub').value = data.contact_github || '';
+        }
+      } catch (err) {
+        console.error('Erro ao carregar contatos', err);
+      }
+    }
+
+    async function saveContacts() {
+      const data = {
+        contact_email: document.getElementById('contactEmail').value,
+        contact_whatsapp: document.getElementById('contactWhatsapp').value,
+        contact_instagram: document.getElementById('contactInstagram').value,
+        contact_github: document.getElementById('contactGithub').value
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/admin/settings/contact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) alert('Configurações salvas!');
+        else alert('Erro ao salvar');
+      } catch (err) {
+        console.error(err);
+        alert('Erro de conexão');
+      }
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    }
+    if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('usersTable');
+      if (!tbody) return;
+      if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="px-8 py-10 text-center text-gray-500">Nenhum usuário encontrado.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = users.map(u => `
+        <tr onclick="loadUserChats('${u.id || u._id}', '${u.nome}')" class="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/20">
+          <td class="px-8 py-5 font-bold text-sm text-gray-800 dark:text-gray-200">${u.nome}</td>
+          <td class="px-8 py-5 text-gray-500 text-sm italic">${u.email}</td>
+          <td class="px-8 py-5"><span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-xs font-bold rounded-full uppercase">${u.tipo}</span></td>
+          <td class="px-8 py-5 text-right flex justify-end gap-2" onclick="event.stopPropagation()">
+            <button onclick="editUser('${u.id || u._id}')" class="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+            <button onclick="deleteUser('${u.id || u._id}')" class="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadDashboard() {
+      if (isDashboardLoading) return;
+      try {
+        isDashboardLoading = true;
+        console.log('📊 Fetching Dashboard Data...');
+        const res = await fetch(`${API_URL}/admin/dashboard`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro no dash');
+
+        console.log('✅ Dashboard Data Received:', data);
+
+        const setSafeText = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val ?? 0;
+        };
+
+        setSafeText('statTotalUsers', data.estatisticas.totalUsuarios);
+        setSafeText('statNewUsers', '+' + (data.estatisticas.usuariosHoje ?? 0));
+        setSafeText('statConversas', data.estatisticas.conversasHoje);
+        setSafeText('statTotalConversas', data.estatisticas.totalConversas);
+        setSafeText('statRequests', data.estatisticas.requestsHoje);
+        setSafeText('statTotalRequests', data.estatisticas.totalRequests);
+        setSafeText('statAtivos', data.estatisticas.usuariosAtivos7d);
+        
+        const badgeEl = document.getElementById('userBadge');
+        if (badgeEl) badgeEl.textContent = (data.usuario?.tipo || '...').toUpperCase();
+
+        // Update Health Indicators
+        const hDB = document.getElementById('healthDB');
+        const hGROQ = document.getElementById('healthGROQ');
+        if (hDB) hDB.className = `w-2 h-2 rounded-full ${data.health?.db ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-red-500'}`;
+        if (hGROQ) hGROQ.className = `w-2 h-2 rounded-full ${data.health?.groq ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-red-500'}`;
+
+        // Activity Chart (Main)
+        const activityCanvas = document.getElementById('activityChart');
+        if (activityCanvas) {
+            const ctx = activityCanvas.getContext('2d');
+            if (chart) chart.destroy();
+            const growth = Array.isArray(data.crescimento) ? data.crescimento : [];
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: growth.map(d => d.data.slice(8) + '/' + d.data.slice(5, 7)),
+                    datasets: [{
+                        data: growth.map(d => d.conversas),
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                        fill: true, tension: 0.4, borderWidth: 3, pointRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // Document Distribution Chart
+        const docCanvas = document.getElementById('docDistribChart');
+        if (docCanvas) {
+            const dCtx = docCanvas.getContext('2d');
+            if (doughnut) doughnut.destroy();
+            const docLabels = data.docDistrib?.map(d => d.categoria.toUpperCase()) || [];
+            const docValues = data.docDistrib?.map(d => parseInt(d.total)) || [];
+            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#64748b'];
+
+            doughnut = new Chart(dCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: docLabels,
+                    datasets: [{ data: docValues, backgroundColor: colors, borderWidth: 0, hoverOffset: 10 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+            });
+
+            const legendEl = document.getElementById('docDistribLegend');
+            if (legendEl) {
+                legendEl.innerHTML = docLabels.map((l, i) => `
+                    <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full" style="background:${colors[i % colors.length]}"></div>
+                        <span class="text-gray-500 font-medium">${l}</span>
+                        </div>
+                        <span class="font-bold">${docValues[i]}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        initSparkline('sparklineUsers', [5,6,3,8,9,5,7], '#3b82f6');
+        initSparkline('sparklineConversas', [2,4,6,8,10,12,14], '#10b981');
+        initSparkline('sparklineIA', [10,12,14,16,18,20,22], '#8b5cf6');
+        initSparkline('sparklineAtivos', [1,2,1,3,2,4,3], '#f59e0b');
+
+        // Maiores Interesses (Top Topics)
+        if (data.topicos) {
+          const list = document.getElementById('topTopicsList');
+          const countEl = document.getElementById('topicCount');
+          if (countEl) countEl.textContent = data.topicos.length;
+          if (list) {
+            if (data.topicos.length === 0) {
+              list.innerHTML = '<p class="text-center text-gray-400 text-xs py-8">Aguardando dados...</p>';
+            } else {
+              list.innerHTML = data.topicos.map((t, i) => {
+                const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-purple-500', 'bg-rose-500'];
+                const pct = Math.max(10, Math.min(100, (t.total / (data.estatisticas.totalConversas || 1)) * 100));
+                return `
+                <div class="space-y-1.5 anim-in fade-in slide-in-from-bottom duration-500" style="animation-delay: ${i * 100}ms">
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="font-bold text-gray-700 dark:text-gray-300 capitalize">${t.topic}</span>
+                    <span class="text-gray-400 font-medium">${t.total} consultas</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div class="h-full ${colors[i % colors.length]} transition-all duration-1000 ease-out" style="width: ${pct}%"></div>
+                  </div>
+                </div>`;
+              }).join('');
+            }
+          }
+        }
+
+        // Clima das Interações & Sentimento
+        if (data.sentimentos) {
+          const list = document.getElementById('sentimentDistribution');
+          if (list) {
+            const colorsMap = { 'Urgente': 'text-red-500 bg-red-50 dark:bg-red-900/10 border-red-100', 'Frustrado': 'text-orange-500 bg-orange-50 dark:bg-orange-900/10 border-orange-100', 'Agradecido': 'text-green-500 bg-green-50 dark:bg-green-900/10 border-green-100', 'Dúvida Simples': 'text-blue-500 bg-blue-50 dark:bg-blue-900/10 border-blue-100', 'Neutro': 'text-gray-500 bg-gray-50 dark:bg-gray-700/50 border-gray-100' };
+            if (data.sentimentos.length === 0) {
+               list.innerHTML = '<p class="text-center text-gray-400 text-xs py-8 italic">Sem interações registradas.</p>';
+            } else {
+               list.innerHTML = data.sentimentos.map(s => `
+                <div class="flex items-center justify-between p-3 rounded-xl border ${colorsMap[s.sentiment] || colorsMap['Neutro']} transition-all hover:scale-[1.02]">
+                    <span class="text-sm font-bold capitalize">${s.sentiment}</span>
+                    <span class="text-lg font-black">${s.total}</span>
+                </div>
+               `).join('');
+            }
+          }
+        }
+
+        // Violation Bell & Alerts
+        try {
+            const violationsRes = await fetch(`${API_URL}/admin/violations`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (violationsRes.ok) {
+                const violations = await violationsRes.json();
+                const badge = document.getElementById('violationBadge');
+                if (badge) {
+                    if (violations.length > 0) badge.classList.remove('hidden');
+                    else badge.classList.add('hidden');
+                }
+            }
+        } catch (vErr) { console.warn('Violation check failed:', vErr); }
+
+        // Heatmap Logic
+        try {
+            const heatRes = await fetch(`${API_URL}/admin/heatmap`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (heatRes.ok) {
+                const heatData = await heatRes.json();
+                const heatCanvas = document.getElementById('heatmapChart');
+                if (heatCanvas) {
+                    const hCtx = heatCanvas.getContext('2d');
+                    if (window.heatmap) window.heatmap.destroy();
+                    window.heatmap = new Chart(hCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: Array(24).fill(0).map((_, i) => `${i}h`),
+                            datasets: [{
+                                label: 'Interações',
+                                data: heatData,
+                                backgroundColor: heatData.map(v => v > 10 ? 'rgba(37, 99, 235, 0.8)' : 'rgba(37, 99, 235, 0.3)'),
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 9 } } } }
+                        }
+                    });
+                }
+            }
+        } catch (hErr) { console.warn('Heatmap loading failed:', hErr); }
+
+      } catch (err) { console.error('Dash error:', err); }
+      finally { isDashboardLoading = false; }
+    }
+
+    // Helper para ver conversas de um tópico específico
+    async function showTopicConversations(topic) {
+        console.log('Filtrando por tópico:', topic);
+        // Por enquanto, como não temos endpoint de filtro por tópico,
+        // vamos abrir a aba de violações ou logs que já mostram conversas
+        // num futuro podemos criar um modal específico.
+        // num futuro podemos criar um modal específico.
+        showToast('Este tópico teve ' + topic + ' consultas. Explore os logs para detalhes.', 'info');
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await fetch(`${API_URL}/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (res.ok) {
+          allUsers = data;
+          renderUsers(allUsers);
+        }
+      } catch (err) { console.error('Users error:', err); }
+    }
+
+    function exportUsersCSV() {
+      if (allUsers.length === 0) return alert('Nenhum dado para exportar');
+      const headers = ['Nome', 'Email', 'Apelido', 'Tipo', 'Criado Em'];
+      const rows = allUsers.map(u => [u.nome, u.email, u.apelido, u.tipo, u.createdAt]);
+      const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.join(",")).join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "usuarios_juscore_ai.csv");
+      document.body.appendChild(link);
+      link.click();
+    }
+
+    function filterUsers() {
+      const q = document.getElementById('userSearch').value.toLowerCase();
+      const type = document.getElementById('filterType').value;
+      renderUsers(allUsers.filter(u => (u.nome.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) && (type === 'all' || u.tipo === type)));
+    }
+
+    function editUser(id) {
+      const u = allUsers.find(x => String(x.id || x._id) === String(id));
+      if (!u) return;
+      document.getElementById('editUserId').value = id;
+      document.getElementById('editUserNome').value = u.nome;
+      document.getElementById('editUserEmail').value = u.email;
+      document.getElementById('editUserApelido').value = u.apelido;
+      document.getElementById('editUserTipo').value = u.tipo;
+      document.getElementById('editUserModal').classList.remove('hidden');
+    }
+    function closeEditModal() { document.getElementById('editUserModal').classList.add('hidden'); }
+
+    async function saveUserEdit() {
+      const id = document.getElementById('editUserId').value;
+      const errorDiv = document.getElementById('editUserError');
+      
+      errorDiv.classList.add('hidden');
+
+      const res = await fetch(`${API_URL}/admin/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          nome: document.getElementById('editUserNome').value,
+          email: document.getElementById('editUserEmail').value,
+          apelido: document.getElementById('editUserApelido').value,
+          tipo: document.getElementById('editUserTipo').value
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) { 
+        closeEditModal(); 
+        loadUsers(); 
+        showToast('Usuário atualizado!', 'success');
+      } else {
+        errorDiv.textContent = data.error || 'Erro ao atualizar';
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    async function deleteUser(id) {
+      if (confirm("Excluir usuário permanentemente?")) {
+        const res = await fetch(`${API_URL}/admin/users/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) loadUsers();
+      }
+    }
+
+    async function loadDocs() {
+      try {
+        const res = await fetch(`${API_URL}/documents`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (res.ok) {
+          allDocs = data;
+          document.getElementById('docCountBadge').textContent = allDocs.length + ' itens';
+          document.getElementById('docsTableBody').innerHTML = allDocs.map(d => `
+            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/20">
+              <td class="px-6 py-4 font-bold text-sm text-gray-800 dark:text-gray-200">${d.titulo}</td>
+              <td class="px-6 py-4"><span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/20 text-blue-700 text-xs font-bold rounded-md uppercase">${d.categoria}</span></td>
+              <td class="px-6 py-4 text-right">
+                <button onclick="deleteDoc('${d.id || d._id}')" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) { console.error('Docs error:', err); }
+    }
+
+    async function deleteDoc(id) {
+      if (confirm("Remover este modelo de documento?")) {
+        const res = await fetch(`${API_URL}/documents/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) loadDocs();
+      }
+    }
+
+    async function loadLogs() {
+      try {
+        const res = await fetch(`${API_URL}/admin/activities`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('logsTableBody').innerHTML = data.map(log => `
+            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/20 text-sm">
+              <td class="px-8 py-4 font-bold text-gray-700 dark:text-gray-300">${log.usuario}</td>
+              <td class="px-8 py-4"><span class="px-2 py-1 bg-blue-50 dark:bg-blue-900/10 text-blue-600 text-xs font-bold rounded-lg uppercase">${log.acao}</span></td>
+              <td class="px-8 py-4 text-gray-500 truncate max-w-xs">${log.extra}</td>
+              <td class="px-8 py-4 text-right text-gray-400 font-medium">${new Date(log.data).toLocaleString('pt-BR')}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) { console.error('Logs error:', err); }
+    }
+
+    function initSparkline(id, data, color) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (sparkCharts[id]) sparkCharts[id].destroy(); // Limpa gráfico anterior
+      const ctx = el.getContext('2d');
+      sparkCharts[id] = new Chart(ctx, {
+        type: 'line',
+        data: { labels: data.map((_, i) => i), datasets: [{ data: data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }] },
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false, 
+          animation: false, // Otimização
+          plugins: { legend: { display: false }, tooltip: { enabled: false } }, 
+          scales: { x: { display: false }, y: { display: false } } 
+        }
+      });
+    }
+
+    async function loadAlert() {
+      try {
+        const res = await fetch(`${API_URL}/admin/settings/global-alert`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        document.getElementById('sysAlertMsg').value = data.message || '';
+      } catch (err) { console.error('Alert error:', err); }
+    }
+
+    async function broadcastAlert() {
+      const msg = document.getElementById('sysAlertMsg').value;
+      const res = await fetch(`${API_URL}/admin/settings/global-alert`, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      });
+      if (res.ok) alert('Alerta global atualizado!');
+    }
+
+    /* =========================
+       VIOLAÇÕES E CHAT (Fase 7)
+    ========================= */
+    async function loadViolations() {
+      try {
+        const res = await fetch(`${API_URL}/admin/violations`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) throw new Error('Falha ao buscar violações');
+        const data = await res.json();
+        const tbody = document.getElementById('violationsTableBody');
+        if (!tbody) return;
+        
+        if (!data || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-400">Nenhuma violação detectada.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.map(v => `
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20">
+              <td class="px-8 py-5">
+                <div class="flex flex-col">
+                  <span class="font-bold text-gray-800 dark:text-gray-200">${v.User?.nome || v.User?.apelido || 'Usuário'}</span>
+                  <span class="text-xs text-gray-500">${v.User?.email || '-'}</span>
+                </div>
+              </td>
+              <td class="px-8 py-5"><span class="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 text-xs font-bold rounded-full uppercase">${v.flagReason}</span></td>
+              <td class="px-8 py-5 text-gray-400 text-sm italic grow truncate max-w-[200px]">${v.titulo || 'Sem título'}</td>
+              <td class="px-8 py-5 text-right">
+                <button onclick="viewFullChat('${v.sessionId}', '${v.User?.nome || 'Usuário'}')" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-xs font-bold rounded-lg hover:bg-gray-200 transition-all">Ver Chat</button>
+              </td>
+            </tr>
+          `).join('');
+      } catch (err) { 
+        console.error('Violations error:', err);
+        document.getElementById('violationsTableBody').innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-500">Erro: ${err.message}. Certifique-se de reiniciar o servidor.</td></tr>`;
+      }
+    }
+
+    async function loadUserChats(userId, userName) {
+      console.log('Loading chats for:', userId, userName);
+      const bEl = document.getElementById('userBadge');
+      const badge = bEl ? bEl.textContent.trim().toUpperCase() : '';
+      
+      // Permitir ADMIN e ESPECIAL
+      if (badge !== 'ADMIN' && badge !== 'ADMINISTRADOR' && badge !== 'ESPECIAL') {
+        console.warn('Acesso negado: Badge é', badge);
+        return;
+      }
+      
+      try {
+        const res = await fetch(`${API_URL}/admin/users/${userId}/conversations`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) throw new Error('Status: ' + res.status);
+        const data = await res.json();
+        
+        document.getElementById('sessionModalUserName').textContent = userName;
+        const list = document.getElementById('userSessionsList');
+        
+        if (!data || data.length === 0) {
+          list.innerHTML = '<p class="text-center text-gray-500 p-8">Nenhuma conversa encontrada para este usuário.</p>';
+        } else {
+          list.innerHTML = data.map(c => `
+            <div onclick="viewFullChat('${c.sessionId}', '${userName}')" class="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-all">
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-sm text-gray-700 dark:text-gray-300 truncate pr-4">${c.titulo}</span>
+                <span class="text-[10px] text-gray-400 whitespace-nowrap">${new Date(c.updatedAt).toLocaleDateString()}</span>
+              </div>
+              <p class="text-xs ${c.flagged ? 'text-red-500 font-bold' : 'text-gray-500'} truncate">
+                ${c.flagged ? '⚠️ VIOLAÇÃO: ' + (c.flagReason || 'Política') : 'Sessão: ' + c.sessionId}
+              </p>
+            </div>
+          `).join('');
+        }
+        document.getElementById('userSessionsModal').classList.remove('hidden');
+      } catch (err) { 
+        console.error('User chats error:', err);
+        alert('Erro ao carregar conversas: ' + err.message + '. Tente reiniciar o servidor backend.');
+      }
+    }
+
+    async function viewFullChat(sessionId, userName) {
+      document.getElementById('chatModalUser').textContent = 'Chat de ' + userName;
+      document.getElementById('chatHistoryModal').classList.remove('hidden');
+      const content = document.getElementById('chatContent');
+      content.innerHTML = '<p class="text-center text-gray-500 p-8">Carregando mensagens...</p>';
+      
+      try {
+        const res = await fetch(`${API_URL}/chat/${sessionId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) throw new Error('Status: ' + res.status);
+        const data = await res.json();
+        
+        const msgs = data.mensagens || [];
+        if (msgs.length === 0) {
+          content.innerHTML = '<p class="text-center text-gray-500 p-8">Sessão vazia ou sem mensagens.</p>';
+          return;
+        }
+
+        content.innerHTML = msgs.map(m => `
+          <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
+            <div class="max-w-[85%] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-2xl rounded-tr-none' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-2xl rounded-tl-none'} p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+              <p class="text-sm leading-relaxed">${m.content}</p>
+            </div>
+          </div>
+        `).join('');
+        content.scrollTo(0, content.scrollHeight);
+      } catch (err) { 
+        console.error('Chat view error:', err);
+        content.innerHTML = `<p class="text-center text-red-500 p-8">Erro ao carregar mensagens: ${err.message}. Reinicie o servidor se necessário.</p>`;
+      }
+    }
+
+    // Inicialização Única
+    showSection('dashboard');
+    loadUsers(); 
+    loadAlert(); 
+
+    // Auto-refresh a cada 15 segundos se estiver no Dashboard (Fase 12)
+    setInterval(() => {
+      const dashboardVisible = !document.getElementById('dashboardSection')?.classList.contains('hidden');
+      if (dashboardVisible) {
+        console.log('🔄 Dashboard: Atualização automática...');
+        loadDashboard();
+      }
+      // Sempre checar violações para o sininho de notificação
+      loadViolations();
+    }, 15000);
+    // Criar Usuário
+    document.getElementById('userForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('userBtn');
+      const errorDiv = document.getElementById('createUserError');
+      
+      const payload = {
+        nome: document.getElementById('newUserNome').value,
+        email: document.getElementById('newUserEmail').value,
+        senha: document.getElementById('newUserSenha').value,
+        apelido: document.getElementById('newUserApelido').value,
+        tipo: document.getElementById('newUserTipo').value
+      };
+
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Criando...';
+        errorDiv.classList.add('hidden');
+        
+        const res = await fetch(`${API_URL}/admin/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            showToast('Usuário criado com sucesso!', 'success');
+            document.getElementById('createUserModal').classList.add('hidden');
+            document.getElementById('userForm').reset();
+            loadUsers();
+            loadDashboard(); // Atualiza stats
+        } else {
+            errorDiv.textContent = data.error || 'Erro ao criar usuário';
+            errorDiv.classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error(err);
+        errorDiv.textContent = 'Erro: ' + err.message;
+        errorDiv.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Criar Usuário';
+      }
+    });
+
+  </script>
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] space-y-3 pointer-events-none"></div>
+
+  <script>
+    /* =========================
+       TOAST NOTIFICATIONS (Admin)
+    ========================= */
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
+
+      const icons = {
+        success: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`,
+        error: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
+        info: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+      };
+
+      const colors = {
+        success: "bg-green-500 text-white",
+        error: "bg-red-500 text-white",
+        info: "bg-blue-500 text-white",
+      };
+
+      const toast = document.createElement("div");
+      toast.className = `max-w-xs w-full shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 overflow-hidden transform transition-all duration-300 translate-x-full opacity-0 ${colors[type] || colors.info}`;
+      
+      toast.innerHTML = `
+        <div class="p-4 flex items-start gap-3">
+          <div class="flex-shrink-0">
+            ${icons[type] || icons.info}
+          </div>
+          <div class="flex-1 text-sm font-medium">
+            ${message}
+          </div>
+          <div class="flex-shrink-0 flex">
+            <button onclick="this.parentElement.parentElement.parentElement.remove()" class="rounded-lg p-1 hover:bg-white/20 transition-colors focus:outline-none">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove("translate-x-full", "opacity-0");
+        toast.classList.add("translate-x-0", "opacity-100");
+      });
+
+      setTimeout(() => {
+        toast.classList.add("translate-x-full", "opacity-0");
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
