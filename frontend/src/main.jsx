@@ -11,12 +11,19 @@ import { registerSW } from 'virtual:pwa-register'
 
 const updateSW = registerSW({
   onNeedRefresh() {
-    if (confirm('Nova versão disponível! Deseja atualizar?')) {
-      updateSW(true)
-    }
+    // Atualiza e recarrega automaticamente sem pedir confirmação
+    updateSW(true)
   },
   onOfflineReady() {
-    console.log('App pronto para uso offline!')
+    // App pronto para uso offline
+  },
+  onRegistered(r) {
+    // Verifica por atualizações a cada 60 segundos quando online
+    r && setInterval(() => {
+      if (navigator.onLine) {
+        r.update()
+      }
+    }, 60 * 1000)
   },
 })
 

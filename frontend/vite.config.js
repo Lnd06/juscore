@@ -13,7 +13,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
+      includeAssets: ["icone.png", "icone-192.png", "icone-512.png"],
       manifest: {
         name: "JusCore AI",
         short_name: "JusCore",
@@ -24,9 +24,14 @@ export default defineConfig({
         orientation: "portrait",
         icons: [
           {
-            src: "juscore-pwa.svg",
-            sizes: "any",
-            type: "image/svg+xml",
+            src: "icone-192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "icone-512.png",
+            sizes: "512x512",
+            type: "image/png",
             purpose: "any maskable",
           },
         ],
@@ -34,6 +39,12 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        navigateFallbackDenylist: [/^\/api/],
+        // Garante que o novo SW assume controle imediatamente
+        skipWaiting: true,
+        clientsClaim: true,
+        // Remove caches antigas automaticamente
+        cleanupOutdatedCaches: true,
       },
       devOptions: {
         enabled: true,
