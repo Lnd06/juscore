@@ -11,9 +11,9 @@ const enterprise = {
     dailyVision: 9999,
   },
   models: {
-    default: "kimi-k2-0905",
+    default: "llama-3.3-70b-versatile",
     reasoning: "deepseek-r1-distill-llama-70b", // Modelo de Raciocínio (Novo/Premium)
-    vision: "meta-llama/llama-4-scout-17b-16e-instruct",
+    vision: "llama-3.2-90b-vision-preview",
   },
   features: {
     internetSearch: true,

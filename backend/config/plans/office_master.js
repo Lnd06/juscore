@@ -10,9 +10,9 @@ const office_master = {
     dailyVision: 9999,
   },
   models: {
-    default: "meta-llama/llama-4-maverick-17b-128e-instruct",
+    default: "llama-3.3-70b-versatile",
     reasoning: null,
-    vision: "meta-llama/llama-4-scout-17b-16e-instruct",
+    vision: "llama-3.2-90b-vision-preview",
   },
   features: {
     internetSearch: true,
