@@ -10,9 +10,9 @@ const student_pro = {
     dailyVision: 22, // Limite imagens (Visão)
   },
   models: {
-    default: "meta-llama/llama-4-scout-17b-16e-instruct",
+    default: "llama-3.1-8b-instant",
     reasoning: null,
-    vision: "meta-llama/llama-4-scout-17b-16e-instruct",
+    vision: "llama-3.2-90b-vision-preview",
   },
   features: {
     internetSearch: true,
