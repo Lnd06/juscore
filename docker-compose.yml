@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8
+    container_name: juscore_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "@Juscore_821"
+# MYSQL_DATABASE: "u135442082_juscore_ai"
+      # MYSQL_USER: "u135442082_daniel_admin"
+      # MYSQL_PASSWORD: "@Juscore_821"
+      MYSQL_DATABASE: "juscore_ai"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: ""
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    volumes:
+      - juscore_db_data:/var/lib/mysql
+    networks:
+      - juscore_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: juscore_backend
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - juscore_uploads:/app/uploads
+    networks:
+      - juscore_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: juscore_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - juscore_network
+
+networks:
+  juscore_network:
+    driver: bridge
+
+volumes:
+  juscore_uploads:
+    name: juscore_uploads
+  juscore_db_data:
+    name: juscore_db_data

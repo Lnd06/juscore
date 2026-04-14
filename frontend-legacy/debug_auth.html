@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JusCore AI - Auth Debugger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8 font-mono">
+    <h1 class="text-2xl font-bold mb-4">🔍 Auth Debugger</h1>
+    
+    <div class="space-y-4">
+        <div class="p-4 bg-gray-800 rounded border border-gray-700">
+            <h2 class="font-bold text-blue-400 mb-2">1. LocalStorage Check</h2>
+            <div id="storageStatus">Checking...</div>
+        </div>
+
+        <div class="p-4 bg-gray-800 rounded border border-gray-700">
+            <h2 class="font-bold text-green-400 mb-2">2. API Connection Check</h2>
+            <button onclick="checkApi()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded mb-2">Test /auth/me</button>
+            <div id="apiStatus" class="whitespace-pre-wrap">Waiting for test...</div>
+        </div>
+
+        <div class="p-4 bg-gray-800 rounded border border-gray-700">
+            <h2 class="font-bold text-red-400 mb-2">3. Actions</h2>
+            <button onclick="clearAuth()" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded mr-2">Clear Token</button>
+            <button onclick="window.location.href='/login'" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded">Go to Login</button>
+            <button onclick="window.location.href='/'" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded">Go to Home</button>
+        </div>
+    </div>
+
+    <script>
+        function updateStorageStatus() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            const el = document.getElementById('storageStatus');
+            
+            if (token) {
+                el.innerHTML = `✅ <strong>Token Found:</strong> ${token.substring(0, 20)}...<br>👤 <strong>User Data:</strong> ${user || 'null'}`;
+                el.className = "text-green-300";
+            } else {
+                el.innerHTML = "❌ No Token in LocalStorage";
+                el.className = "text-red-300";
+            }
+        }
+
+        async function checkApi() {
+            const el = document.getElementById('apiStatus');
+            el.textContent = "Testing...";
+            
+            try {
+                const token = localStorage.getItem('token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const res = await fetch('/api/auth/me', { headers });
+                const data = await res.json();
+
+                if (res.ok) {
+                    el.textContent = `✅ Success (Status ${res.status})\nUser: ${JSON.stringify(data.user, null, 2)}`;
+                    el.className = "text-green-300 whitespace-pre-wrap";
+                } else {
+                    el.textContent = `❌ Failed (Status ${res.status})\nError: ${JSON.stringify(data)}`;
+                    el.className = "text-red-300 whitespace-pre-wrap";
+                }
+            } catch (err) {
+                el.textContent = `❌ Network Error: ${err.message}`;
+                el.className = "text-red-300";
+            }
+        }
+
+        function clearAuth() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            updateStorageStatus();
+        }
+
+        // Init
+        updateStorageStatus();
+    </script>
+</body>
+</html>

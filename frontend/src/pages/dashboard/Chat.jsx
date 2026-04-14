@@ -32,7 +32,7 @@ const Chat = () => {
   const [stream, setStream] = useState(null);
   const [expandedImage, setExpandedImage] = useState(null);
   const [videoDevices, setVideoDevices] = useState([]);
-  const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
+  const [facingMode, setFacingMode] = useState('environment');
   const [isDocMode, setIsDocMode] = useState(false);
   
   const bottomRef = useRef(null);
@@ -86,11 +86,8 @@ const Chat = () => {
     const fetchProcesses = async () => {
       try {
         const res = await axios.get('/api/processes');
-        console.log('📦 LOG DEBUG CHAT | Processos encontrados:', res.data?.length, res.data);
         setProcesses(res.data || []);
       } catch (err) {
-        console.error('📦 LERRO CHAT | Erro buscar processos:', err?.response?.data || err.message);
-
       }
     };
     fetchProcesses();
@@ -106,10 +103,10 @@ const Chat = () => {
       if (file) {
         if (file.type === 'application/pdf') {
           setIsProcessingFile(true);
-          convertPdfToImage(file)
+          const currentPlan = user?.subscriptionPlan || 'free';
+          convertPdfToImage(file, currentPlan)
             .then(img => setSelectedImage(img))
             .catch(err => {
-              console.error("Erro ao converter PDF:", err);
               if (err.response?.data?.message) {
                 // Capturar mensagem amigável do backend (ex: limite de uso)
                 addMessage("system", err.response.data.message);
@@ -135,17 +132,24 @@ const Chat = () => {
 
   const handleLaunchCamera = async () => {
     try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoInputs = devices.filter(device => device.kind === 'videoinput');
-      setVideoDevices(videoInputs);
+      let mediaStream;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: 'environment' } }
+        });
+        setFacingMode('environment');
+      } catch (e) {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setFacingMode('user');
+      }
 
-      const deviceId = videoInputs[currentDeviceIndex]?.deviceId || videoInputs[0]?.deviceId;
-      const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : true };
-
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
       setShowCamera(true);
       setIsAttachMenuOpen(false);
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter(device => device.kind === 'videoinput');
+      setVideoDevices(videoInputs);
     } catch (err) {
       alert("Não foi possível acessar a câmera: " + err.message);
     }
@@ -153,17 +157,24 @@ const Chat = () => {
 
   const handleSwitchCamera = async () => {
     if (videoDevices.length < 2) return;
-    const newIndex = (currentDeviceIndex + 1) % videoDevices.length;
-    setCurrentDeviceIndex(newIndex);
+    
+    const newFacingMode = facingMode === 'environment' ? 'user' : 'environment';
+    
     if (stream) stream.getTracks().forEach(track => track.stop());
     
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: videoDevices[newIndex].deviceId } }
+        video: { facingMode: { exact: newFacingMode } }
       });
       setStream(mediaStream);
+      setFacingMode(newFacingMode);
     } catch (err) {
-      alert("Erro ao trocar de câmera");
+      try {
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setStream(fallbackStream);
+      } catch (fallbackErr) {
+        alert("Erro ao trocar de câmera");
+      }
     }
   };
 
@@ -241,18 +252,13 @@ const Chat = () => {
       setInput('');
       setSelectedImage(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      // Se não temos um sessionId local, geramos um temporário ou aguardamos o do backend
-      // Para garantir persistência na URL mesmo em caso de erro, vamos gerar um aqui se necessário
-      const effectiveSessionId = localSessionId || crypto.randomUUID();
+      // Se não temos um sessionId local, enviamos null para o backend gerar um novo
+      const effectiveSessionId = localSessionId || null;
       
       const newSessionId = await sendMessage(textToSend, imageToSend, effectiveModel, effectiveSessionId, selectedProcess);
       
-      // Sempre atualizar a URL se for uma nova sessão, independente de sucesso ou erro no envio da mensagem
-      if (effectiveSessionId !== localSessionId) {
-        setLocalSessionId(effectiveSessionId);
-        setSearchParams({ sessionId: effectiveSessionId }, { replace: true });
-      } else if (newSessionId && newSessionId !== localSessionId) {
-        // Fallback caso o backend tenha gerado um diferente (improvável se enviarmos um)
+      // Sempre atualizar a URL se for uma nova sessão
+      if (newSessionId && newSessionId !== localSessionId) {
         setLocalSessionId(newSessionId);
         setSearchParams({ sessionId: newSessionId }, { replace: true });
       }

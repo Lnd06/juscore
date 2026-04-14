@@ -19,7 +19,7 @@ const bgStyles = {
 export const Logo = ({ className, src, bg = BG_STYLE }) => {
   const bgClass = bgStyles[bg] ?? '';
 
-  const imgSrc = src || '/juscore.svg';
+  const imgSrc = src || '/icone.png';
 
   return (
     <div className={cn('relative flex items-center justify-center group', bgClass)}>

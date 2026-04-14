@@ -46,8 +46,7 @@
     </filter>
   </defs>
 
-  <!-- Dark Background -->
-  <rect width="750" height="750" fill="#0B0F19"/>
+  <!-- Dark BackgroundRemoved -->
 
   <!-- SVG Content Centered and glowing -->
   <g transform="translate(0, 62.5)" filter="url(#white-glow)">

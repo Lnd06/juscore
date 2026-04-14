@@ -129,7 +129,7 @@ export const TypewriterText = ({ texts, className = '' }) => {
 
   return (
     <span className={className}>
-      {currentText}
+      <span>{currentText}</span>
       <span className="animate-pulse border-r-2 border-accent ml-1" />
     </span>
   );

@@ -1,6 +1,8 @@
 import PDFDocument from "pdfkit";
 import getPlanConfig from "../config/plans/index.js";
 import PQueue from "p-queue";
+import fs from "fs";
+import path from "path";
 
 // Fila de prioridade/concorrência global para PDFKit, protegendo a RAM do servidor
 const pdfQueue = new PQueue({ concurrency: 5 });
@@ -304,6 +306,10 @@ export function generateProfessionalPDF(content, options) {
       date,
       oabNumber,
       user,
+      clientSignatureImage,
+      clientSignerName,
+      clientSignerCpf,
+      lawyerSignatureImage,
     } = options;
 
     // Margens ABNT (Padrão Acadêmico/Jurídico): Superior: 3cm, Esquerda: 3cm, Direita: 2cm, Inferior: 2cm
@@ -334,9 +340,15 @@ export function generateProfessionalPDF(content, options) {
     // O logotipo
     if (logo) {
       try {
-        const imageBuffer = logo.startsWith("data:")
-          ? Buffer.from(logo.split(",")[1], "base64")
-          : logo;
+        let imageBuffer;
+        if (logo.startsWith("data:")) {
+          imageBuffer = Buffer.from(logo.split(",")[1], "base64");
+        } else {
+          // If it's a file path, we need to read it synchronously so errors are caught here.
+          // Often it's saved as "uploads/..." but sometimes it starts with "/".
+          const cleanPath = logo.startsWith("/") ? logo.substring(1) : logo;
+          imageBuffer = fs.readFileSync(path.resolve(cleanPath));
+        }
 
         doc.image(imageBuffer, marginL, headerY - 20, { height: 40 });
       } catch (e) {
@@ -397,6 +409,14 @@ export function generateProfessionalPDF(content, options) {
     const cleanContent = String(content || "")
       .replace(/\*\*/g, "")
       .replace(/\*/g, "")
+      .replace(/\[Local e Data\]/gi, "")
+      .replace(/\[Assinatura do Advogado\]/gi, "")
+      .replace(/\[Nome do Advogado\]/gi, "")
+      .replace(/OAB n[º°]? \[N[úu]mero da OAB\]/gi, "")
+      .replace(/\[Assinatura do Cliente\]/gi, "")
+      .replace(/\[Nome do Cliente\]/gi, "")
+      .replace(/\[CPF do Cliente\]/gi, "")
+      .replace(/____________________________________/g, "")
       .trim();
 
     doc.fontSize(12).font("Helvetica").fillColor("#000000").text(cleanContent, {
@@ -405,39 +425,98 @@ export function generateProfessionalPDF(content, options) {
       paragraphGap: 12,
     });
 
-    // Assinatura (garantindo que se o espaço for curto haja quebra de página but not too aggressive)
-    const requiredSpaceForSig = 65;
+    // Blocos de Assinatura
+    const blocks = [];
+
+    // Bloco do Cliente
+    if (options.clientSignerName || clientSignatureImage) {
+      blocks.push({
+        name: options.clientSignerName || "Cliente",
+        doc: options.clientSignerCpf ? `CPF: ${options.clientSignerCpf}` : null,
+        image: clientSignatureImage,
+      });
+    }
+
+    // Bloco do Advogado (Sempre exibe se o advogado assinou, OU se ninguém assinou ainda)
+    if (lawyerSignatureImage || blocks.length === 0) {
+      blocks.push({
+        name: lawyerName || user?.nome || "Advogado Responsável",
+        doc: oabNumber ? `OAB: ${oabNumber}` : null,
+        image: lawyerSignatureImage,
+      });
+    }
+
+    // Garantir espaço para assinaturas
+    const requiredSpaceForSig =
+      clientSignatureImage || lawyerSignatureImage ? 140 : 85;
     if (
       doc.y + requiredSpaceForSig >
       doc.page.height - doc.page.margins.bottom
     ) {
       doc.addPage();
     } else {
-      // give a little space above signature line
-      doc.y += 30;
+      doc.moveDown(3);
     }
 
-    const currentY = doc.y;
-    doc
-      .strokeColor("#000000")
-      .lineWidth(0.8)
-      .moveTo(marginL + 50, currentY)
-      .lineTo(595 - marginR - 50, currentY)
-      .stroke();
+    const startY = doc.y;
+    const innerWidth = doc.page.width - marginL - marginR;
 
-    const finalSignName = lawyerName || user?.nome || "Assinatura";
-    doc.fontSize(11).text(finalSignName, marginL, currentY + 10, {
-      align: "center",
-      width: 595 - marginL - marginR,
-    });
+    // Helper para desenhar um bloco de assinatura
+    const drawBlock = (block, xOffset, blockWidth) => {
+      let currentY = startY;
 
-    if (oabNumber) {
-      doc.fontSize(10).text(`OAB: ${oabNumber}`, marginL, currentY + 25, {
+      if (block.image) {
+        try {
+          let sigBuffer;
+          if (block.image.startsWith("data:")) {
+            sigBuffer = Buffer.from(block.image.split(",")[1], "base64");
+          } else {
+            const cleanPathSig = block.image.startsWith("/")
+              ? block.image.substring(1)
+              : block.image;
+            sigBuffer = fs.readFileSync(path.resolve(cleanPathSig));
+          }
+          doc.image(sigBuffer, xOffset + (blockWidth - 150) / 2, currentY, {
+            height: 60,
+            align: "center",
+          });
+        } catch (e) {
+          console.warn("Signature rendering failed:", e.message);
+        }
+      }
+
+      currentY = startY + 65;
+
+      const lineY = currentY + 5;
+      doc
+        .strokeColor("#000000")
+        .lineWidth(0.8)
+        .moveTo(xOffset + 20, lineY)
+        .lineTo(xOffset + blockWidth - 20, lineY)
+        .stroke();
+
+      const textY = lineY + 5;
+      doc.fontSize(11).text(block.name, xOffset, textY, {
         align: "center",
-        width: 595 - marginL - marginR,
+        width: blockWidth,
       });
+      if (block.doc) {
+        doc.fontSize(10).text(block.doc, xOffset, doc.y + 2, {
+          align: "center",
+          width: blockWidth,
+        });
+      }
+    };
+
+    if (blocks.length === 1) {
+      drawBlock(blocks[0], marginL, innerWidth);
+    } else if (blocks.length === 2) {
+      drawBlock(blocks[0], marginL, innerWidth / 2);
+      drawBlock(blocks[1], marginL + innerWidth / 2, innerWidth / 2);
     }
 
+    // Atualiza o Y final após o bloco maior
+    doc.y = startY + 120;
     // Rodapé com Paginação
     const pages = doc.bufferedPageRange();
     for (let i = 0; i < pages.count; i++) {

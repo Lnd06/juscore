@@ -201,6 +201,7 @@ router.post("/generate-ai", auth, async (req, res) => {
         success: true,
         pdf: buffer.toString("base64"),
         filename: filename,
+        rawContent: aiContent,
       });
     });
   } catch (error) {

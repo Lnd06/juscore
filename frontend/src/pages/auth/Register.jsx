@@ -251,21 +251,14 @@ const Register = () => {
           type="button"
           onClick={async () => {
             try {
-              const res = await axios.get('/api/auth/google/url');
+              const res = await axios.get(`/api/auth/google/url?t=${Date.now()}`);
               const { url } = res.data;
-              
-              const width = 500;
-              const height = 600;
-              const left = window.screen.width / 2 - width / 2;
-              const top = window.screen.height / 2 - height / 2;
-              
-              const popup = window.open(
-                url, 
-                'GoogleAuth', 
-                `width=${width},height=${height},left=${left},top=${top}`
-              );
 
-              // O AuthContext global já tem um listener que cuida disso!
+              if (url && typeof url === 'string' && url.startsWith('https://')) {
+                window.location.href = url;
+              } else {
+                setError('Erro ao carregar link do Google. Tente novamente mais tarde.');
+              }
             } catch (err) {
               setError('Erro ao iniciar cadastro com Google');
             }

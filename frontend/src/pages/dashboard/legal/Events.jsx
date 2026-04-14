@@ -88,23 +88,38 @@ const Events = () => {
       // Limpa resultado anterior
       localStorage.removeItem('google_auth_result');
 
-      const res = await axios.get('/api/auth/google/url', { 
-        headers: { Authorization: `Bearer ${token}` } 
-      });
-      const { url } = res.data;
-      
+      // 1. Abre a janela de popup *antes* de fazer a requisição (Síncrono)
+      // Isso evita que navegadores bloqueiem o popup ou percam o foco
       const width = 500;
       const height = 600;
       const left = window.screen.width / 2 - width / 2;
       const top = window.screen.height / 2 - height / 2;
       
       const popup = window.open(
-        url, 
+        '', 
         'GoogleAuth', 
         `width=${width},height=${height},left=${left},top=${top}`
       );
 
-      if (!popup) return;
+      if (!popup) {
+        alert('Popup bloqueado pelo navegador. Por favor, permita popups para este site.');
+        return;
+      }
+
+      // 2. Busca a URL do backend
+      const res = await axios.get('/api/auth/google/url?t=' + Date.now(), { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      const { url } = res.data;
+      
+      // 3. Atualiza a URL do popup
+      if (url && typeof url === 'string' && url.startsWith('https://')) {
+        popup.location.href = url;
+      } else {
+        popup.close();
+        alert('Erro ao carregar link do Google. Tente novamente.');
+        return;
+      }
 
       // Polling de localStorage (mesma estratégia do Login.jsx)
       const poll = setInterval(() => {

@@ -207,7 +207,7 @@ const Profile = () => {
     setCancelingSub(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('/api/payments/asaas/cancel_subscription', {}, {
+      const res = await axios.post('/api/payments/cancel_subscription', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessage({ type: 'success', text: res.data.message || 'Sua assinatura foi cancelada.' });
@@ -389,7 +389,7 @@ const Profile = () => {
 
         {user?.subscriptionPlan !== 'free' && user?.subscriptionStatus !== 'cancelled' && user?.subscriptionStatus !== 'canceled' && (
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 text-red-600 dark:text-red-400">
+            <h3 className="text-lg font-semibold mb-2 text-red-600 dark:text-red-400">
               Assinatura Premium
             </h3>
             {user?.cancelAtPeriodEnd ? (

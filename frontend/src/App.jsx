@@ -35,6 +35,10 @@ import GoogleAuthCallback from './pages/auth/GoogleAuthCallback';
 import OabSimulator from './pages/dashboard/OabSimulator';
 import TccAssistant from './pages/dashboard/TccAssistant';
 import DocumentGenerator from './pages/dashboard/legal/DocumentGenerator';
+import ErpDashboard from './pages/dashboard/legal/ErpDashboard';
+import AcademicHub from './pages/dashboard/AcademicHub';
+import Signatures from './pages/dashboard/legal/Signatures';
+import SignDocument from './pages/public/SignDocument';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -81,8 +85,6 @@ const MasterProfRoute = ({ children }) => {
   return children;
 };
 
-import AcademicHub from './pages/dashboard/AcademicHub';
-
 // Nível Estudante Pro/Acadêmico: OAB e TCC (Também liberado para Advogados)
 const AcademicRoute = ({ children }) => {
   const { user } = useAuth();
@@ -97,8 +99,10 @@ const AcademicRoute = ({ children }) => {
 };
 
 function App() {
+  // Route Load
   return (
     <Routes>
+      <Route path="/sign/:token" element={<SignDocument />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -127,14 +131,18 @@ function App() {
         <Route path="team" element={<GrowthRoute><Team /></GrowthRoute>} />
         <Route path="whatsapp" element={<MasterProfRoute><Whatsapp /></MasterProfRoute>} />
         <Route path="bi" element={<GrowthRoute><LawyerBI /></GrowthRoute>} />
+        {/* ERP Routes */}
+        <Route path="erp" element={<GrowthRoute><ErpDashboard /></GrowthRoute>} />
         <Route path="clients" element={<StarterRoute><Clients /></StarterRoute>} />
         <Route path="processes" element={<StarterRoute><Processes /></StarterRoute>} />
         <Route path="events" element={<GrowthRoute><Events /></GrowthRoute>} />
+        <Route path="finance" element={<MasterProfRoute><Fees /></MasterProfRoute>} /> {/* Using Fees component for now, will update later */}
         <Route path="fees" element={<MasterProfRoute><Fees /></MasterProfRoute>} />
         <Route path="oab-simulator" element={<AcademicRoute><OabSimulator /></AcademicRoute>} />
         <Route path="tcc-assistant" element={<AcademicRoute><TccAssistant /></AcademicRoute>} />
         <Route path="academic-hub" element={<AcademicRoute><AcademicHub /></AcademicRoute>} />
         <Route path="document-generator" element={<GrowthRoute><DocumentGenerator /></GrowthRoute>} />
+        <Route path="signatures" element={<GrowthRoute><Signatures /></GrowthRoute>} />
       </Route>
 
 

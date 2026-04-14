@@ -1,15 +1,39 @@
 import express from "express";
 import { auth } from "../midleware/auth.js";
 import { Process, Client } from "../models/index.js";
+import { Op } from "sequelize";
+import { checkPlanLimits } from "../middleware/planLimits.js";
 
 const router = express.Router();
 
-// Listar todos os processos do usuário logado
+// Listar todos os processos do usuário logado (com filtros ERP)
 router.get("/", auth, async (req, res) => {
   try {
+    const { status, fase, clientId, search, fromDate, toDate } = req.query;
+
+    let whereClause = { userId: req.user.id };
+
+    if (status) whereClause.status = status;
+    if (fase) whereClause.fase = fase;
+    if (clientId) whereClause.clientId = clientId;
+
+    if (search) {
+      whereClause[Op.or] = [
+        { numero: { [Op.like]: `%${search}%` } },
+        { tribunal: { [Op.like]: `%${search}%` } },
+        { comarca: { [Op.like]: `%${search}%` } },
+      ];
+    }
+
+    if (fromDate || toDate) {
+      whereClause.dataDistribuicao = {};
+      if (fromDate) whereClause.dataDistribuicao[Op.gte] = fromDate;
+      if (toDate) whereClause.dataDistribuicao[Op.lte] = toDate;
+    }
+
     const processes = await Process.findAll({
-      where: { userId: req.user.id },
-      include: [{ model: Client, attributes: ["id", "nome"] }],
+      where: whereClause,
+      include: [{ model: Client, attributes: ["id", "nome", "cpf_cnpj"] }],
       order: [["updatedAt", "DESC"]],
     });
     res.json(processes);
@@ -20,7 +44,7 @@ router.get("/", auth, async (req, res) => {
 });
 
 // Criar novo processo
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, checkPlanLimits, async (req, res) => {
   try {
     const process = await Process.create({
       ...req.body,
@@ -38,7 +62,12 @@ router.get("/:id", auth, async (req, res) => {
   try {
     const process = await Process.findOne({
       where: { id: req.params.id, userId: req.user.id },
-      include: [{ model: Client, attributes: ["id", "nome"] }],
+      include: [
+        {
+          model: Client,
+          attributes: ["id", "nome", "cpf_cnpj", "telefone", "email"],
+        },
+      ],
     });
     if (!process)
       return res.status(404).json({ error: "Processo não encontrado" });

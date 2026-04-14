@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
   MessageSquare,
@@ -26,7 +26,8 @@ import {
   DollarSign,
   Scale,
   GraduationCap,
-  Bug
+  Bug,
+  ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Logo } from '../ui';
@@ -35,6 +36,7 @@ import FeedbackModal from '../../pages/dashboard/FeedbackModal';
 const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const orgLogo = user?.organization?.logoUrl || '/logo.png';
   
   const handleNewChat = () => {
@@ -49,66 +51,63 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
   const isProfessional = role === 'Advogado(a)' || role === 'Empresa';
   
   // Níveis de Acesso Jurídico (Hierárquico)
-  // Starter+: Clientes, Processos
   const hasStarterAccess = isPrivileged || (isProfessional && ['lawyer_starter', 'lawyer_growth', 'office_master', 'enterprise'].includes(plan));
-  // Growth+: Gerador de Documentos, Agenda
   const hasGrowthAccess  = isPrivileged || (isProfessional && ['lawyer_growth', 'office_master', 'enterprise'].includes(plan));
-  // Master+: Financeiro, BI, Equipe
   const hasMasterAccess  = isPrivileged || (isProfessional && ['office_master', 'enterprise'].includes(plan));
-
   const hasStudentProAccess = isPrivileged || plan === 'student_pro';
 
-  const navItems = [
+  // --- MENU ESTRUTURA ---
+  const mainNav = [
     { icon: Home, label: 'Início', href: '/dashboard' },
-    { icon: MessageSquare, label: 'Chat', href: '/dashboard/chat' },
+    { icon: MessageSquare, label: 'Chat AI', href: '/dashboard/chat' },
   ];
 
-  // Recursos Profissionais Nível 1 (Starter)
-  if (hasStarterAccess) {
-    navItems.push(
-      { icon: Users, label: 'Clientes', href: '/dashboard/clients' },
-      { icon: Briefcase, label: 'Processos', href: '/dashboard/processes' }
-    );
-  }
-
-  // Recursos Profissionais Nível 2 (Growth)
+  const erpNav = [];
+  
   if (hasGrowthAccess) {
-    navItems.push(
-      { icon: FileText, label: 'Gerador de Documentos', href: '/dashboard/document-generator' },
-      { icon: CalendarDays, label: 'Agenda Prazos', href: '/dashboard/events' },
-      { icon: Users, label: 'Gestão de Equipe', href: '/dashboard/team' },
-      { icon: BarChart3, label: 'BI Jurídico', href: '/dashboard/bi' }
-    );
+    erpNav.push({ icon: LayoutDashboard, label: 'Dashboard ERP', href: '/dashboard/erp' });
   }
 
-  // Recursos Profissionais Nível 3 (Master)
+  if (hasStarterAccess) {
+    erpNav.push({ icon: Users, label: 'Clientes CRM', href: '/dashboard/clients' });
+    erpNav.push({ icon: Briefcase, label: 'Processos', href: '/dashboard/processes' });
+  }
+
+  if (hasGrowthAccess) {
+    erpNav.push({ icon: CalendarDays, label: 'Agenda Prazos', href: '/dashboard/events' });
+    erpNav.push({ icon: FileText, label: 'Gerador Docs', href: '/dashboard/document-generator' });
+    erpNav.push({ icon: FileText, label: 'Assinaturas & Aceites', href: '/dashboard/signatures' });
+  }
+
   if (hasMasterAccess) {
-    navItems.push(
-      { icon: DollarSign, label: 'Financeiro', href: '/dashboard/fees' }
-    );
+    erpNav.push({ icon: DollarSign, label: 'Financeiro', href: '/dashboard/finance' });
+    erpNav.push({ icon: BarChart3, label: 'BI Jurídico', href: '/dashboard/bi' });
+    erpNav.push({ icon: Users, label: 'Gestão de Equipe', href: '/dashboard/team' });
+  }
+  
+  // Keep legacy fees route for free users if it was there before, otherwise strict master access.
+  if(!hasMasterAccess && isPrivileged){ // fallback for tests
+     erpNav.push({ icon: DollarSign, label: 'Taxas (Legacy)', href: '/dashboard/fees' });
   }
 
-  navItems.push({ icon: Calculator, label: 'Calculadora', href: '/dashboard/calculator' });
+  const toolsNav = [
+    { icon: Calculator, label: 'Calculadora', href: '/dashboard/calculator' }
+  ];
 
-  if (plan === 'free') navItems.push({ icon: Star, label: 'Planos Premium', href: '/dashboard/subscription' });
-
-  // Área Acadêmica para Profissionais (Hub)
   if (hasStarterAccess && plan !== 'student_pro') {
-    navItems.push({ icon: GraduationCap, label: 'Área Acadêmica', href: '/dashboard/academic-hub' });
+    toolsNav.push({ icon: GraduationCap, label: 'Área Acadêmica', href: '/dashboard/academic-hub' });
   }
 
-  // Acesso Direto para Estudantes Pro
   if (plan === 'student_pro' || isPrivileged) {
-    navItems.push(
+    toolsNav.push(
       { icon: Scale, label: 'Simulador OAB', href: '/dashboard/oab-simulator' },
-      { icon: GraduationCap, label: 'Assistente TCC', href: '/dashboard/tcc-assistant' },
+      { icon: GraduationCap, label: 'Assistente TCC', href: '/dashboard/tcc-assistant' }
     );
   }
 
-  // Removido do hasMasterAccess pois foi para o Growth
-  // if (hasMasterAccess) { ... }
-
-  navItems.push(
+  const bottomNav = [];
+  if (plan === 'free') bottomNav.push({ icon: Star, label: 'Planos Premium', href: '/dashboard/subscription' });
+  bottomNav.push(
     { icon: User, label: 'Meu Perfil', href: '/dashboard/profile' },
     { 
       icon: HelpCircle, 
@@ -121,14 +120,66 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
   );
 
 
-
   const SidebarContent = () => {
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+    
+    // Auto-expand ERP group if we are inside an ERP route, else read from localStorage
+    const isErpActive = erpNav.some(item => location.pathname.startsWith(item.href));
+    const [erpOpen, setErpOpen] = useState(() => {
+      if (isErpActive) return true;
+      const savedState = localStorage.getItem('juscore_erp_sidebar_open');
+      if (savedState !== null) return JSON.parse(savedState);
+      return isOpen;
+    });
+
+    // Save state to localStorage whenever it changes
+    useEffect(() => {
+      localStorage.setItem('juscore_erp_sidebar_open', JSON.stringify(erpOpen));
+    }, [erpOpen]);
 
     const handleMouseMove = (e) => {
       const rect = e.currentTarget.getBoundingClientRect();
       setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    };
+
+    const renderNavItems = (items) => {
+      return items.map((item) => (
+        <NavLink
+          key={item.href}
+          to={item.external ? '#' : item.href}
+          onClick={(e) => {
+            if (item.external) {
+              e.preventDefault();
+              window.open(item.href, '_blank');
+            } else if (mobile) {
+               setIsOpen(false);
+            }
+          }}
+          end={item.href === '/dashboard' || item.href === '/dashboard/erp'}
+          className={({ isActive }) => cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative overflow-visible border-l-4",
+            isActive 
+              ? "bg-gradient-to-r from-accent/20 to-transparent bg-transparent border-accent text-gray-900 dark:text-white font-bold" 
+              : "border-transparent text-gray-600 dark:text-gray-400 hover:bg-gradient-to-r hover:from-accent/20 hover:to-transparent hover:text-accent dark:hover:text-accent hover:border-accent shadow-none hover:shadow-[inset_4px_0_0_0_#D4AF37]"
+          )}
+        >
+          {({ isActive }) => (
+            <>
+              {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-r-full shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>}
+              <item.icon className={cn("w-5 h-5 min-w-[1.25rem] z-10", isOpen ? "mr-0" : "mx-auto", isActive ? "text-accent" : "")} />
+              <span className={cn("whitespace-nowrap transition-all duration-200 z-10", !isOpen && !mobile && "opacity-0 w-0 overflow-hidden")}>
+                {item.label}
+              </span>
+              {!isOpen && !mobile && (
+                <div className="absolute left-14 z-50 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity w-max shadow-xl border border-gray-700">
+                  {item.label}
+                </div>
+              )}
+            </>
+          )}
+        </NavLink>
+      ));
     };
 
     return (
@@ -175,43 +226,49 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
 
       {/* Scrollable Content */}
       <div className="flex-1 py-4 px-3 space-y-6 overflow-y-auto custom-scrollbar">
-        {/* Nav */}
+        
+        {/* Main Nav */}
         <nav className="space-y-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.href}
-              to={item.external ? '#' : item.href}
-              onClick={(e) => {
-                if (item.external) {
-                  e.preventDefault();
-                  window.open(item.href, '_blank');
-                }
-              }}
-              end={item.href === '/dashboard'}
-              className={({ isActive }) => cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative overflow-visible border-l-4",
-                isActive 
-                  ? "bg-gradient-to-r from-accent/20 to-transparent bg-transparent border-accent text-gray-900 dark:text-white font-bold" 
-                  : "border-transparent text-gray-600 dark:text-gray-400 hover:bg-gradient-to-r hover:from-accent/20 hover:to-transparent hover:text-accent dark:hover:text-accent hover:border-accent shadow-none hover:shadow-[inset_4px_0_0_0_#D4AF37]"
-              )}
-            >
-              {({ isActive }) => (
-                <>
-                  {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-r-full shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>}
-                  <item.icon className={cn("w-5 h-5 min-w-[1.25rem] z-10", isOpen ? "mr-0" : "mx-auto", isActive ? "text-accent" : "")} />
-                  <span className={cn("whitespace-nowrap transition-all duration-200 z-10", !isOpen && !mobile && "opacity-0 w-0 overflow-hidden")}>
-                    {item.label}
-                  </span>
-                  {!isOpen && !mobile && (
-                    <div className="absolute left-14 z-50 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity w-max shadow-xl border border-gray-700">
-                      {item.label}
-                    </div>
-                  )}
-                </>
-              )}
-            </NavLink>
-          ))}
+          {renderNavItems(mainNav)}
         </nav>
+
+        {/* ERP Jurídico Section */}
+        {erpNav.length > 0 && (
+          <div className="space-y-1">
+             <div 
+                className={cn("flex items-center justify-between px-3 mb-2 cursor-pointer group", !isOpen && !mobile && "justify-center")}
+                onClick={() => { if(isOpen || mobile) setErpOpen(!erpOpen); else setIsOpen(true); }}
+             >
+                <h3 className={cn("text-xs font-semibold text-gray-400 uppercase tracking-wider group-hover:text-accent transition-colors", !isOpen && !mobile && "opacity-0 w-0 h-0 overflow-hidden")}>
+                  ERP Jurídico
+                </h3>
+                 {(!isOpen && !mobile) ? (
+                    <LayoutDashboard className="w-5 h-5 text-gray-400 group-hover:text-accent" />
+                 ) : (
+                    <ChevronDown className={cn("w-4 h-4 text-gray-400 group-hover:text-accent transition-transform", erpOpen ? "rotate-180" : "")} />
+                 )}
+            </div>
+            
+            <div className={cn("space-y-1 overflow-hidden transition-all duration-300", erpOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0")}>
+              {renderNavItems(erpNav)}
+            </div>
+          </div>
+        )}
+
+        {/* Ferramentas Section */}
+        {toolsNav.length > 0 && (
+          <div className="space-y-1">
+            <h3 className={cn("text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2", !isOpen && !mobile && "opacity-0 h-0 overflow-hidden")}>
+              Ferramentas
+            </h3>
+            {renderNavItems(toolsNav)}
+          </div>
+        )}
+
+        {/* Navigation Inferior (Perfil, etc) */}
+        <div className="space-y-1">
+           {renderNavItems(bottomNav)}
+        </div>
 
         {/* History Section */}
         <div className={cn("pt-4 border-t border-gray-100 dark:border-gray-700", !isOpen && !mobile && "hidden")}>

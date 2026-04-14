@@ -16,10 +16,11 @@ const PLANS = [
     period: "mês",
     description: "Foco em pesquisa acadêmica",
     features: [
-      "Cálculos ilimitados",
-      "Chat I.A. avançado",
-      "Sem marca d'água",
-      "Resumos de Matéria",
+      "5 documentos por dia",
+      "IA acadêmica avançada",
+      "Resumos dinâmicos de matéria",
+      "IA ensina como professor",
+      "Sem marca d'água"
     ],
     highlight: false,
     color: "gray",
@@ -31,10 +32,12 @@ const PLANS = [
     period: "mês",
     description: "OAB, TCC e Estágio",
     features: [
-      "Tudo do Student Basic",
-      "IA com Visão (Lê Docs)",
-      "Simulador de Peças OAB",
-      "Assistente de TCC",
+      "Tudo do Estudante Basic",
+      "Simuladores de peças OAB (IA)",
+      "Assistente completo de TCC",
+      "Central Acadêmica exclusiva",
+      "IA com Visão (Análise de PDFs)",
+      "12 documentos gerados"
     ],
     highlight: true,
     color: "accent",
@@ -47,11 +50,12 @@ const PLANS = [
     period: "mês",
     description: "Profissional Solo - Gestão Jurídica I.A.",
     features: [
-      "Plataforma Individual (1 Usuário)",
-      "Análise de Processos I.A.",
-      "Gestão de Clientes e Processos",
-      "Cálculos Judiciais Ilimitados",
-      "Área Acadêmica (TCC + OAB)",
+      "Plataforma Solo (1 Usuário)",
+      "Gestão de Clientes Avançada",
+      "Controle de Processos e Fichas",
+      "Análise de Processos por IA",
+      "Área Acadêmica Liberada",
+      "Cálculos Jurídicos Ilimitados",
     ],
     highlight: false,
     color: "blue",
@@ -63,13 +67,12 @@ const PLANS = [
     period: "mês",
     description: "Produtividade Máxima para sua Equipe",
     features: [
-      "Até 2 Usuários inclusos",
-      "Gerador de Documentos Jurídicos",
-      "Agenda de Prazos Inteligente",
-      "BI Jurídico Simplificado",
-      "Gestão de Equipe (+1 usuário)",
-      "Tudo do plano Starter",
-      "Suporte prioritário 24/7",
+      "Até 2 Usuários inclusos (Equipe)",
+      "Gerenciador de Documentos por IA",
+      "Assinador Duplo de Contratos (PDF)",
+      "Dashboard ERP + BI Jurídico",
+      "Agenda Completa de Prazos/Eventos",
+      "Todas funções do Advogado Starter",
     ],
     highlight: true,
     color: "gold",
@@ -82,11 +85,12 @@ const PLANS = [
     period: "mês",
     description: "Controle Operacional e Estratégico total",
     features: [
-      "Até 4 Usuários inclusos",
-      "Financeiro (Gestão de Honorários)",
-      "BI Jurídico Completo",
-      "Gestão de Equipe (até 4 membros)",
-      "Tudo do plano Growth",
+      "Até 4 Usuários Inclusos",
+      "Módulo Financeiro (Honorários/Despesas)",
+      "Bot de Atendimento no WhatsApp Oficial",
+      "Gestão Completa de Permissões/Perfis",
+      "Todos os recursos do Advogado Growth",
+      "Histórico de Uso da IA da Equipe",
     ],
     highlight: false,
     color: "purple",
@@ -136,7 +140,7 @@ const Subscription = () => {
       const fetchSubDetails = async () => {
         try {
           const token = localStorage.getItem("token");
-          const res = await axios.get("http://localhost:3000/api/payments/status", {
+          const res = await axios.get("/api/payments/status", {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (res.data && res.data.active && res.data.nextDueDate) {
@@ -190,48 +194,43 @@ const Subscription = () => {
     // Mocking validation logic for UI demonstration
     // Em Produção, bateríamos no backend: axios.post('/api/payments/verify_coupon', { code: couponCode, planId: selectedPlan.id })
     // Aqui farei uma validação genérica (como OAB20 para 20% OFF) para adiantar o fluxo visual
-    setTimeout(() => {
+    try {
+      const token = localStorage.getItem("token");
       const code = couponCode.toUpperCase().trim();
-      let discountValue = 0;
-      let typeD = "PERCENTAGE";
+      
+      const response = await axios.post('/api/payments/verify_coupon', { 
+        code: code, 
+        planId: selectedPlan.id 
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-      if (code === "JUSCORE20") {
-        discountValue = 20;
-        typeD = "PERCENTAGE";
-      } else if (code === "BETA50") {
-        discountValue = 50;
-        typeD = "FIXED";
-      }
+      const data = response.data;
+      const discountValue = data.value;
+      const typeD = data.type; // 'PERCENTAGE' or 'FIXED'
+      const currentTotalPrice = getCycleDetails(selectedCycle, selectedPlan.price).totalPrice;
 
-      if (discountValue > 0) {
-        const currentTotalPrice = getCycleDetails(selectedCycle, selectedPlan.price).totalPrice;
-
-        if (typeD === "FIXED" && discountValue >= currentTotalPrice) {
-          setCouponStatus({ 
-            type: 'error', 
-            msg: `Este cupom só é válido para planos acima de R$ ${discountValue.toFixed(2).replace('.', ',')}.`
-          });
-        } else {
-          let finalP = currentTotalPrice;
-          if (typeD === "PERCENTAGE") {
-            finalP = finalP - (finalP * (discountValue / 100));
-          } else {
-            finalP = Math.max(0, finalP - discountValue);
-          }
-
-          setCouponStatus({ 
-            type: 'success', 
-            msg: `Cupom aplicado! Desconto de ${typeD === 'PERCENTAGE' ? discountValue+'%' : 'R$ '+discountValue.toFixed(2).replace('.', ',')}`,
-            discount: discountValue,
-            typeD: typeD,
-            finalPrice: finalP
-          });
-        }
+      let finalP = currentTotalPrice;
+      if (typeD === "PERCENTAGE") {
+        finalP = finalP - (finalP * (discountValue / 100));
       } else {
-        setCouponStatus({ type: 'error', msg: 'Cupom inválido ou expirado.' });
+        finalP = Math.max(0, finalP - discountValue);
       }
+
+      setCouponStatus({ 
+        type: 'success', 
+        msg: data.message,
+        discount: discountValue,
+        typeD: typeD,
+        finalPrice: finalP
+      });
+    } catch (error) {
+      console.error("Erro ao validar cupom:", error);
+      const errorMsg = error.response?.data?.error || "Erro ao validar cupom.";
+      setCouponStatus({ type: 'error', msg: errorMsg });
+    } finally {
       setValidatingCoupon(false);
-    }, 800);
+    }
   };
 
   const handleSubscribe = async () => {
@@ -254,7 +253,7 @@ const Subscription = () => {
       }
 
       const response = await axios.post(
-        "http://localhost:3000/api/payments/create_payment",
+        "/api/payments/create_payment",
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -262,7 +261,9 @@ const Subscription = () => {
       );
 
       if (response.data.invoiceUrl) {
-        window.location.href = response.data.invoiceUrl;
+        window.open(response.data.invoiceUrl, '_blank');
+        alert("Pagamento aberto em nova guia!\nQuando pago, retorne para a outra tela.");
+        setShowCheckoutModal(false);
       } else {
         alert("Erro: Link de pagamento não gerado.");
       }

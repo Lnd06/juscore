@@ -1,0 +1,23 @@
+// RESUMO DO PROBLEMA:
+// O erro ocorre porque `resultado.valorInicial` está undefined
+// Possíveis causas:
+// 1. Backend não está retornando os dados corretos
+// 2. Token de autenticação está ausente/inválido
+// 3. CORS ou problema de rede
+
+// SOLUÇÃO TEMPORÁRIA APLICADA:
+// 1. Adicionado validação: resultado && resultado.valorInicial !== undefined
+// 2. Adicionado operador opcional: resultado.valorInicial?.toFixed(2)
+// 3. Adicionar Authorization header com token
+// 4. Adicionar console.log para debug
+
+// Para corrigir definitivamente:
+// 1. Abrir DevTools (F12) → Console
+// 2. Testar calculadora
+// 3. Verificar logs: "📦 Response data"
+// 4. Me enviar o que aparece
+
+// LINHAS MODIFICADAS NO Calculator.jsx:
+// - Linha 90-111: Adicionar Authorization header + console.log
+// - Linha 174: Mudar de `resultado &&` para `resultado && resultado.valorInicial !== undefined &&`
+// - Linhas 181, 187, 193: Adicionar `?.` (optional chaining)

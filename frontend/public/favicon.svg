@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="32"
+   height="32"
+   viewBox="0 0 750 750"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="linearGradient27">
+      <stop style="stop-color:#c7984a;stop-opacity:1;" offset="0" />
+      <stop style="stop-color:#72582d;stop-opacity:1;" offset="0.44444445" />
+      <stop style="stop-color:#0a0a0a;stop-opacity:1;" offset="1" />
+    </linearGradient>
+    <linearGradient id="linearGradient24">
+      <stop style="stop-color:#a1792b;stop-opacity:1;" offset="0.30012527" />
+      <stop style="stop-color:#fbfbed;stop-opacity:1;" offset="0.84631753" />
+      <stop style="stop-color:#f1e8ca;stop-opacity:1;" offset="1" />
+    </linearGradient>
+    <linearGradient id="linearGradient10">
+      <stop style="stop-color:#926026;stop-opacity:1;" offset="0" />
+      <stop style="stop-color:#936025;stop-opacity:1;" offset="0.46824357" />
+      <stop style="stop-color:#e9e1c7;stop-opacity:1;" offset="1" />
+    </linearGradient>
+    <linearGradient xlink:href="#linearGradient10" id="linearGradient11" x1="281.79819" y1="204.30661" x2="333.61407" y2="205.84036" gradientUnits="userSpaceOnUse" />
+    <linearGradient xlink:href="#linearGradient24" id="linearGradient26" x1="264.89423" y1="170.95705" x2="340.82193" y2="170.19017" gradientUnits="userSpaceOnUse" spreadMethod="pad" />
+    <linearGradient xlink:href="#linearGradient27" id="linearGradient29" x1="309.92499" y1="280.25998" x2="309.93121" y2="403.28415" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0.99980257,0,0,1.0105913,0.06054733,-2.7881532)" />
+  </defs>
+
+  <g transform="translate(0, 62.5)">
+    <g transform="matrix(1.8709402,0,0,1.6842522,-240.53623,-203.37597)">
+      <g id="g41">
+        <path style="display:inline;fill:url(#linearGradient29);stroke:#000000;stroke-width:4.412;stroke-dasharray:none;stroke-opacity:0.575916" d="m 276.15183,264.08931 -0.13554,205.50113 c 0,0 59.90788,-3.28801 60.85665,-41.37423 0.94877,-38.0862 0.13554,-164.4009 0.13554,-164.4009 z" />
+      </g>
+      <g id="g42">
+        <path style="display:inline;fill:url(#linearGradient11);stroke:#6d4824;stroke-opacity:1" d="m 256.32669,170.14954 49.17561,32.78374 50.42178,-31.92101 0.57515,35.18021 -51.09279,34.12577 -49.94248,-32.68788 z" />
+        <path style="fill:url(#linearGradient26);stroke:#6d4824;stroke-opacity:1" d="m 255.85343,169.2359 49.74473,-30.43222 50.7682,31.33033 -50.86406,32.20015 z" />
+      </g>
+    </g>
+  </g>
+</svg>

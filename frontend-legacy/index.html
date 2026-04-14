@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JusCore AI - Núcleo de Assistência Jurídica com IA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="config_tailwind.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body
+  class="bg-[#fcfdfd] dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300 h-screen overflow-hidden">
+
+  <!-- Botão Menu Mobile -->
+  <button onclick="toggleSidebar()"
+    class="fixed top-4 left-4 z-50 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-lg lg:hidden">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+
+  <!-- Sidebar Offcanvas -->
+  <aside id="sidebar"
+    class="fixed left-0 top-0 h-full w-80 bg-[#f8fafc] dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 z-40 flex flex-col shadow-xl">
+
+    <!-- Header Sidebar -->
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 bg-gradient-to-br from-primary-600 to-juri-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+            ⚖️
+          </div>
+          <div>
+            <h1 class="font-bold text-lg text-gray-900 dark:text-white">JusCore AI</h1>
+            <p class="text-xs text-gray-500 dark:text-gray-400">v1.6.5</p>
+          </div>
+        </div>
+        <button onclick="openTerms()" class="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" title="Termos de Uso e Ajuda">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </button>
+      </div>
+
+      <!-- User Info -->
+      <a href="/profile" id="userInfo" class="hidden block group">
+        <div class="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-700/50 rounded-xl group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
+          <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-juri-500 to-primary-500 flex items-center justify-center text-white font-semibold">
+             <img id="userAvatarImg" src="" alt="" class="w-full h-full object-cover hidden">
+             <span id="userAvatarText"></span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 dark:text-white truncate" id="userName"></p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 truncate" id="userEmail"></p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Login Button (when not logged) -->
+      <div id="loginPrompt" class="block">
+        <a href="/login"
+          class="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-colors text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          </svg>
+          Entrar
+        </a>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto p-4 space-y-1">
+      <button onclick="novaConversa()"
+        class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">
+        <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Nova Conversa
+      </button>
+
+      <button onclick="abrirDocumentos()"
+        class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">
+        <svg class="w-5 h-5 text-juri-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Modelos de Documentos
+      </button>
+
+      <!-- Admin Link (only for special users) -->
+      <button id="adminLink" onclick="window.location.href='/admin'"
+        class="hidden w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Painel Administrativo
+      </button>
+
+      <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+        <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Últimas Conversas</p>
+        <div id="historicoLista" class="space-y-1">
+          <p class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Nenhuma conversa ainda</p>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Footer Sidebar -->
+    <div class="px-4 py-2 border-t border-gray-200 dark:border-gray-700 space-y-1">
+      <button onclick="toggleTheme()"
+        class="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">
+        <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+        <span id="themeText">Modo Escuro</span>
+      </button>
+
+      <button id="logoutBtn" onclick="logout()"
+        class="hidden w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        Sair
+      </button>
+    </div>
+  </aside>
+
+  <!-- Overlay for mobile -->
+  <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
+
+  <!-- Main Content -->
+  <main id="mainArea" class="lg:ml-80 h-full flex flex-col bg-[#fcfdfd] dark:bg-gray-900 transition-all duration-300">
+
+    <!-- Header -->
+    <header class="relative h-16 glass-header border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shadow-sm z-10">
+  
+  <div class="flex items-center w-20">
+    <!-- Botão Zen Mode (Desktop) -->
+    <button onclick="toggleZenMode()" class="hidden lg:flex p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-500" title="Modo Zen">
+      <svg id="zenIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-max">
+    <h2 class="text-sm sm:text-lg font-semibold text-gray-800 dark:text-white truncate">
+      Assistente Jurídico
+    </h2>
+  </div>
+
+  <div class="flex items-center justify-end w-28">
+
+    <a href="/contact" id="statusIndicator" class="flex items-center gap-1.5 text-xs sm:text-sm text-green-600 dark:text-green-400 cursor-pointer hover:underline transition-all">
+      <h3 class="font-medium">Fale conosco</h3>
+    </a>
+
+</header>
+
+    <!-- Global Alert Banner -->
+    <div id="globalAlert" class="hidden bg-orange-500 text-white px-6 py-2 text-sm font-bold flex items-center justify-between transition-all duration-300">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+        <span id="alertText">Aviso do Sistema</span>
+      </div>
+      <button onclick="this.parentElement.remove()" class="hover:bg-white/20 p-1 rounded-lg">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Chat Area -->
+    <div id="chatContainer" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+      <!-- Welcome Message -->
+      <div class="flex justify-center py-8">
+        <div class="text-center max-w-2xl">
+          <div
+            class="w-20 h-20 bg-gradient-to-br from-primary-600 to-juri-600 rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-4 shadow-lg">
+            ⚖️
+          </div>
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Olá! Eu sou o JusCore AI</h3>
+          <p class="text-gray-600 dark:text-gray-400" id="welcomeText">Seu Núcleo de Assistência Jurídica com IA. Como posso ajudar?</p>
+
+          <!-- Quick Actions -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+            <button onclick="sendQuick('Explique o artigo 5º da CF')"
+              class="p-4 text-left bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 transition-colors shadow-sm">
+              <p class="font-medium text-gray-900 dark:text-white">📜 Constituição Federal</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Artigos e interpretações</p>
+            </button>
+            <button onclick="sendQuick('Modelo de petição inicial')"
+              class="p-4 text-left bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 transition-colors shadow-sm">
+              <p class="font-medium text-gray-900 dark:text-white">📝 Modelos de Documentos</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Contratos e petições</p>
+            </button>
+            <button onclick="sendQuick('O que mudou no CPC recentemente?')"
+              class="p-4 text-left bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 transition-colors shadow-sm">
+              <p class="font-medium text-gray-900 dark:text-white">📰 Atualizações DOU</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Novidades legislativas</p>
+            </button>
+            <button onclick="sendQuick('Explique o CDC')"
+              class="p-4 text-left bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 transition-colors shadow-sm">
+              <p class="font-medium text-gray-900 dark:text-white">⚖️ Legislação</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Leis e decretos</p>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Input Area -->
+    <div class="p-2 sm:p-4 relative z-10 bg-transparent">
+      <div class="max-w-4xl mx-auto">
+        <div class="relative flex items-end gap-2 glass-input rounded-2xl p-1.5 shadow-lg border border-gray-200 dark:border-gray-600">
+          <textarea id="messageInput" rows="1" placeholder="Digite sua dúvida jurídica..."
+            class="flex-1 bg-transparent border-0 resize-none max-h-24 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-0"
+            onkeydown="handleKeyDown(event)" oninput="autoResize(this)"></textarea>
+          <button onclick="sendMessage()" id="sendBtn"
+            class="p-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+          </button>
+          
+          <!-- Stop Button -->
+          <button onclick="stopGeneration()" id="stopBtn" class="hidden p-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors animate-pulse">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        
+        <p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
+          JusCore AI pode cometer erros. Sempre verifique informações importantes.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Document Modal -->
+  <div id="docModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-gray-50 dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-2xl">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Modelos de Documentos</h3>
+        <button onclick="fecharDocumentos()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="docList" class="p-6 overflow-y-auto max-h-[60vh]">
+        <p class="text-gray-500 dark:text-gray-400 text-center">Carregando documentos...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] space-y-3 pointer-events-none"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+  <!-- Terms Modal (Same as Register) -->
+  <div id="termsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Termos de Uso</h3>
+        <button onclick="closeTerms()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto text-sm text-gray-600 dark:text-gray-300 space-y-4 text-justify">
+        <p><strong>1. INTRODUÇÃO E ACEITAÇÃO</strong><br>
+        Bem-vindo ao JusCore AI. Ao criar uma conta e utilizar nossos serviços, você concorda expressamente com estes Termos de Uso e nossa Política de Privacidade. Se você não concordar com qualquer parte destes termos, não deve utilizar a plataforma.</p>
+        
+        <p><strong>2. NATUREZA DO SERVIÇO</strong><br>
+        O JusCore AI é um <strong>Núcleo de Assistência Jurídica com IA</strong>. O serviço é destinado a auxiliar advogados, estudantes e profissionais do direito na pesquisa, redação e análise de documentos. <strong>O JusCore AI NÃO é um advogado e NÃO presta consultoria jurídica.</strong></p>
+
+        <p><strong>3. LIMITAÇÕES DA INTELIGÊNCIA ARTIFICIAL</strong><br>
+        A IA, apesar de avançada, está sujeita a erros, imprecisões e "alucinações" (geração de informações falsas que parecem verdadeiras). As leis e jurisprudências mudam constantemente e a base de conhecimento da IA pode não conter as atualizações mais recentes (últimas 24-48h). O usuário reconhece que o conteúdo gerado é uma sugestão e deve ser obrigatoriamente validado.</p>
+
+        <p><strong>4. RESPONSABILIDADE DO USUÁRIO</strong><br>
+        Você concorda que é o único responsável pela revisão, validação e uso final de qualquer texto, documento ou informação gerada pela plataforma. O JusCore AI e seus desenvolvedores não se responsabilizam por quaisquer danos, perdas de prazos, prejuízos financeiros ou consequências legais decorrentes do uso das informações fornecidas pela ferramenta.</p>
+
+        <p><strong>5. PRIVACIDADE E DADOS SENSÍVEIS</strong><br>
+        Respeitamos sua privacidade. No entanto, para garantir o sigilo profissional e a segurança dos dados de seus clientes, <strong>VOCÊ NÃO DEVE INSERIR DADOS SENSÍVEIS, NOMES COMPLETOS, CPFs OU DETALHES IDENTIFICÁVEIS DE CASOS REAIS</strong> nas conversas com a IA. Utilize nomes fictícios ou dados anonimizados.</p>
+
+        <p><strong>6. USO PROIBIDO</strong><br>
+        É estritamente proibido utilizar a plataforma para:
+        (a) Fins ilícitos ou promoção de atividades ilegais;
+        (b) Gerar documentos fraudulentos ou enganosos;
+        (c) Violar direitos de propriedade intelectual de terceiros.</p>
+        
+        <p><strong>7. ALTERAÇÕES NOS TERMOS</strong><br>
+        Reservamo-nos o direito de modificar estes termos a qualquer momento. O uso contínuo da plataforma após as alterações constitui aceitação dos novos termos.</p>
+      </div>
+      <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-b-2xl flex justify-end">
+        <button onclick="closeTerms()" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium transition-colors">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openTerms() {
+      document.getElementById('termsModal').classList.remove('hidden');
+    }
+
+    function closeTerms() {
+      document.getElementById('termsModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

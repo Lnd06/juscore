@@ -32,10 +32,12 @@ import clientRoutes from "./routes/clients.js";
 import processRoutes from "./routes/processes.js";
 import eventRoutes from "./routes/events.js";
 import feeRoutes from "./routes/fees.js";
+import financeRoutes from "./routes/finance.js";
 import googleAuthRoutes from "./routes/googleAuth.js";
 import documentRoutes from "./routes/documents.js";
 import feedbackRoutes from "./routes/feedback.js";
 import announcementsRoutes from "./routes/announcements.js";
+import signaturesRoutes from "./routes/signatures.js";
 import { connectMongo, disconnectMongo } from "./config/mongodb.js";
 
 const app = express();
@@ -51,6 +53,7 @@ import rateLimit from "express-rate-limit";
 // Security Middleware
 app.use(
   helmet({
+    contentSecurityPolicy: false, // Desabilitado para permitir blobs/workers do PDF.js no frontend
     crossOriginResourcePolicy: { policy: "cross-origin" },
     crossOriginOpenerPolicy: false, // Permite que o popup se comunique com o opener (localhost:5173)
   }),
@@ -96,13 +99,21 @@ app.use("/api/clients", clientRoutes);
 app.use("/api/processes", processRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/fees", feeRoutes);
+app.use("/api/finance", financeRoutes);
 app.use("/api/auth", googleAuthRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/announcements", announcementsRoutes);
+app.use("/api/signatures", signaturesRoutes);
 
-// O frontend será servido pelo Nginx em produção
+// Serve o frontend construído no próprio backend (para ambiente local ou quando Nginx não for usado)
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
+// Resposta para React Router - Todas as rotas não-API enviam para o index.html
+app.get("*", (req, res, next) => {
+  if (req.url.startsWith("/api/")) return next();
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
 // Error handler
 app.use((err, req, res, next) => {
   console.error("❌ Erro:", err.stack);
@@ -166,6 +177,44 @@ const startServer = async () => {
       try {
         await sequelize.authenticate(); // Check connection first
         await cleanDuplicateIndexes(); // Always clean before sync
+
+        // Ensure signerName column exists (safety patch for Sequelize alter:true bypass issues)
+        try {
+          await sequelize.query(
+            "ALTER TABLE SignatureRequests ADD COLUMN signerName VARCHAR(255) NULL;",
+          );
+          console.log("✅ Schema Patch: signerName column injected.");
+        } catch (colErr) {
+          // Ignores error if column already exists
+        }
+
+        try {
+          await sequelize.query(
+            "ALTER TABLE SignatureRequests ADD COLUMN signatureImage LONGTEXT NULL;",
+          );
+          console.log("✅ Schema Patch: signatureImage column injected.");
+        } catch (colErr) {
+          // Ignores error if column already exists
+        }
+
+        try {
+          await sequelize.query(
+            "ALTER TABLE SignatureRequests ADD COLUMN lawyerSignatureImage LONGTEXT NULL;",
+          );
+          console.log("✅ Schema Patch: lawyerSignatureImage column injected.");
+        } catch (colErr) {
+          // Ignores error if column already exists
+        }
+
+        try {
+          await sequelize.query(
+            "ALTER TABLE Users ADD COLUMN oab VARCHAR(255) NULL;",
+          );
+          console.log("✅ Schema Patch: oab column injected in Users table.");
+        } catch (colErr) {
+          // Ignores error if column already exists
+        }
+
         await sequelize.sync({ alter: true });
         console.log("✅ MySQL conectado e sincronizado");
         connected = true;

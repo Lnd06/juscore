@@ -28,13 +28,30 @@ const Process = sequelize.define("Process", {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  status: {
+  comarca: {
     type: DataTypes.STRING,
+    allowNull: true,
+  },
+  fase: {
+    type: DataTypes.ENUM("Conhecimento", "Execução", "Recurso", "Arquivado"),
+    defaultValue: "Conhecimento",
+  },
+  dataCitacao: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  probabilidadeExito: {
+    type: DataTypes.ENUM("Alta", "Media", "Baixa"),
+    allowNull: true,
+  },
+  status: {
+    type: DataTypes.ENUM("ativo", "suspenso", "encerrado"),
     defaultValue: "ativo",
   },
   partes: {
     type: DataTypes.TEXT,
-    comment: "JSON string com as partes envolvidas",
+    comment:
+      "JSON string com as partes envolvidas ('autor', 'reu', 'advogados')",
     get() {
       const rawValue = this.getDataValue("partes");
       try {
@@ -44,7 +61,11 @@ const Process = sequelize.define("Process", {
       }
     },
     set(value) {
-      this.setDataValue("partes", JSON.stringify(value));
+      if (typeof value === "object") {
+        this.setDataValue("partes", JSON.stringify(value));
+      } else {
+        this.setDataValue("partes", value);
+      }
     },
   },
   valorCausa: {

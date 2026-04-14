@@ -136,6 +136,10 @@ router.post("/create_payment", auth, async (req, res) => {
       cycle: safeCycle,
       description: `Assinatura JusCore AI - Plano ${planType}`,
       externalReference: `USER_${user.id}_PLAN_${planType}`,
+      callback: {
+        successUrl: "https://juscore.net/dashboard/billing",
+        autoRedirect: true,
+      },
     };
 
     const subscription = await createSubscription(subscriptionData);
@@ -252,7 +256,14 @@ router.post("/cancel_subscription", auth, async (req, res) => {
 
     if (user.subscriptionId.startsWith("sub_")) {
       // Cancelar no Asaas enviando requisição
-      await asaasApi.delete(`/subscriptions/${user.subscriptionId}`);
+      try {
+        await asaasApi.delete(`/subscriptions/${user.subscriptionId}`);
+      } catch (err) {
+        console.warn(
+          `Aviso ao cancelar assinatura ${user.subscriptionId} na Asaas: A assinatura não foi encontrada ou token não autorizado. Cancelando localmente.`,
+          err.response?.status,
+        );
+      }
 
       // Mantém o usuário ativo localmente até o fim do ciclo já pago
       await user.update({
@@ -286,6 +297,56 @@ router.post("/cancel_subscription", auth, async (req, res) => {
     res
       .status(500)
       .json({ error: "Erro ao cancelar assinatura. Contate o suporte." });
+  }
+});
+
+/* =========================
+   VERIFICAR CUPOM
+========================= */
+router.post("/verify_coupon", auth, async (req, res) => {
+  try {
+    const { code, planId } = req.body;
+    if (!code)
+      return res.status(400).json({ error: "Código do cupom é obrigatório." });
+
+    const coupon = await Coupon.findOne({
+      where: { code: code.toUpperCase(), isActive: true },
+    });
+
+    if (!coupon) {
+      return res.status(404).json({ error: "Cupom inválido ou expirado." });
+    }
+
+    // Check expiration
+    if (coupon.expiresAt && new Date() > new Date(coupon.expiresAt)) {
+      return res.status(400).json({ error: "Cupom expirado." });
+    }
+
+    // Check usage limit
+    if (coupon.maxUses !== -1 && coupon.usedCount >= coupon.maxUses) {
+      return res
+        .status(400)
+        .json({ error: "Este cupom atingiu o limite de uso." });
+    }
+
+    // Check plan restriction
+    if (planId && coupon.allowedPlans && Array.isArray(coupon.allowedPlans)) {
+      if (!coupon.allowedPlans.includes(planId)) {
+        return res
+          .status(400)
+          .json({ error: `Este cupom não é válido para o plano selecionado.` });
+      }
+    }
+
+    res.json({
+      success: true,
+      type: coupon.type,
+      value: coupon.value,
+      message: `Cupom aplicado! Desconto de ${coupon.type === "PERCENTAGE" ? coupon.value + "%" : "R$ " + coupon.value.toFixed(2).replace(".", ",")}`,
+    });
+  } catch (error) {
+    console.error("Erro ao verificar cupom:", error);
+    res.status(500).json({ error: "Erro ao validar cupom." });
   }
 });
 
@@ -351,6 +412,7 @@ router.post("/webhook", async (req, res) => {
             subscriptionPlan: planType,
             subscriptionId: payment.subscription || payment.id,
             tipo: novoTipo,
+            cancelAtPeriodEnd: false, // Ensure we clear the cancellation flag on new payment
           });
         }
       }

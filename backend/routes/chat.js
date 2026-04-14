@@ -2,13 +2,12 @@ import express from "express";
 import { auth } from "../midleware/auth.js";
 import { usageLimiter } from "../midleware/usageLimiter.js";
 import { Conversation, User, Process, Client } from "../models/index.js";
-import KnowledgeDocument from "../models/mongo/KnowledgeDocument.js";
+import { getLibraryMetadata, getDocumentContent } from "../services/libraryService.js";
 import Cache from "../models/cache.js"; // Import Cache
 import { Op } from "sequelize"; // Import Op
 import crypto from "crypto"; // Import crypto
 import { buscarDOU, lerConteudoDOU } from "../services/dou.js";
 import { leituraPlanalto } from "../services/planalto.js";
-import { isLibraryConnected } from "../config/mongodb.js";
 
 const router = express.Router();
 
@@ -166,25 +165,28 @@ async function chamarGroq(
     modelToUse = process.env.GROQ_MODEL;
   }
 
-  // Check if any message has image content to switch model
+  // Check if any message has image content — ALWAYS force vision model if so
   const hasImage = messages.some((m) => Array.isArray(m.content));
   if (hasImage) {
-    // Models that DO NOT support vision (Maverick and Kimi)
-    const nonVisionModels = [
-      process.env.GROQ_MODEL,
-      process.env.GROQ_PREMIUM_MODEL,
-      process.env.GROQ_FAST_MODEL,
-    ];
+    const visionModel = process.env.GROQ_VISION_MODEL || "llama-3.2-11b-vision-preview";
+    console.log(`👁️ MODO VISÃO ATIVADO: Forçando modelo de visão → ${visionModel}`);
+    modelToUse = visionModel;
 
-    if (nonVisionModels.includes(modelToUse)) {
-      modelToUse = process.env.GROQ_VISION_MODEL;
-      console.log(
-        "👁️ MODO VISÃO ATIVADO (Fallback): Alternando para",
-        modelToUse,
-      );
-    } else {
-      console.log("👁️ MODO VISÃO ATIVADO (Nativo): Usando", modelToUse);
-    }
+    // Groq vision API requires: only the LAST user message can have array content.
+    // All system messages MUST be plain strings.
+    // Sanitize: convert all non-user array contents to plain text strings
+    messages = messages.map((m, idx) => {
+      if (Array.isArray(m.content)) {
+        // Keep only the LAST user message as array (vision payload)
+        const isLastUserMsg = m.role === "user" && 
+          messages.slice(idx + 1).every(mm => mm.role !== "user" || !Array.isArray(mm.content));
+        if (isLastUserMsg) return m; // keep as-is for vision
+        // Convert older image messages to text-only
+        const textPart = m.content.find(c => c.type === "text")?.text || "[imagem]";
+        return { role: m.role, content: textPart };
+      }
+      return m;
+    });
   }
 
   // 0. Clean messages for hashing (avoid metadata noise)
@@ -335,11 +337,11 @@ async function analisarContexto(mensagem) {
         content: `Analise a mensagem do usuário e retorne um JSON estrito com "topico", "sentimento", "termoBusca", "secaoDOU", "dataInicio", "dataFim" e "precisaBiblioteca".
           Tópicos: "Constituição", "Legislação", "Contratos", "Trabalhista", "Previdenciário", "Civil", "Penal" ou "Geral".
           Sentimentos: "Urgente", "Dúvida Simples", "Frustrado", "Agradecido" ou "Neutro".
-          termoBusca: Extraia o ASSUNTO JURÍDICO ESPECÍFICO (ex: "Lei 11.343", "HABEAS CORPUS").
-          precisaBiblioteca (boolean): true se o usuário solicitar EXPRESSAMENTE busca em arquivos, Vade Mecum, biblioteca, ou se for uma pergunta técnica complexa que exija consulta a base de conhecimento. false para saudações, conversas casuais ou perguntas simples de senso comum jurídico.
+          termoBusca: Extraia o ASSUNTO JURÍDICO ESPECÍFICO (ex: "Lei 11.343", "HABEAS CORPUS", "Artigo LXXIII").
+          precisaBiblioteca (boolean): SEMPRE retorne true se a pergunta envolver leis, artigos, incisos, códigos jurídicos detalhados, jurisprudência ou busca em arquivos. Só retorne false para saudações básicas (bom dia) ou perguntas puramente não-jurídicas.
           secaoDOU: Se o usuário mencionar uma seção do DOU (1, 2 ou 3), retorne "do1", "do2" ou "do3". Caso contrário, "all".
           dataInicio / dataFim: Se o usuário mencionar um período, extraia no formato DD-MM-YYYY. Caso contrário, retorne "".
-          Exemplo: {"topico": "Civil", "sentimento": "Neutro", "termoBusca": "Lei 14.133", "secaoDOU": "all", "precisaBiblioteca": true, "dataInicio": "", "dataFim": ""}`,
+          Exemplo: {"topico": "Civil", "sentimento": "Neutro", "termoBusca": "Artigo 5 Constituição", "secaoDOU": "all", "precisaBiblioteca": true, "dataInicio": "", "dataFim": ""}`,
       },
       { role: "user", content: mensagem },
     ];
@@ -541,9 +543,8 @@ router.post("/", auth, usageLimiter("conversations"), async (req, res) => {
         : "destaques");
     if (termoParaBusca === "") termoParaBusca = "*";
 
-    // --- SEARCH KNOWLEDGE BASE (RAG Lite) ---
-    // Ativado apenas se a biblioteca estiver conectada
-    if (isLibraryConnected()) {
+    // --- SEARCH KNOWLEDGE BASE (RAG Lite — Local FS) ---
+    {
       const gatilhoManualBiblioteca =
         /buscar? na biblioteca|pesquisar? nos arquivos|consultar? vade mecum|segundo (meus|os) arquivos/i.test(
           mensagem,
@@ -557,19 +558,39 @@ router.post("/", auth, usageLimiter("conversations"), async (req, res) => {
           termoParaBusca.length > 2
         ) {
           const safeTerm = termoParaBusca.replace(/['"/\\]/g, "");
-          const regex = new RegExp(safeTerm, "i");
+          const terms = safeTerm.toLowerCase().split(/\s+/).filter(t => t.length > 2);
 
-          console.log(`📚 [RAG] Buscando no MongoDB (GERAL): "${safeTerm}"`);
+          console.log(`📚 [RAG] Buscando na FS (GERAL): "${safeTerm}" (Keywords: ${terms.join(', ')})`);
 
-          const books = await KnowledgeDocument.find({
-            isActive: true,
-            categoria: "GERAL",
-            $or: [{ title: { $regex: regex } }, { content: { $regex: regex } }],
-          })
-            .select("title content")
-            .sort({ _id: 1 }) // Deterministic order for cache
-            .limit(3)
-            .lean();
+          const allBooks = getLibraryMetadata();
+          const matchedMeta = allBooks
+            .filter((book) => {
+              if (book.isActive !== true || book.categoria !== "GERAL") return false;
+              
+              const titleLower = book.title.toLowerCase();
+              const content = getDocumentContent(book.filename);
+              const contentLower = content ? content.toLowerCase() : "";
+
+              // Tenta achar a frase completa primeiro
+              if (titleLower.includes(safeTerm.toLowerCase()) || contentLower.includes(safeTerm.toLowerCase())) {
+                return true;
+              }
+
+              // Se não, tenta pelas palavras separadas (pelo menos 50% de match)
+              let matchCount = 0;
+              for (const t of terms) {
+                if (titleLower.includes(t) || contentLower.includes(t)) {
+                  matchCount++;
+                }
+              }
+              return terms.length > 0 && matchCount >= Math.ceil(terms.length * 0.5);
+            })
+            .slice(0, 3); // Limita a 3 documentos
+
+          const books = matchedMeta.map((meta) => ({
+            title: meta.title,
+            content: getDocumentContent(meta.filename) || "",
+          }));
 
           if (books.length > 0) {
             contextoBiblioteca = `\n📚 CONTEXTO DA BIBLIOTECA JURÍDICA (Fontes Internas):\n`;
@@ -577,12 +598,24 @@ router.post("/", auth, usageLimiter("conversations"), async (req, res) => {
             books.forEach((book) => {
               const contentLower = book.content.toLowerCase();
               const termLower = safeTerm.toLowerCase();
-              const index = contentLower.indexOf(termLower);
+              
+              // Achar o índice para o recorte (Snippet)
+              let bestIndex = contentLower.indexOf(termLower);
+              if (bestIndex === -1 && terms.length > 0) {
+                 // Tenta achar qualquer um dos termos para ancorar o snippet
+                 for (const t of terms) {
+                     const idx = contentLower.indexOf(t);
+                     if (idx !== -1) {
+                         bestIndex = idx;
+                         break;
+                     }
+                 }
+              }
 
               let snippet = "";
-              if (index !== -1) {
-                const start = Math.max(0, index - 500);
-                const end = Math.min(book.content.length, index + 1500);
+              if (bestIndex !== -1) {
+                const start = Math.max(0, bestIndex - 700);
+                const end = Math.min(book.content.length, bestIndex + 1500);
                 snippet = book.content
                   .substring(start, end)
                   .replace(/\s+/g, " ");
@@ -590,7 +623,7 @@ router.post("/", auth, usageLimiter("conversations"), async (req, res) => {
                 if (end < book.content.length) snippet = snippet + "...";
               } else {
                 snippet =
-                  book.content.substring(0, 1000).replace(/\s+/g, " ") + "...";
+                  book.content.substring(0, 1500).replace(/\s+/g, " ") + "...";
               }
 
               contextoBiblioteca += `\n[Fonte: "${book.title}"]\n"${snippet}"\n`;
@@ -604,10 +637,8 @@ router.post("/", auth, usageLimiter("conversations"), async (req, res) => {
           }
         }
       } catch (err) {
-        console.error("❌ Erro na busca da Biblioteca (MongoDB):", err);
+        console.error("❌ Erro na busca da Biblioteca (FS):", err.message);
       }
-    } else {
-      console.log("📚 [RAG] Ignorado: Biblioteca desconectada.");
     }
     // ----------------------------------------
 
@@ -953,8 +984,21 @@ router.post("/", auth, usageLimiter("conversations"), async (req, res) => {
       model: model, // Persist the model used
     });
 
+    // Strip Base64 images before saving to database to prevent Out of Memory (OOM) crashes and DB bloat
+    const safeMsgsToSave = msgs.map(m => {
+      if (Array.isArray(m.content)) {
+        const textContent = m.content.find(c => c.type === "text")?.text || "";
+        return {
+          role: m.role,
+          content: "[IMAGEM ANEXADA PNE] " + textContent,
+          model: m.model || undefined
+        };
+      }
+      return m;
+    });
+
     // Update conversation (Sequelize)
-    conversa.mensagens = msgs;
+    conversa.mensagens = safeMsgsToSave;
     conversa.changed("mensagens", true); // Force update for JSON
     await conversa.save();
 

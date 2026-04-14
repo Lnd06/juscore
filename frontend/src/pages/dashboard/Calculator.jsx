@@ -8,7 +8,8 @@ import {
   Scale, 
   Briefcase, 
   BarChart3, 
-  Lock 
+  Lock,
+  Baby
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -19,6 +20,7 @@ import DeadlineCalculator from './calculator/DeadlineCalculator';
 import LaborCalculator from './calculator/LaborCalculator';
 import CorrectionCalculator from './calculator/CorrectionCalculator';
 import SimpleCalculator from './calculator/SimpleCalculator';
+import AlimonyCalculator from './calculator/AlimonyCalculator';
 
 const Calculator = ({ mode = 'private' }) => {
   const [activeTab, setActiveTab] = useState('interest');
@@ -98,6 +100,7 @@ const Calculator = ({ mode = 'private' }) => {
     { id: 'deadline', name: 'Prazos', icon: Calendar },
     { id: 'labor', name: 'Trabalhista', icon: Briefcase },
     { id: 'correction', name: 'Correção', icon: BarChart3 },
+    { id: 'alimony', name: 'Pensão Alimentícia', icon: Baby },
     { id: 'simple', name: 'Financeira', icon: CalcIcon }
   ];
 
@@ -115,6 +118,7 @@ const Calculator = ({ mode = 'private' }) => {
       case 'deadline': return <DeadlineCalculator {...props} />;
       case 'labor': return <LaborCalculator {...props} />;
       case 'correction': return <CorrectionCalculator {...props} />;
+      case 'alimony': return <AlimonyCalculator {...props} />;
       case 'simple': return <SimpleCalculator {...props} />;
       default: return null;
     }

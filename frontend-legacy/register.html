@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Conta - JusCore AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="config_tailwind.js"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen flex items-center justify-center p-4">
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] space-y-3 pointer-events-none"></div>
+  
+  <div class="w-full max-w-md">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 bg-gradient-to-br from-primary-600 to-juri-600 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-4 shadow-lg">
+        ⚖️
+      </div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">JusCore AI</h1>
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Núcleo de Assistência Jurídica com IA</p>
+    </div>
+
+    <!-- Register Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6 text-center">Criar nova conta</h2>
+      
+      <form id="registerForm" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome completo</label>
+            <input 
+              type="text" 
+              id="nome" 
+              required
+              class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-all"
+              placeholder="João Silva"
+            >
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Apelido</label>
+            <input 
+              type="text" 
+              id="apelido" 
+              required
+              class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-all"
+              placeholder="João"
+            >
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            required
+            class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-all"
+            placeholder="joao@email.com"
+          >
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Senha</label>
+          <div class="relative">
+            <input 
+              type="password" 
+              id="senha" 
+              required
+              minlength="6"
+              class="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-all"
+              placeholder="Mínimo 6 caracteres"
+              oninput="validatePassword()"
+            >
+            <button type="button" onclick="togglePassword('senha', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+            </button>
+          </div>
+          <!-- Real-time Validation -->
+          <ul id="password-requirements" class="mt-2 text-xs space-y-1 text-gray-500 dark:text-gray-400 hidden">
+            <li id="req-length" class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span> Mínimo 6 caracteres</li>
+            <li id="req-upper" class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span> Letra maiúscula (A-Z)</li>
+            <li id="req-lower" class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span> Letra minúscula (a-z)</li>
+            <li id="req-number" class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span> Número (0-9)</li>
+          </ul>
+        </div>
+
+        <!-- Perfil Profissional -->
+        <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Perfil Profissional</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Qual seu cargo atual?</label>
+              <select id="cargo" required class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-all">
+                <option value="" disabled selected>Selecione uma opção</option>
+                <option value="advogado">Advogado(a)</option>
+                <option value="estudante">Estudante de Direito</option>
+                <option value="bacharel">Bacharel em Direito</option>
+                <option value="assistente">Assistente Jurídico</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Qual seu objetivo com a IA? (Selecione 1 a 3 opções)</label>
+              <div class="grid grid-cols-2 gap-2" id="finalidade-options">
+                <!-- Options will be handled by JS for better interactivity -->
+                <button type="button" onclick="toggleOption(this, 'Pesquisa Jurisprudencial')" class="option-btn p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:border-primary-400 dark:hover:border-primary-500 transition-all text-left">
+                  Pesquisa Jurisprudencial
+                </button>
+                <button type="button" onclick="toggleOption(this, 'Redação de Peças')" class="option-btn p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:border-primary-400 dark:hover:border-primary-500 transition-all text-left">
+                  Redação de Peças
+                </button>
+                <button type="button" onclick="toggleOption(this, 'Análise de Contratos')" class="option-btn p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:border-primary-400 dark:hover:border-primary-500 transition-all text-left">
+                  Análise de Contratos
+                </button>
+                <button type="button" onclick="toggleOption(this, 'Consulta de Legislação')" class="option-btn p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:border-primary-400 dark:hover:border-primary-500 transition-all text-left">
+                  Consulta de Legislação
+                </button>
+                <button type="button" onclick="toggleOption(this, 'Resumo de Documentos')" class="option-btn p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:border-primary-400 dark:hover:border-primary-500 transition-all text-left">
+                  Resumo de Documentos
+                </button>
+                <button type="button" onclick="toggleOption(this, 'Estudo e Aprendizado')" class="option-btn p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:border-primary-400 dark:hover:border-primary-500 transition-all text-left">
+                  Estudo e Aprendizado
+                </button>
+              </div>
+              <p id="finalidade-error" class="hidden text-xs text-red-500 mt-1">Selecione pelo menos uma opção.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Termos de Uso -->
+        <div class="flex items-start gap-2 pt-2">
+          <input type="checkbox" id="termos" required class="mt-1 w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500">
+          <label for="termos" class="text-sm text-gray-600 dark:text-gray-400">
+            Li e concordo com os <button type="button" onclick="openTerms()" class="text-primary-600 dark:text-primary-400 hover:underline font-medium">Termos de Uso</button> e Política de Privacidade.
+          </label>
+        </div>
+
+        <div id="errorMsg" class="hidden p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm"></div>
+        
+        <div id="successMsg" class="hidden p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-600 dark:text-green-400 text-sm"></div>
+
+        <button 
+          type="submit"
+          id="submitBtn"
+          class="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-juri-600 hover:from-primary-700 hover:to-juri-700 text-white font-medium rounded-xl transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Criar conta
+        </button>
+      </form>
+
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Já tem uma conta? 
+          <a href="/login" class="text-primary-600 dark:text-primary-400 hover:underline font-medium">Entrar</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Theme Toggle -->
+    <div class="text-center mt-6">
+      <button onclick="toggleTheme()" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-center gap-2 mx-auto">
+        <svg id="themeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <span id="themeText">Modo Escuro</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Terms Modal -->
+  <div id="termsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Termos de Uso</h3>
+        <button onclick="closeTerms()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto text-sm text-gray-600 dark:text-gray-300 space-y-4 text-justify">
+        <p><strong>1. INTRODUÇÃO E ACEITAÇÃO</strong><br>
+        Bem-vindo ao JusCore AI. Ao criar uma conta e utilizar nossos serviços, você concorda expressamente com estes Termos de Uso e nossa Política de Privacidade. Se você não concordar com qualquer parte destes termos, não deve utilizar a plataforma.</p>
+        
+        <p><strong>2. NATUREZA DO SERVIÇO</strong><br>
+        O JusCore AI é um <strong>Núcleo de Assistência Jurídica com IA</strong>. O serviço é destinado a auxiliar advogados, estudantes e profissionais do direito na pesquisa, redação e análise de documentos. <strong>O JusCore AI NÃO é um advogado e NÃO presta consultoria jurídica.</strong></p>
+
+        <p><strong>3. LIMITAÇÕES DA INTELIGÊNCIA ARTIFICIAL</strong><br>
+        A IA, apesar de avançada, está sujeita a erros, imprecisões e "alucinações" (geração de informações falsas que parecem verdadeiras). As leis e jurisprudências mudam constantemente e a base de conhecimento da IA pode não conter as atualizações mais recentes (últimas 24-48h). O usuário reconhece que o conteúdo gerado é uma sugestão e deve ser obrigatoriamente validado.</p>
+
+        <p><strong>4. RESPONSABILIDADE DO USUÁRIO</strong><br>
+        Você concorda que é o único responsável pela revisão, validação e uso final de qualquer texto, documento ou informação gerada pela plataforma. O JusCore AI e seus desenvolvedores não se responsabilizam por quaisquer danos, perdas de prazos, prejuízos financeiros ou consequências legais decorrentes do uso das informações fornecidas pela ferramenta.</p>
+
+        <p><strong>5. PRIVACIDADE E DADOS SENSÍVEIS</strong><br>
+        Respeitamos sua privacidade. No entanto, para garantir o sigilo profissional e a segurança dos dados de seus clientes, <strong>VOCÊ NÃO DEVE INSERIR DADOS SENSÍVEIS, NOMES COMPLETOS, CPFs OU DETALHES IDENTIFICÁVEIS DE CASOS REAIS</strong> nas conversas com a IA. Utilize nomes fictícios ou dados anonimizados.</p>
+
+        <p><strong>6. USO PROIBIDO</strong><br>
+        É estritamente proibido utilizar a plataforma para:
+        (a) Fins ilícitos ou promoção de atividades ilegais;
+        (b) Gerar documentos fraudulentos ou enganosos;
+        (c) Violar direitos de propriedade intelectual de terceiros.</p>
+        
+        <p><strong>7. ALTERAÇÕES NOS TERMOS</strong><br>
+        Reservamo-nos o direito de modificar estes termos a qualquer momento. O uso contínuo da plataforma após as alterações constitui aceitação dos novos termos.</p>
+      </div>
+      <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-b-2xl flex justify-end">
+        <button onclick="acceptTerms()" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium transition-colors">Entendi e Concordo</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { showToast } from './js/ui.js';
+    const API_URL = window.location.origin + '/api';
+
+    // Selection Logic
+    const selectedFinalidades = new Set();
+
+    function toggleOption(btn, value) {
+        if (selectedFinalidades.has(value)) {
+            selectedFinalidades.delete(value);
+            btn.classList.remove('border-primary-600', 'bg-primary-50', 'text-primary-700', 'dark:border-primary-500', 'dark:bg-primary-900/20', 'dark:text-primary-400');
+            btn.classList.add('border-gray-200', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+        } else {
+            if (selectedFinalidades.size >= 3) {
+                showToast('Você pode selecionar no máximo 3 opções.', 'error');
+                return;
+            }
+            selectedFinalidades.add(value);
+            btn.classList.remove('border-gray-200', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+            btn.classList.add('border-primary-600', 'bg-primary-50', 'text-primary-700', 'dark:border-primary-500', 'dark:bg-primary-900/20', 'dark:text-primary-400');
+        }
+    }
+
+    function openTerms() {
+      document.getElementById('termsModal').classList.remove('hidden');
+    }
+
+    function closeTerms() {
+      document.getElementById('termsModal').classList.add('hidden');
+    }
+
+    function acceptTerms() {
+      document.getElementById('termos').checked = true;
+      closeTerms();
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+      updateThemeUI();
+    }
+
+    function updateThemeUI() {
+      const isDark = document.documentElement.classList.contains('dark');
+      document.getElementById('themeText').textContent = isDark ? 'Modo Claro' : 'Modo Escuro';
+    }
+
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+    updateThemeUI();
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const btn = document.getElementById('submitBtn');
+      const errorDiv = document.getElementById('errorMsg');
+      const successDiv = document.getElementById('successMsg');
+      
+      // Get selected options
+      if (selectedFinalidades.size === 0) {
+          document.getElementById('finalidade-error').classList.remove('hidden');
+          return;
+      } else {
+          document.getElementById('finalidade-error').classList.add('hidden');
+      }
+      const finalidadeValues = Array.from(selectedFinalidades).join(', ');
+
+      btn.disabled = true;
+      btn.textContent = 'Criando conta...';
+      errorDiv.classList.add('hidden');
+      successDiv.classList.add('hidden');
+
+      try {
+        const res = await fetch(`${API_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nome: document.getElementById('nome').value,
+            email: document.getElementById('email').value,
+            senha: document.getElementById('senha').value,
+            apelido: document.getElementById('apelido').value,
+            cargo: document.getElementById('cargo').value,
+            finalidade: finalidadeValues
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          successDiv.textContent = 'Conta criada com sucesso! Redirecionando...';
+          successDiv.classList.remove('hidden');
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          setTimeout(() => window.location.href = '/', 1500);
+        } else {
+          errorDiv.textContent = data.error || 'Erro ao criar conta';
+          errorDiv.classList.remove('hidden');
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Erro de conexão. Tente novamente.';
+        errorDiv.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Criar conta';
+      }
+    });
+
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      
+      if (isPassword) {
+        btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>`;
+      } else {
+        btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
+      }
+    }
+
+    function validatePassword() {
+      const senha = document.getElementById('senha').value;
+      const list = document.getElementById('password-requirements');
+      
+      if (senha.length > 0) list.classList.remove('hidden');
+      else list.classList.add('hidden');
+
+      const reqs = {
+        length: senha.length >= 6,
+        upper: /[A-Z]/.test(senha),
+        lower: /[a-z]/.test(senha),
+        number: /\d/.test(senha)
+      };
+
+      updateReq('req-length', reqs.length);
+      updateReq('req-upper', reqs.upper);
+      updateReq('req-lower', reqs.lower);
+      updateReq('req-number', reqs.number);
+    }
+
+    function updateReq(id, valid) {
+      const el = document.getElementById(id);
+      const dot = el.querySelector('span');
+      if (valid) {
+        el.classList.add('text-green-600', 'dark:text-green-400');
+        el.classList.remove('text-gray-500', 'dark:text-gray-400');
+        dot.classList.add('bg-green-500');
+        dot.classList.remove('bg-gray-300');
+      } else {
+        el.classList.remove('text-green-600', 'dark:text-green-400');
+        el.classList.add('text-gray-500', 'dark:text-gray-400');
+        dot.classList.remove('bg-green-500');
+        dot.classList.add('bg-gray-300');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -51,15 +51,13 @@ export const AuthProvider = ({ children }) => {
       document.documentElement.style.setProperty('--brand-border', user.organization.borderColor || '');
       
       // Favicon
-      if (user.organization.faviconUrl) {
-        let link = document.querySelector("link[rel~='icon']");
-        if (!link) {
-          link = document.createElement('link');
-          link.rel = 'icon';
-          document.getElementsByTagName('head')[0].appendChild(link);
-        }
-        link.href = user.organization.faviconUrl;
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
       }
+      link.href = user.organization.faviconUrl || '/icone.png';
 
       // Title
       document.title = user.organization.name || 'JusCore AI';
@@ -73,7 +71,7 @@ export const AuthProvider = ({ children }) => {
       document.documentElement.style.setProperty('--brand-border', '');
       
       let link = document.querySelector("link[rel~='icon']");
-      if (link) link.href = '/favicon.ico'; // Default favicon
+      if (link) link.href = '/icone.png'; // Default favicon
       
       document.title = 'JusCore AI';
     }

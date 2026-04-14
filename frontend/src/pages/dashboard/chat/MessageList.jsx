@@ -6,11 +6,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 const MessageList = ({ messages, bottomRef, setExpandedImage, isLoading }) => {
-  // Debug log
   useEffect(() => {
-    if (messages.length > 0) {
-        console.log("📨 [DEBUG] Messages in List:", messages.map(m => ({ role: m.role, model: m.model, mode: m.mode })));
-    }
+    // 
   }, [messages]);
 
   const handleDownloadPDF = (content) => {

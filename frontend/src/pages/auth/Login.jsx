@@ -95,65 +95,16 @@ const Login = () => {
           type="button"
           onClick={async () => {
             try {
-              // Limpa qualquer resultado anterior
-              localStorage.removeItem('google_auth_result');
-
-              const res = await axios.get('/api/auth/google/url');
+              // 1. Traz a URL do backend
+              const res = await axios.get(`/api/auth/google/url?t=${Date.now()}`);
               const { url } = res.data;
-              
-              const width = 500;
-              const height = 600;
-              const left = window.screen.width / 2 - width / 2;
-              const top = window.screen.height / 2 - height / 2;
-              
-              const popup = window.open(
-                url, 
-                'GoogleAuth', 
-                `width=${width},height=${height},left=${left},top=${top}`
-              );
 
-              if (!popup) {
-                setError('Popup bloqueado pelo navegador. Por favor, permita popups para este site.');
-                return;
+              // 2. Redireciona a janela atual (sem popup, mais seguro)
+              if (url && typeof url === 'string' && url.startsWith('https://')) {
+                window.location.href = url;
+              } else {
+                setError('Erro ao carregar link do Google. Tente novamente.');
               }
-
-              // Polling: verifica localStorage a cada 500ms
-              // (storage event do browser só dispara em OUTRAS abas, não na mesma)
-              const poll = setInterval(() => {
-                try {
-                  const raw = localStorage.getItem('google_auth_result');
-                  if (raw) {
-                    const payload = JSON.parse(raw);
-                    localStorage.removeItem('google_auth_result');
-                    clearInterval(poll);
-
-                    if (payload.token && payload.user) {
-                      // Aplica diretamente sem depender do AuthContext listener
-                      localStorage.setItem('token', payload.token);
-                      axios.defaults.headers.common['Authorization'] = `Bearer ${payload.token}`;
-                      // Dispara storage event manualmente para o AuthContext também capturar
-                      window.dispatchEvent(new StorageEvent('storage', {
-                        key: 'google_auth_result',
-                        newValue: raw,
-                      }));
-                    } else if (payload.error) {
-                      setError(payload.error || 'Falha na autenticação com Google.');
-                    }
-                  }
-
-                  // Para o poll se o popup fechou e não há resultado
-                  if (popup.closed) {
-                    const remaining = localStorage.getItem('google_auth_result');
-                    if (!remaining) clearInterval(poll);
-                  }
-                } catch (e) {
-                  clearInterval(poll);
-                }
-              }, 500);
-
-              // Timeout de segurança: para o poll após 3 minutos
-              setTimeout(() => clearInterval(poll), 180000);
-
             } catch (err) {
               setError('Erro ao iniciar login com Google');
             }

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Perfil - JusCore AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="config_tailwind.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 min-h-screen flex items-center justify-center p-4">
+
+  <div class="bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+      <h2 class="text-xl font-bold">Editar Perfil</h2>
+      <a href="/" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </a>
+    </div>
+
+    <form id="profileForm" class="p-6 space-y-6">
+      
+      <!-- Foto de Perfil -->
+      <div class="flex flex-col items-center">
+        <div class="relative group cursor-pointer" onclick="document.getElementById('fotoInput').click()">
+          <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-white dark:border-gray-700 shadow-lg">
+            <img id="profilePreview" src="" alt="Foto de Perfil" class="w-full h-full object-cover bg-gray-200 dark:bg-gray-600">
+          </div>
+          <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">Clique para alterar a foto</p>
+        <input type="file" id="fotoInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+      </div>
+
+      <!-- Campos de Texto -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome Completo</label>
+          <input type="text" id="nome" required
+            class="w-full px-4 py-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 outline-none transition-all">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Apelido (como o JusCore AI te chama)</label>
+          <input type="text" id="apelido" required
+            class="w-full px-4 py-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 outline-none transition-all">
+        </div>
+      </div>
+
+      <!-- Botão Salvar -->
+      <button type="submit" id="saveBtn"
+        class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2">
+        Salvar Alterações
+      </button>
+
+      <div id="statusMessage" class="hidden p-3 rounded-xl text-sm text-center"></div>
+    </form>
+  </div>
+
+  <!-- Modal de Recorte -->
+  <div id="cropModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-gray-50 dark:bg-gray-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h3 class="text-lg font-bold">Ajustar Foto</h3>
+        <button onclick="closeCropModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-4 flex-1 overflow-hidden bg-black flex items-center justify-center">
+        <img id="imageToCrop" src="" class="max-w-full max-h-[60vh] block">
+      </div>
+      <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+        <button onclick="closeCropModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancelar</button>
+        <button onclick="cropAndSave()" class="px-4 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">Cortar e Usar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Load config
+    const API_URL = window.location.origin + '/api';
+    const token = localStorage.getItem('token');
+    
+    // Init Theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+
+    if (!token) window.location.href = '/login';
+
+    // Elements
+    const form = document.getElementById('profileForm');
+    const nomeInput = document.getElementById('nome');
+    const apelidoInput = document.getElementById('apelido');
+    const preview = document.getElementById('profilePreview');
+    const saveBtn = document.getElementById('saveBtn');
+    const statusMsg = document.getElementById('statusMessage');
+    
+    // Crop Elements
+    const cropModal = document.getElementById('cropModal');
+    const imageToCrop = document.getElementById('imageToCrop');
+    let cropper = null;
+    let croppedBlob = null;
+
+    // Load Data
+    async function loadData() {
+      try {
+        const res = await fetch(`${API_URL}/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const user = await res.json();
+        
+        nomeInput.value = user.nome;
+        apelidoInput.value = user.apelido;
+        
+        if (user.foto) {
+          preview.src = user.foto;
+        } else {
+          // Placeholder initials
+          preview.src = `https://ui-avatars.com/api/?name=${user.nome}&background=random&color=fff&size=200`;
+        }
+      } catch (err) {
+        console.error('Erro ao carregar perfil', err);
+      }
+    }
+
+    // Handle File Selection
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          imageToCrop.src = e.target.result;
+          openCropModal();
+        };
+        reader.readAsDataURL(file);
+      }
+      // Reset input so same file can be selected again
+      event.target.value = '';
+    }
+
+    // Crop Modal Functions
+    function openCropModal() {
+      cropModal.classList.remove('hidden');
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(imageToCrop, {
+        aspectRatio: 1,
+        viewMode: 1,
+        dragMode: 'move',
+        autoCropArea: 1,
+        restore: false,
+        guides: false,
+        center: false,
+        highlight: false,
+        cropBoxMovable: false,
+        cropBoxResizable: false,
+        toggleDragModeOnDblclick: false,
+      });
+    }
+
+    function closeCropModal() {
+      cropModal.classList.add('hidden');
+      if (cropper) {
+        cropper.destroy();
+        cropper = null;
+      }
+    }
+
+    function cropAndSave() {
+      if (!cropper) return;
+      
+      const canvas = cropper.getCroppedCanvas({
+        width: 400,
+        height: 400,
+      });
+
+      canvas.toBlob((blob) => {
+        croppedBlob = blob;
+        preview.src = URL.createObjectURL(blob);
+        closeCropModal();
+      }, 'image/jpeg', 0.9);
+    }
+
+    // Submit Form
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<span class="animate-spin mr-2">⏳</span> Salvando...';
+      
+      const formData = new FormData();
+      formData.append('nome', nomeInput.value);
+      formData.append('apelido', apelidoInput.value);
+      
+      if (croppedBlob) {
+        formData.append('foto', croppedBlob, 'profile.jpg');
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/user/profile`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        if (res.ok) {
+          showStatus('Perfil atualizado com sucesso!', 'success');
+          // Update cached user if exists
+          const data = await res.json();
+          // Redirect home after short delay
+          setTimeout(() => window.location.href = '/', 1500);
+        } else {
+          showStatus('Erro ao atualizar perfil.', 'error');
+        }
+      } catch (err) {
+        showStatus('Erro de conexão.', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = 'Salvar Alterações';
+      }
+    };
+
+    function showStatus(msg, type) {
+      statusMsg.textContent = msg;
+      statusMsg.className = `p-3 rounded-xl text-sm text-center ${
+        type === 'success' 
+          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
+          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+      }`;
+      statusMsg.classList.remove('hidden');
+    }
+
+    // Init
+    loadData();
+
+  </script>
+</body>
+</html>

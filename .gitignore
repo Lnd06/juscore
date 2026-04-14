@@ -9,6 +9,8 @@
 .env.development
 .env.production
 .env.*.local
+.env.vps
+backend/.env.vps
 
 # ============================================
 # DEPENDÊNCIAS
@@ -31,16 +33,52 @@ uploads/
 *.docx
 
 # ============================================
-# LOGS E BANCOS LOCAIS
+# BUILD, BACKUPS E COMPRIMIDOS
+# ============================================
+dist/
+build/
+.cache/
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+
+# ============================================
+# LOGS E ARQUIVOS DE DEBUG
 # ============================================
 logs/
 *.log
+*_logs.txt
+backend_err.txt
+backend_logs.txt
+local_logs.txt
+vps_backend_logs.txt
+curl_output*.txt
+trace.txt
+debug_dou.html
+temp_calc_backup.txt
+
+# ============================================
+# SCRIPTS TEMPORÁRIOS E TESTES
+# ============================================
+check.cjs
+check_mysql.js
+test_asaas.js
+test_db.js
+resetUserPlan.js
+login
+
+# ============================================
+# BANCO DE DADOS E DUMPS
+# ============================================
 *.sqlite
 *.sqlite3
 *.db
+*.sql
+query.sql
 
 # ============================================
-# SISTEMA OPERACIONAL
+# SISTEMA OPERACIONAL E EDITORES
 # ============================================
 .DS_Store
 .DS_Store?
@@ -49,10 +87,6 @@ logs/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# ============================================
-# EDITORES E IDEs
-# ============================================
 .vscode/
 .idea/
 *.swp
@@ -65,13 +99,6 @@ Thumbs.db
 coverage/
 .nyc_output/
 *.test.js.snap
-
-# ============================================
-# BUILD E TEMP
-# ============================================
-tmp/
-temp/
-.cache/
 
 # ============================================
 # CERTIFICADOS E CHAVES PRIVADAS

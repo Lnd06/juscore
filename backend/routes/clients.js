@@ -1,6 +1,13 @@
 import express from "express";
 import { auth } from "../midleware/auth.js";
-import { Client } from "../models/index.js";
+import {
+  Client,
+  Process,
+  Event,
+  FinancialTransaction,
+} from "../models/index.js";
+import { Op } from "sequelize";
+import { checkPlanLimits } from "../middleware/planLimits.js";
 
 const router = express.Router();
 
@@ -19,7 +26,7 @@ router.get("/", auth, async (req, res) => {
 });
 
 // Criar novo cliente
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, checkPlanLimits, async (req, res) => {
   try {
     const client = await Client.create({
       ...req.body,
@@ -29,6 +36,45 @@ router.post("/", auth, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro ao criar cliente" });
+  }
+});
+
+// Timeline do cliente (Processos, Eventos, Financeiro)
+router.get("/:id/timeline", auth, async (req, res) => {
+  try {
+    const clientId = req.params.id;
+    const userId = req.user.id;
+
+    const client = await Client.findOne({ where: { id: clientId, userId } });
+    if (!client)
+      return res.status(404).json({ error: "Cliente não encontrado" });
+
+    const processes = await Process.findAll({
+      where: { clientId, userId },
+      order: [["updatedAt", "DESC"]],
+    });
+
+    // Simplest way to get events related to this client's processes
+    const processIds = processes.map((p) => p.id);
+    const events = await Event.findAll({
+      where: { userId, processId: { [Op.in]: processIds } },
+      order: [["dataHora", "DESC"]],
+    });
+
+    const finances = await FinancialTransaction.findAll({
+      where: { clientId, userId },
+      order: [["dataVencimento", "DESC"]],
+    });
+
+    res.json({
+      client,
+      processes,
+      finances,
+      events,
+    });
+  } catch (error) {
+    console.error("Erro na timeline do cliente:", error);
+    res.status(500).json({ error: "Erro ao buscar histórico do cliente" });
   }
 });
 

@@ -57,9 +57,9 @@ const Terms = () => {
                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                </div>
             ) : (
-               <div className="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
-                 {termsContent}
-               </div>
+                <div className="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
+                  {termsContent}
+                </div>
             )}
           </div>
           
