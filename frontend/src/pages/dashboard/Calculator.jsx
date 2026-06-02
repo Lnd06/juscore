@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+/* eslint-disable react-hooks/set-state-in-effect */
+import React, { useState, useEffect } from 'react';
 import { Card, Button, Input } from '../../components/ui';
 import { 
   Calculator as CalcIcon, 
@@ -25,6 +26,7 @@ import AlimonyCalculator from './calculator/AlimonyCalculator';
 const Calculator = ({ mode = 'private' }) => {
   const [activeTab, setActiveTab] = useState('interest');
   const [usageCount, setUsageCount] = useState(0);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -125,59 +127,140 @@ const Calculator = ({ mode = 'private' }) => {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="max-w-[1400px] mx-auto space-y-6 md:space-y-7 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-950 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative group">
-         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-accent/10 transition-colors" />
-         
-         <div className="relative z-10">
-           <div className="flex items-center gap-3 mb-3">
-             <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center">
-                <CalcIcon className="w-5 h-5 text-accent" />
-             </div>
-             <span className="text-xs font-bold text-accent uppercase tracking-widest">Utilitário Jurídico</span>
-           </div>
-           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-             Calculadoras <span className="bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">Estratégicas</span>
-           </h1>
-           <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-lg">
-             Cálculos precisos com base na legislação brasileira. Gere rascunhos de petições instantaneamente.
-           </p>
-         </div>
-
-         {mode === 'public' && (
-           <div className="relative z-10 bg-gray-50 dark:bg-gray-900 p-4 rounded-3xl border border-gray-100 dark:border-gray-800">
-              <div className="text-[10px] text-gray-500 uppercase font-black mb-1">Cálculos Restantes</div>
-              <div className="flex gap-1.5">
-                 {[1,2,3].map(i => (
-                   <div key={i} className={`h-2.5 w-10 rounded-full transition-all ${i <= (3 - usageCount) ? 'bg-accent shadow-[0_0_10px_rgba(212,175,55,0.4)]' : 'bg-gray-200 dark:bg-gray-800 opacity-30'}`} />
-                 ))}
+      {mode === 'public' ? (
+        <div className="bg-white dark:bg-juri-900 p-5 md:p-6 rounded-md border border-gray-200 dark:border-juri-800/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 overflow-hidden relative group">
+           <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-accent/10 transition-colors" />
+           
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-1.5">
+                <CalcIcon className="w-4 h-4 text-accent" />
+                <span className="text-[9px] font-bold text-accent uppercase tracking-widest">Utilitário Jurídico</span>
               </div>
-           </div>
-         )}
-      </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                Calculadoras <span className="text-accent">Estratégicas</span>
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-md leading-relaxed">
+                Cálculos precisos baseados na legislação.
+              </p>
+            </div>
+
+            <div className="relative z-10 bg-gray-50 dark:bg-juri-950 p-2.5 rounded-md border border-gray-200 dark:border-juri-800/60 self-start sm:self-auto">
+               <div className="text-[8px] text-gray-400 uppercase font-bold mb-1 tracking-wider">Cálculos Restantes</div>
+               <div className="flex gap-1">
+                  {[1,2,3].map(i => (
+                    <div key={i} className={`h-1.5 w-6 rounded-sm transition-all ${i <= (3 - usageCount) ? 'bg-accent shadow-sm shadow-accent/15' : 'bg-gray-200 dark:bg-juri-800/80 opacity-30'}`} />
+                  ))}
+               </div>
+            </div>
+         </div>
+       ) : (
+         <div className="bg-white dark:bg-juri-900 p-6 rounded-md border border-gray-200 dark:border-juri-800/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative group">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-accent/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-accent/10 transition-colors" />
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <CalcIcon className="w-4.5 h-4.5 text-accent" />
+                <span className="text-[10px] font-bold text-accent uppercase tracking-widest">Utilitário Jurídico</span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">
+                Calculadoras <span className="text-accent">Estratégicas</span>
+              </h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-xl leading-relaxed">
+                Cálculos precisos com base na legislação brasileira. Gere rascunhos de petições instantaneamente na inteligência artificial.
+              </p>
+            </div>
+         </div>
+       )}
 
       {/* Navigation */}
-      <div className="bg-white dark:bg-gray-950 p-2 rounded-[30px] border border-gray-100 dark:border-gray-800 shadow-sm overflow-x-auto custom-scrollbar">
-         <div className="flex gap-2 min-w-max">
-           {tabs.map((tab) => {
-             const Icon = tab.icon;
-             const active = activeTab === tab.id;
-             return (
-               <button
-                 key={tab.id}
-                 onClick={() => setActiveTab(tab.id)}
-                 className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold transition-all duration-300 ${active 
-                   ? 'bg-accent text-white shadow-lg shadow-accent/20 scale-[1.02]' 
-                   : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-900'}`}
-               >
-                 <Icon className={`w-4.5 h-4.5 ${active ? 'text-white' : 'text-gray-400'}`} />
-                 {tab.name}
-               </button>
-             );
-           })}
-         </div>
-      </div>
+      {mode === 'public' ? (
+        <div className="relative z-20">
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-md font-semibold transition-all duration-200 bg-white dark:bg-juri-950 border border-gray-200 dark:border-juri-800/80 text-gray-700 dark:text-gray-300 hover:border-accent/40"
+          >
+            <div className="flex items-center gap-3.5">
+              {(() => {
+                const active = tabs.find(t => t.id === activeTab);
+                const Icon = active?.icon || CalcIcon;
+                return (
+                  <>
+                    <div className="w-6.5 h-6.5 bg-accent/10 rounded-md flex items-center justify-center text-accent">
+                      <Icon className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">{active?.name}</span>
+                  </>
+                );
+              })()}
+            </div>
+            {/* Chevron icon */}
+            <svg
+              className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {dropdownOpen && (
+            <>
+              {/* Overlay to close the dropdown on click outside */}
+              <div 
+                className="fixed inset-0 z-10" 
+                onClick={() => setDropdownOpen(false)}
+              />
+              <div className="absolute left-0 right-0 mt-1.5 bg-white dark:bg-juri-950 rounded-md border border-gray-200 dark:border-juri-800 shadow-xl z-20 overflow-hidden py-1 max-h-[300px] overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors text-xs font-semibold ${
+                        active 
+                          ? 'bg-accent/10 text-accent' 
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-juri-900/50 hover:text-gray-900 dark:hover:text-gray-100'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${active ? 'text-accent' : 'text-gray-400 dark:text-gray-500'}`} />
+                      <span>{tab.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="border-b border-gray-200 dark:border-juri-800/80 pb-px overflow-x-auto custom-scrollbar">
+           <div className="flex gap-4 min-w-max">
+             {tabs.map((tab) => {
+               const Icon = tab.icon;
+               const active = activeTab === tab.id;
+               return (
+                 <button
+                   key={tab.id}
+                   onClick={() => setActiveTab(tab.id)}
+                   className={`flex items-center gap-2 py-3 px-1 border-b-2 font-bold text-xs uppercase tracking-wider transition-all duration-200 ${active 
+                     ? 'border-accent text-accent scale-[1.01]' 
+                     : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100'}`}
+                 >
+                   <Icon className={`w-4 h-4 mr-1 ${active ? 'text-accent' : 'text-gray-400/80 dark:text-gray-500'}`} />
+                   {tab.name}
+                 </button>
+               );
+             })}
+           </div>
+        </div>
+      )}
 
       {/* Calculator Body */}
       <div className="min-h-[500px]">

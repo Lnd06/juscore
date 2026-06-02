@@ -1,0 +1,49 @@
+LEI GERAL DE PROTEÇÃO DE DADOS (LGPD) - LEI Nº 13.709/2018
+GUIA DE CONFORMIDADE E DIRETRIZES PARA ADVOGADOS E ESCRITÓRIOS JURÍDICOS
+
+I. VISÃO GERAL DA LEI
+A Lei Geral de Proteção de Dados Pessoais (LGPD), Lei nº 13.709, de 14 de agosto de 2018, dispõe sobre o tratamento de dados pessoais, inclusive nos meios digitais, por pessoa natural ou por pessoa jurídica de direito público ou privado, com o objetivo de proteger os direitos fundamentais de liberdade e de privacidade e o livre desenvolvimento da personalidade da pessoa natural.
+
+II. PRINCÍPIOS FUNDAMENTAIS DO TRATAMENTO DE DADOS
+O tratamento de dados pessoais no Brasil deve observar a boa-fé e os seguintes princípios (Artigo 6º da LGPD):
+1. Finalidade: realização do tratamento para propósitos legítimos, específicos, explícitos e informados ao titular;
+2. Adequação: compatibilidade do tratamento com as finalidades informadas ao titular;
+3. Necessidade: limitação do tratamento ao mínimo necessário para a realização de suas finalidades (princípio da minimização de dados);
+4. Livre Acesso: garantia aos titulares de consulta facilitada e gratuita sobre a forma e a duração do tratamento;
+5. Qualidade dos Dados: garantia aos titulares de exatidão, clareza e relevância dos dados pessoais;
+6. Transparência: garantia aos titulares de informações claras, precisas e facilmente acessíveis sobre a realização do tratamento;
+7. Segurança: utilização de medidas técnicas e administrativas aptas a proteger os dados pessoais de acessos não autorizados;
+8. Prevenção: adoção de medidas para prevenir a ocorrência de danos em virtude do tratamento de dados pessoais;
+9. Não-discriminação: impossibilidade de realização do tratamento para fins discriminatórios ilícitos ou abusivos;
+10. Responsabilização e Prestação de Contas: demonstração pelo agente da adoção de medidas eficazes e capazes de comprovar a observância e o cumprimento da lei.
+
+III. BASES LEGAIS PARA TRATAMENTO DE DADOS COMUNS (Art. 7º)
+O tratamento de dados pessoais somente poderá ser realizado nas seguintes hipóteses:
+- Mediante o consentimento do titular;
+- Para o cumprimento de obrigação legal ou regulatória pelo controlador;
+- Pela administração pública, para o tratamento e uso compartilhado de dados necessários à execução de políticas públicas;
+- Para a realização de estudos por órgão de pesquisa;
+- Quando necessário para a execução de contrato ou de procedimentos preliminares relacionados a contrato do qual seja parte o titular;
+- Para o exercício regular de direitos em processo judicial, administrativo ou arbitral;
+- Para a proteção da vida ou da incolumidade física do titular ou de terceiro;
+- Para a tutela da saúde, exclusivamente, em procedimento realizado por profissionais de saúde;
+- Quando necessário para atender aos interesses legítimos do controlador ou de terceiro (Legítimo Interesse);
+- Para a proteção do crédito.
+
+IV. DIREITOS DOS TITULARES DE DADOS (Art. 18)
+O titular dos dados pessoais tem direito a obter do controlador, em relação aos seus dados, a qualquer momento e mediante requisição:
+1. Confirmação da existência de tratamento;
+2. Acesso aos dados;
+3. Correção de dados incompletos, inexatos ou desatualizados;
+4. Anonimização, bloqueio ou eliminação de dados desnecessários ou excessivos;
+5. Portabilidade dos dados a outro fornecedor de serviço ou produto;
+6. Eliminação dos dados pessoais tratados com o consentimento do titular;
+7. Informação das entidades públicas e privadas com as quais o controlador realizou uso compartilhado de dados;
+8. Informação sobre a possibilidade de não fornecer consentimento e sobre as consequências da negativa;
+9. Revogação do consentimento.
+
+V. BOAS PRÁTICAS PARA ESCRITÓRIOS DE ADVOCACIA
+Escritórios de advocacia tratam volumes maciços de dados sensíveis (dados de processos, saúde, religião, filiação sindical de clientes e partes contrárias). Por conseguinte, devem adotar as seguintes medidas:
+- Implementar criptografia de ponta a ponta e anonimização de informações sensíveis de processos arquivados;
+- Elaborar Termos de Consentimento claros para a coleta de dados de clientes;
+- Treinar colaboradores internos sobre regras de confidencialidade da informação e proteção física/digital de petições e documentos.

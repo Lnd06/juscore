@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps, no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Calendar as CalendarIcon, Clock, CheckCircle2, Circle } from 'lucide-react';
 import { Card } from '../../../components/ui/Card';
@@ -259,7 +260,7 @@ const Events = () => {
         </div>
       </div>
 
-      <Card className="p-4 h-[700px]">
+      <Card className="p-3 sm:p-4 h-[480px] sm:h-[600px] md:h-[750px] shadow-sm bg-white dark:bg-gray-800">
         <BigCalendar
           localizer={localizer}
           events={events.map(e => ({

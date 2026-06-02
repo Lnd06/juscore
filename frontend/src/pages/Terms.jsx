@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Scale, Shield, FileText, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

@@ -1,5 +1,6 @@
 import express from 'express';
-import { auth } from '../midleware/auth.js';
+import { auth } from '../middleware/auth.js';
+import { upload } from '../middleware/upload.js';
 import { User, Conversation } from '../models/index.js';
 
 const router = express.Router();
@@ -15,7 +16,6 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
-import { upload } from '../midleware/upload.js';
 
 router.put('/profile', auth, upload.single('foto'), async (req, res) => {
   try {

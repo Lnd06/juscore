@@ -1,5 +1,5 @@
 import express from "express";
-import { auth } from "../midleware/auth.js";
+import { auth } from "../middleware/auth.js";
 import { User, Coupon, Setting } from "../models/index.js";
 import { createCustomer, createSubscription } from "../services/asaas.js";
 

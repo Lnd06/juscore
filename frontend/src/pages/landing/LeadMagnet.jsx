@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import { Card, Button } from '../../components/ui';
 import { ScrollReveal } from './Animations';
@@ -65,7 +66,7 @@ const LeadMagnet = () => {
             <div className="relative group">
               <div className="absolute -inset-4 bg-gradient-to-tr from-accent to-blue-600 rounded-[40px] opacity-10 blur-2xl group-hover:opacity-20 transition-opacity" />
               <Card className="relative p-0 rounded-[40px] border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/50 backdrop-blur-xl shadow-2xl overflow-hidden min-h-[600px] flex flex-col justify-center">
-                 <div className="p-4 md:p-8 scale-[0.9] origin-center">
+                 <div className="public-calculator-container p-6 md:p-8 w-full">
                     <Calculator mode="public" />
                  </div>
               </Card>
@@ -76,6 +77,5 @@ const LeadMagnet = () => {
     </section>
   );
 };
-
 
 export default LeadMagnet;

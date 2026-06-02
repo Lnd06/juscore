@@ -15,16 +15,9 @@ import DashboardContact from './pages/dashboard/Contact';
 import History from './pages/dashboard/History'; 
 import { useAuth } from './context/AuthContext';
 import { Loader } from './components/ui';
-import AdminDashboard from './pages/admin/AdminDashboard';
 import Subscription from './pages/dashboard/Subscription';
 import Team from './pages/dashboard/Team';
-import Whatsapp from './pages/dashboard/Whatsapp';
 import LawyerBI from './pages/dashboard/LawyerBI';
-import Library from './pages/admin/Library';
-import Finance from './pages/admin/Finance';
-import AdminFeedbacks from './pages/admin/AdminFeedbacks';
-import MasterRoute from './components/route/MasterRoute';
-import AdminLayout from './components/layout/AdminLayout';
 import Landing from './pages/Landing';
 import InviteRegister from './pages/auth/InviteRegister';
 import Clients from './pages/dashboard/legal/Clients';
@@ -53,11 +46,17 @@ const ProtectedRoute = ({ children }) => {
 const StarterRoute = ({ children }) => {
   const { user } = useAuth();
   const isPrivileged = user?.tipo === 'admin' || user?.tipo === 'master';
-  const isProfessional = user?.cargo === 'Advogado(a)' || user?.cargo === 'Empresa';
   const plan = user?.subscriptionPlan || 'free';
-  const hasAccess = isPrivileged || (isProfessional && ['lawyer_starter', 'lawyer_growth', 'office_master', 'enterprise'].includes(plan));
-
-  if (!hasAccess) return <Navigate to="/dashboard" replace />;
+  
+  if (user?.parentUserId) {
+    // Se for sub-conta de Equipe: especial (Advogado) e admin (Sócio) têm acesso
+    const hasAccess = ['especial', 'admin', 'master'].includes(user.tipo);
+    if (!hasAccess) return <Navigate to="/dashboard" replace />;
+  } else {
+    // Se for proprietário
+    const hasAccess = isPrivileged || ['lawyer_starter', 'lawyer_growth', 'office_master', 'enterprise'].includes(plan);
+    if (!hasAccess) return <Navigate to="/dashboard" replace />;
+  }
   return children;
 };
 
@@ -65,11 +64,54 @@ const StarterRoute = ({ children }) => {
 const GrowthRoute = ({ children }) => {
   const { user } = useAuth();
   const isPrivileged = user?.tipo === 'admin' || user?.tipo === 'master';
-  const isProfessional = user?.cargo === 'Advogado(a)' || user?.cargo === 'Empresa';
   const plan = user?.subscriptionPlan || 'free';
-  const hasAccess = isPrivileged || (isProfessional && ['lawyer_growth', 'office_master', 'enterprise'].includes(plan));
+  
+  if (user?.parentUserId) {
+    // Se for sub-conta de Equipe: especial (Advogado) e admin (Sócio) têm acesso
+    const hasAccess = ['especial', 'admin', 'master'].includes(user.tipo);
+    if (!hasAccess) return <Navigate to="/dashboard/subscription" replace />;
+  } else {
+    // Se for proprietário
+    const hasAccess = isPrivileged || ['lawyer_growth', 'office_master', 'enterprise'].includes(plan);
+    if (!hasAccess) return <Navigate to="/dashboard/subscription" replace />;
+  }
+  return children;
+};
 
-  if (!hasAccess) return <Navigate to="/dashboard/subscription" replace />;
+// Rota de Assinaturas (Permite qualquer plano pago de advogados)
+const SignaturesRoute = ({ children }) => {
+  const { user } = useAuth();
+  const isPrivileged = user?.tipo === 'admin' || user?.tipo === 'master';
+  const plan = user?.subscriptionPlan || 'free';
+  const isStudentPlan = plan.startsWith('student_');
+  
+  if (user?.parentUserId) {
+    // Se for sub-conta de Equipe: especial (Advogado) e admin (Sócio) têm acesso
+    const hasAccess = ['especial', 'admin', 'master'].includes(user.tipo);
+    if (!hasAccess) return <Navigate to="/dashboard/subscription" replace />;
+  } else {
+    // Se for proprietário
+    const hasAccess = isPrivileged || (plan !== 'free' && !isStudentPlan);
+    if (!hasAccess) return <Navigate to="/dashboard/subscription" replace />;
+  }
+  return children;
+};
+
+// Rota Específica do Gerador de Documentos (Growth+ ou Estudantes Pro e Master)
+const DocumentGeneratorRoute = ({ children }) => {
+  const { user } = useAuth();
+  const isPrivileged = user?.tipo === 'admin' || user?.tipo === 'master';
+  const plan = user?.subscriptionPlan || 'free';
+  
+  if (user?.parentUserId) {
+    // Se for sub-conta de Equipe: especial (Advogado) e admin (Sócio) têm acesso
+    const hasAccess = ['especial', 'admin', 'master'].includes(user.tipo);
+    if (!hasAccess) return <Navigate to="/dashboard/subscription" replace />;
+  } else {
+    // Se for proprietário
+    const hasAccess = isPrivileged || ['lawyer_growth', 'office_master', 'enterprise', 'student_pro', 'student_master'].includes(plan);
+    if (!hasAccess) return <Navigate to="/dashboard/subscription" replace />;
+  }
   return children;
 };
 
@@ -77,11 +119,17 @@ const GrowthRoute = ({ children }) => {
 const MasterProfRoute = ({ children }) => {
   const { user } = useAuth();
   const isPrivileged = user?.tipo === 'admin' || user?.tipo === 'master';
-  const isProfessional = user?.cargo === 'Advogado(a)' || user?.cargo === 'Empresa';
   const plan = user?.subscriptionPlan || 'free';
-  const hasAccess = isPrivileged || (isProfessional && ['office_master', 'enterprise'].includes(plan));
-
-  if (!hasAccess) return <Navigate to="/dashboard/subscription" replace />;
+  
+  if (user?.parentUserId) {
+    // Se for sub-conta de Equipe: apenas admin (Sócio) tem acesso a recursos financeiros/equipe
+    const hasAccess = ['admin', 'master'].includes(user.tipo);
+    if (!hasAccess) return <Navigate to="/dashboard/subscription" replace />;
+  } else {
+    // Se for proprietário
+    const hasAccess = isPrivileged || ['office_master', 'enterprise'].includes(plan);
+    if (!hasAccess) return <Navigate to="/dashboard/subscription" replace />;
+  }
   return children;
 };
 
@@ -90,9 +138,9 @@ const AcademicRoute = ({ children }) => {
   const { user } = useAuth();
   const plan = user?.subscriptionPlan || 'free';
   const isPrivileged = user?.tipo === 'admin' || user?.tipo === 'master';
-  const isProfessional = ['lawyer_starter', 'lawyer_growth', 'office_master', 'enterprise'].includes(plan);
+  const hasProfessionalPlan = ['lawyer_starter', 'lawyer_growth', 'office_master', 'enterprise'].includes(plan);
 
-  if (!isPrivileged && plan !== 'student_pro' && !isProfessional) {
+  if (!isPrivileged && !['student_pro', 'student_master'].includes(plan) && !hasProfessionalPlan) {
     return <Navigate to="/dashboard/subscription" replace />;
   }
   return children;
@@ -129,7 +177,6 @@ function App() {
         <Route path="history" element={<History />} />
         <Route path="subscription" element={<Subscription />} />
         <Route path="team" element={<GrowthRoute><Team /></GrowthRoute>} />
-        <Route path="whatsapp" element={<MasterProfRoute><Whatsapp /></MasterProfRoute>} />
         <Route path="bi" element={<GrowthRoute><LawyerBI /></GrowthRoute>} />
         {/* ERP Routes */}
         <Route path="erp" element={<GrowthRoute><ErpDashboard /></GrowthRoute>} />
@@ -141,27 +188,15 @@ function App() {
         <Route path="oab-simulator" element={<AcademicRoute><OabSimulator /></AcademicRoute>} />
         <Route path="tcc-assistant" element={<AcademicRoute><TccAssistant /></AcademicRoute>} />
         <Route path="academic-hub" element={<AcademicRoute><AcademicHub /></AcademicRoute>} />
-        <Route path="document-generator" element={<GrowthRoute><DocumentGenerator /></GrowthRoute>} />
-        <Route path="signatures" element={<GrowthRoute><Signatures /></GrowthRoute>} />
+        <Route path="document-generator" element={<DocumentGeneratorRoute><DocumentGenerator /></DocumentGeneratorRoute>} />
+        <Route path="signatures" element={<SignaturesRoute><Signatures /></SignaturesRoute>} />
       </Route>
 
 
 
 
 
-      <Route 
-        path="/secret-admin-access-8822" 
-        element={
-          <MasterRoute>
-            <AdminLayout />
-          </MasterRoute>
-        }
-      >
-         <Route index element={<AdminDashboard />} />
-         <Route path="library" element={<Library />} />
-         <Route path="finance" element={<Finance />} />
-         <Route path="feedbacks" element={<AdminFeedbacks />} />
-      </Route>
+
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -13,6 +13,7 @@ const apiClient = axios.create({
     "Content-Type": "application/json",
     apikey: EVOLUTION_API_KEY,
   },
+  timeout: 3000, // 3 seconds timeout to avoid hanging requests globally
 });
 
 /**

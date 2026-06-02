@@ -30,6 +30,7 @@ export const useChat = () => {
       model = "company",
       sessionId = null,
       processId = null,
+      clientId = null,
     ) => {
       if (!content.trim() && !image) return;
 
@@ -49,61 +50,119 @@ export const useChat = () => {
       abortControllerRef.current = new AbortController();
 
       try {
-        const response = await axios.post(
-          "/api/chat",
-          {
+        const token = localStorage.getItem("token");
+        const headers = {
+          "Content-Type": "application/json",
+        };
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
             mensagem: content,
             imagem: image,
             model,
             sessionId,
             processId,
-          },
-          {
-            signal: abortControllerRef.current.signal,
-          },
-        );
+            clientId,
+            stream: true,
+          }),
+          signal: abortControllerRef.current.signal,
+        });
 
-        const { resposta, ultimasConversas } = response.data;
-        // Movemos isWaitingResponse=false para o MOMENTO em que a primeira letra da IA for mostrada na tela.
-
-        // Update User History for Sidebar
-        if (ultimasConversas && user) {
-          setUser((prev) => ({ ...prev, ultimasConversas }));
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const err = new Error(errorData.message || errorData.error || "Erro ao processar sua solicitação.");
+          err.response = { data: errorData };
+          throw err;
         }
 
-        if (resposta) {
-          // Simulate streaming (Typewriter effect)
-          addMessage("assistant", "", model); // Pass model/mode here
-          setIsWaitingResponse(false); // Já criou a bolha da IA, ela já começou a "digitar", as bolinhas somem.
+        // Add assistant message bubble as empty string first
+        addMessage("assistant", "", model);
+        setIsWaitingResponse(false); // Já começou a responder, as bolinhas de loading somem.
 
-          let i = 0;
-          const speed = 15; // ms per char
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+        let finalResponseData = null;
+        let fullText = "";
 
-          // Use a promise to keep the function running until "streaming" ends
-          await new Promise((resolve) => {
-            const interval = setInterval(() => {
-              if (i >= resposta.length) {
-                clearInterval(interval);
-                resolve();
-                return;
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // Split buffer by SSE newline double-delimiters
+          const lines = buffer.split("\n");
+          // Keep the last partial line in buffer
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const cleanLine = line.trim();
+            if (!cleanLine.startsWith("data: ")) continue;
+
+            const jsonStr = cleanLine.substring(6);
+            if (!jsonStr) continue;
+
+            try {
+              const data = JSON.parse(jsonStr);
+
+              if (data.done) {
+                finalResponseData = data;
+              } else if (data.text) {
+                fullText += data.text;
+                updateLastMessage(fullText);
               }
-              // Add a chunk of characters to speed up long responses
-              const chunk = resposta.slice(0, i + 3);
-              updateLastMessage(chunk);
-              i += 3;
-            }, speed);
-          });
-
-          // Ensure full text is set at the end
-          updateLastMessage(resposta);
-        } else {
-          setIsWaitingResponse(false); // Desliga se por acaso vier vazio
+            } catch (e) {
+              console.warn("Falha ao parsear chunk SSE:", e.message, jsonStr);
+            }
+          }
         }
 
-        return response.data.sessionId; // Return new sessionId
+        // Parse any remaining buffer
+        if (buffer) {
+          const cleanLine = buffer.trim();
+          if (cleanLine.startsWith("data: ")) {
+            const jsonStr = cleanLine.substring(6);
+            try {
+              const data = JSON.parse(jsonStr);
+              if (data.done) {
+                finalResponseData = data;
+              } else if (data.text) {
+                fullText += data.text;
+                updateLastMessage(fullText);
+              }
+            } catch {}
+          }
+        }
+
+        // Finalize state with the final complete response
+        if (finalResponseData) {
+          const { resposta, ultimasConversas } = finalResponseData;
+          updateLastMessage(resposta || fullText);
+
+          // Update User History for Sidebar
+          if (ultimasConversas && user) {
+            setUser((prev) => ({ ...prev, ultimasConversas }));
+          }
+
+          return finalResponseData.sessionId; // Return new sessionId
+        } else {
+          // Fallback if no done event was parsed properly
+          updateLastMessage(fullText);
+        }
+
       } catch (error) {
         // Don't show error if request was cancelled by user
-        if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
+        if (
+          error.name === "CanceledError" || 
+          error.code === "ERR_CANCELED" || 
+          error.name === "AbortError"
+        ) {
           console.log("Requisição cancelada pelo usuário");
         } else if (error.response?.data?.message) {
           // Capturar mensagem amigável do backend (ex: limite de uso)

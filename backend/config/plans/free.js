@@ -2,22 +2,27 @@ const free = {
   name: "Grátis",
   description: "Para conhecer a plataforma.",
   limits: {
-    conversations: 6, // 6 mensagens enviadas no chat
+    dailyDeepResearch: 0,
+    dailyReasoning: 0, // Sem acesso ao modo raciocínio
+    conversations: 6,
     historyDays: 1,
     maxCharsInput: 2000,
     dailyCalculations: 3,
-    dailyDocuments: 2, // Petições diárias
+    dailyDocuments: 2,
+    maxSignatureDocs: 0,
+    signatureDocExpiryDays: 0,
   },
   models: {
-    default: "llama-3.1-8b-instant",
-    reasoning: null,
-    vision: "llama-3.2-90b-vision-preview",
+    default: "gemini-2.5-flash",
+    reasoning: null, // Sem raciocínio
+    vision: "gemini-2.5-flash",
   },
   features: {
+    deepResearch: false,
     internetSearch: false,
-    uploadFiles: false /* Sem IA de Visão */,
+    uploadFiles: false,
     exportPDF: true,
-    watermark: true /* Regra: Petições com Marca d'água */,
+    watermark: true,
   },
 };
 

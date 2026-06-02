@@ -26,8 +26,8 @@ const getPlanLimits = (subscriptionPlan, tipo) => {
 
 export const checkPlanLimits = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const user = await User.findByPk(userId);
+    const targetUserId = req.user.parentUserId || req.user.id;
+    const user = await User.findByPk(targetUserId);
 
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado." });
@@ -44,7 +44,7 @@ export const checkPlanLimits = async (req, res, next) => {
     const path = req.baseUrl; // e.g., '/api/clients' or '/api/processes'
 
     if (path.includes("/clients") && req.method === "POST") {
-      const clientCount = await Client.count({ where: { userId } });
+      const clientCount = await Client.count({ where: { userId: targetUserId } });
       if (clientCount >= limits.maxClients) {
         return res.status(403).json({
           error: `Limite de clientes atingido para o seu plano (${limits.maxClients}). Faça upgrade para adicionar mais.`,
@@ -54,7 +54,7 @@ export const checkPlanLimits = async (req, res, next) => {
     }
 
     if (path.includes("/processes") && req.method === "POST") {
-      const processCount = await Process.count({ where: { userId } });
+      const processCount = await Process.count({ where: { userId: targetUserId } });
       if (processCount >= limits.maxProcesses) {
         return res.status(403).json({
           error: `Limite de processos atingido para o seu plano (${limits.maxProcesses}). Faça upgrade para adicionar mais.`,

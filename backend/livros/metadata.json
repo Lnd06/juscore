@@ -16,5 +16,50 @@
     "isActive": true,
     "uploadedBy": "1",
     "createdAt": "2026-04-12T21:19:38.413Z"
+  },
+  {
+    "id": "c42ca127-7ad9-46de-930e-38b5630d3e99",
+    "title": "Carta de pedido de demissão por comum acordo",
+    "categoria": "DOCUMENTOS",
+    "filename": "Carta_de_pedido_de_demissao_por_comum_acordo_1779147326648.txt",
+    "isActive": true,
+    "uploadedBy": "1",
+    "createdAt": "2026-05-18T23:35:26.649Z"
+  },
+  {
+    "id": "a8b9c0d1-e2f3-4a5b-6c7d-8e9f0a1b2c3d",
+    "title": "Petição Inicial de Alimentos (CPC)",
+    "categoria": "MODELO_DOCUMENTO",
+    "filename": "Modelo_de_Peticao_Inicial_de_Alimentos_1779644000000.txt",
+    "isActive": true,
+    "uploadedBy": "1",
+    "createdAt": "2026-05-24T14:53:00.000Z"
+  },
+  {
+    "id": "c0d1e2f3-a4b5-6c7d-8e9f-0a1b2c3d4e5f",
+    "title": "Guia de Conformidade LGPD para Advogados",
+    "categoria": "GERAL",
+    "filename": "Lei_Geral_de_Protecao_de_Dados_Resumo_Legal_1779646000000.txt",
+    "isActive": true,
+    "uploadedBy": "1",
+    "createdAt": "2026-05-24T14:53:20.000Z"
+  },
+  {
+    "id": "d1e2f3a4-b5c6-7d8e-9f0a-1b2c3d4e5f6a",
+    "title": "Guia Prático OAB - Estruturação de Peças de 2ª Fase",
+    "categoria": "OAB",
+    "filename": "Guia_de_Pecas_OAB_Segunda_Fase_1779647000000.txt",
+    "isActive": true,
+    "uploadedBy": "1",
+    "createdAt": "2026-05-24T15:12:00.000Z"
+  },
+  {
+    "id": "e2f3a4b5-c6d7-8e9f-0a1b-2c3d4e5f6a7b",
+    "title": "Manual de Metodologia e Redação de TCC em Direito",
+    "categoria": "TCC",
+    "filename": "Metodologia_TCC_Direito_Normas_ABNT_1779648000000.txt",
+    "isActive": true,
+    "uploadedBy": "1",
+    "createdAt": "2026-05-24T15:12:10.000Z"
   }
 ]

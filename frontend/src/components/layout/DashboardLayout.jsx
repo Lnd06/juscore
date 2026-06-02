@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+/* eslint-disable no-unused-vars */
+import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { ChevronRight, Menu } from 'lucide-react';
 import AnnouncementBanner from '../ui/AnnouncementBanner';
 
 const DashboardLayout = () => {
@@ -24,7 +24,7 @@ const DashboardLayout = () => {
     return 'Dashboard';
   };
 
-  const isChat = location.pathname.includes('/chat');
+  const isFullWidthPage = location.pathname.includes('/chat') || location.pathname.includes('/oab-simulator') || location.pathname.includes('/tcc-assistant');
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-juri-950 overflow-hidden">
@@ -38,8 +38,8 @@ const DashboardLayout = () => {
         <Header onMenuClick={() => setMobileMenuOpen(true)} pageTitle={getPageTitle()} />
         <AnnouncementBanner />
         
-        <main className={`flex-1 overflow-y-auto ${isChat ? 'p-0' : 'p-4 sm:p-6 lg:p-8'} scroll-smooth`}>
-          <div className={`${isChat ? 'w-full h-full' : 'max-w-7xl mx-auto'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+        <main className={`flex-1 ${isFullWidthPage ? 'p-0 sm:p-2 lg:p-3 overflow-hidden flex flex-col h-full min-h-0' : 'p-4 sm:p-6 lg:p-8 overflow-y-auto'} scroll-smooth`}>
+          <div className={`${isFullWidthPage ? 'w-full max-w-full h-full flex flex-col min-h-0' : 'max-w-7xl mx-auto'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
             <Outlet />
           </div>
         </main>

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { User } from "../models/index.js";
 import * as googleService from "../services/googleCalendar.js";
-import { auth } from "../midleware/auth.js";
+import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 

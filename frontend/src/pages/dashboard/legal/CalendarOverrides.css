@@ -169,3 +169,66 @@
 .dark .rbc-toolbar .rbc-toolbar-label {
   color: white;
 }
+
+/* Responsividade Avançada para Dispositivos Móveis e Tablets */
+@media (max-width: 768px) {
+  .rbc-toolbar {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: center !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .rbc-toolbar .rbc-btn-group {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+  
+  .rbc-toolbar button {
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+    flex-grow: 1 !important;
+    text-align: center !important;
+    border-radius: 4px !important;
+  }
+  
+  .rbc-toolbar .rbc-toolbar-label {
+    font-size: 1rem !important;
+    margin: 4px 0 !important;
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Otimização de visualização mensal de calendário em celulares */
+  .rbc-event {
+    padding: 1px 3px !important;
+    margin: 1px 0 !important;
+    border-radius: 3px !important;
+  }
+  
+  .rbc-event-content {
+    font-size: 0.65rem !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  
+  .rbc-date-cell {
+    padding: 2px 4px !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Melhora visualização do cabeçalho de dias da semana no celular */
+  .rbc-header {
+    padding: 6px 0 !important;
+    font-size: 0.65rem !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .rbc-month-view {
+    border-radius: 6px !important;
+  }
+}

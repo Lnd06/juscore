@@ -76,6 +76,13 @@ login
 *.db
 *.sql
 query.sql
+analise_financeira_juri_ai.csv
+google_slides_script.js
+frontend-legacy/
+juscore.conf
+nginx.conf
+remote_googleAuth.js
+CALCULATOR_DEBUG_NOTES.txt
 
 # ============================================
 # SISTEMA OPERACIONAL E EDITORES

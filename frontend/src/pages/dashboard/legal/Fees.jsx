@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, DollarSign, CheckCircle2, Circle, AlertCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card } from '../../../components/ui/Card';

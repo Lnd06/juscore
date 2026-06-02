@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
+import crypto from "crypto";
 
 const SignatureRequest = sequelize.define("SignatureRequest", {
   id: {
@@ -28,7 +29,7 @@ const SignatureRequest = sequelize.define("SignatureRequest", {
     comment: "Texto completo do documento que o cliente vai ler e assinar",
   },
   status: {
-    type: DataTypes.ENUM("PENDENTE", "ASSINADO"),
+    type: DataTypes.ENUM("PENDENTE", "ASSINADO", "RECUSADO", "EXPIRADO"),
     defaultValue: "PENDENTE",
   },
   signerName: {
@@ -39,12 +40,27 @@ const SignatureRequest = sequelize.define("SignatureRequest", {
   signerCpf: {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: "CPF inserido pelo cliente no momento que clicou em aceitar",
+    comment: "CPF/CNPJ inserido pelo cliente no momento que clicou em aceitar",
+  },
+  signerEmail: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: "Email do signatário informado no aceite",
+  },
+  signerPhone: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: "Telefone do signatário informado no aceite",
   },
   signerIp: {
     type: DataTypes.STRING,
     allowNull: true,
     comment: "IP registrado do dispositivo do cliente no aceite",
+  },
+  signerUserAgent: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: "User-Agent do navegador do signatário",
   },
   signedAt: {
     type: DataTypes.DATE,
@@ -65,6 +81,34 @@ const SignatureRequest = sequelize.define("SignatureRequest", {
     allowNull: true,
     comment: "Imagem base64 da rubrica do advogado",
   },
+  // Campos criptográficos para garantir integridade
+  documentHash: {
+    type: DataTypes.STRING(128),
+    allowNull: true,
+    comment: "SHA-512 hash do conteúdo do documento no momento da criação",
+  },
+  signatureHash: {
+    type: DataTypes.STRING(128),
+    allowNull: true,
+    comment: "SHA-512 hash dos dados da assinatura (nome+cpf+ip+timestamp+documentHash)",
+  },
+  verificationCode: {
+    type: DataTypes.STRING(16),
+    allowNull: true,
+    comment: "Código de verificação curto para validação rápida",
+  },
+});
+
+// Hook: Gerar hash do documento ao criar
+SignatureRequest.beforeCreate(async (instance) => {
+  if (instance.content) {
+    instance.documentHash = crypto
+      .createHash("sha512")
+      .update(instance.content)
+      .digest("hex");
+  }
+  // Gerar código de verificação curto (8 caracteres alfanuméricos)
+  instance.verificationCode = crypto.randomBytes(4).toString("hex").toUpperCase();
 });
 
 export default SignatureRequest;

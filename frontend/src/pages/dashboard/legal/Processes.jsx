@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, Button, Input } from '../../../components/ui';
@@ -15,7 +16,13 @@ import {
   X,
   Info,
   Clock,
-  MapPin
+  MapPin,
+  Globe,
+  Activity,
+  FileCheck,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw
 } from 'lucide-react';
 
 const Processes = () => {
@@ -28,6 +35,13 @@ const Processes = () => {
   const [searchTerm, setSearchTerm] = useState(searchQ);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProcess, setEditingProcess] = useState(null);
+
+  // Estados OAB Search (Crawler)
+  const [oabQuery, setOabQuery] = useState('');
+  const [oabLoading, setOabLoading] = useState(false);
+  const [oabResult, setOabResult] = useState(null);
+  const [oabError, setOabError] = useState('');
+  const [isOabExpanded, setIsOabExpanded] = useState(false);
   
   const initialFormState = {
     numero: '',
@@ -129,6 +143,44 @@ const Processes = () => {
     }
   };
 
+  const handleOabSearch = async (e) => {
+    e.preventDefault();
+    if (!oabQuery.trim()) return;
+    setOabLoading(true);
+    setOabError('');
+    setOabResult(null);
+    try {
+      const resp = await axios.get(`/api/processes/oab/${oabQuery}`);
+      setOabResult(resp.data);
+    } catch (err) {
+      setOabError(err.response?.data?.error || 'Erro ao realizar consulta judicial.');
+    } finally {
+      setOabLoading(false);
+    }
+  };
+
+  const handleImportProcess = async (proc) => {
+    try {
+      const dataToImport = {
+        numero: proc.numero,
+        tribunal: proc.tribunal,
+        vara: proc.vara,
+        comarca: proc.comarca || 'Capital',
+        fase: proc.fase || 'Conhecimento',
+        status: 'ativo',
+        valorCausa: 50000.00,
+        dataDistribuicao: proc.dataDistribuicao || new Date().toISOString().split('T')[0],
+        observacoes: `Processo importado via Consulta OAB (Crawler Judicial). Partes: Autor - ${proc.partes?.autor || 'N/A'}, Réu - ${proc.partes?.reu || 'N/A'}`
+      };
+
+      await axios.post('/api/processes', dataToImport);
+      alert(`Processo ${proc.numero} importado com sucesso para seu painel!`);
+      fetchProcesses(); // Recarrega a lista
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erro ao importar processo.');
+    }
+  };
+
   const getStatusBadge = (status) => {
     const styles = {
       ativo: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
@@ -180,6 +232,149 @@ const Processes = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
+
+      {/* ─── Consulta Rápida por OAB (Judicial Crawler Tool) ─── */}
+      <Card className="border border-accent/15 dark:border-accent/10 overflow-hidden bg-white dark:bg-gray-800 transition-all duration-300">
+        <div 
+          onClick={() => setIsOabExpanded(!isOabExpanded)}
+          className="p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors select-none"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-accent/10 rounded-xl text-accent">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-white text-sm md:text-base flex items-center gap-2">
+                Consulta de Processos Ativos por OAB
+                <span className="text-[9px] bg-accent/15 text-accent px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Tribunais Federais & Estaduais</span>
+              </h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Consulte o acervo ativo de qualquer OAB e importe as ações descobertas diretamente para o ERP em 1 clique.
+              </p>
+            </div>
+          </div>
+          <div className="text-gray-400">
+            {isOabExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </div>
+        </div>
+
+        {isOabExpanded && (
+          <div className="p-6 border-t border-gray-100 dark:border-gray-700/80 bg-gray-50/20 dark:bg-gray-900/10 space-y-6 animate-in slide-in-from-top-4 duration-200">
+            <form onSubmit={handleOabSearch} className="flex flex-col sm:flex-row gap-3 max-w-xl">
+              <div className="flex-1">
+                <Input 
+                  required
+                  placeholder="Digite a OAB (Ex: SP123456, RJ789123...)"
+                  className="bg-white dark:bg-gray-900 focus:ring-accent border-gray-200 dark:border-gray-700 rounded-xl h-11"
+                  value={oabQuery}
+                  onChange={(e) => setOabQuery(e.target.value)}
+                />
+              </div>
+              <Button type="submit" disabled={oabLoading} className="h-11 px-6 rounded-xl flex items-center gap-2">
+                {oabLoading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+                {oabLoading ? 'Consultando...' : 'Consultar OAB'}
+              </Button>
+            </form>
+
+            {/* Alerta de erro */}
+            {oabError && (
+              <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 text-xs text-red-600 dark:text-red-400 leading-relaxed flex items-start gap-2 max-w-xl">
+                <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{oabError}</span>
+              </div>
+            )}
+
+            {/* Exibição dos resultados */}
+            {oabResult && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] uppercase font-bold text-accent tracking-widest block">Advogado Localizado</span>
+                    <h4 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+                      {oabResult.lawyerName}
+                      <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-semibold px-2 py-0.5 rounded border border-gray-200 dark:border-gray-700">
+                        OAB: {oabResult.oab}
+                      </span>
+                    </h4>
+                  </div>
+
+                  {/* Badges de contagem */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="px-4 py-2 bg-green-50 dark:bg-green-950/20 border border-green-200/50 dark:border-green-800/30 rounded-xl text-center min-w-[110px]">
+                      <span className="text-[9px] uppercase font-bold text-green-500 tracking-wider block">Processos Ativos</span>
+                      <span className="text-xl font-black text-green-600 dark:text-green-400">{oabResult.activeCount}</span>
+                    </div>
+
+                    <div className="px-4 py-2 bg-blue-50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-800/30 rounded-xl text-center min-w-[110px]">
+                      <span className="text-[9px] uppercase font-bold text-blue-500 tracking-wider block">Total Acervo</span>
+                      <span className="text-xl font-black text-blue-600 dark:text-blue-400">{oabResult.totalCount}</span>
+                    </div>
+
+                    <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-center min-w-[120px]">
+                      <span className="text-[9px] uppercase font-bold text-gray-500 tracking-wider block">Fonte Dados</span>
+                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300 capitalize">{oabResult.source === 'local_database' ? 'Base Interna' : 'Crawler CNJ/TJ'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de Ações Descobertas */}
+                <div className="space-y-3">
+                  <h5 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-accent" />
+                    Processos Ativos Encontrados nos Tribunais
+                  </h5>
+
+                  <div className="border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left whitespace-nowrap text-xs md:text-sm">
+                        <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+                          <tr>
+                            <th className="px-4 py-3 font-bold text-gray-500 uppercase text-[10px]">Processo</th>
+                            <th className="px-4 py-3 font-bold text-gray-500 uppercase text-[10px]">Tribunal / Comarca</th>
+                            <th className="px-4 py-3 font-bold text-gray-500 uppercase text-[10px]">Fase</th>
+                            <th className="px-4 py-3 font-bold text-gray-500 uppercase text-[10px]">Partes</th>
+                            <th className="px-4 py-3 font-bold text-gray-500 uppercase text-[10px] text-right">Ação</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-850">
+                          {oabResult.processes.map((p, idx) => (
+                            <tr key={p.id || idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
+                              <td className="px-4 py-3 font-bold text-gray-900 dark:text-white">{p.numero}</td>
+                              <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                                <span className="font-semibold text-gray-800 dark:text-gray-200">{p.tribunal}</span> - {p.vara || 'Vara Cível'} ({p.comarca || 'Capital'})
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-medium text-xs">{p.fase}</span>
+                              </td>
+                              <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
+                                <span className="font-semibold text-gray-700 dark:text-gray-300">Autor:</span> {p.partes?.autor || 'N/A'}<br/>
+                                <span className="font-semibold text-gray-700 dark:text-gray-300">Réu:</span> {p.partes?.reu || 'N/A'}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <button 
+                                  onClick={() => handleImportProcess(p)}
+                                  className="px-3 py-1.5 bg-accent/10 hover:bg-accent text-accent hover:text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 inline-flex hover:scale-[1.02] active:scale-[0.98]"
+                                  title="Importar Processo para o ERP"
+                                >
+                                  <FileCheck className="w-3.5 h-3.5" /> Importar ERP
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">

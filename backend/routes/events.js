@@ -1,5 +1,5 @@
 import express from "express";
-import { auth } from "../midleware/auth.js";
+import { auth } from "../middleware/auth.js";
 import { Event, Process, User } from "../models/index.js";
 import * as googleService from "../services/googleCalendar.js";
 

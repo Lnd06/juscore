@@ -2,25 +2,30 @@ const lawyer_starter = {
   name: "Advogado Starter",
   description: "Profissionais Solo com análise IA.",
   limits: {
+    dailyDeepResearch: 10,
+    dailyReasoning: 15, // 15 perguntas/dia no modo raciocínio
     conversations: 9999,
     historyDays: 60,
     maxCharsInput: 15000,
     dailyCalculations: 9999,
-    dailyDocuments: 30, // 30 Petições
+    dailyDocuments: 30,
     dailyVision: 50,
+    maxSignatureDocs: 12,
+    signatureDocExpiryDays: 15,
   },
   models: {
-    default: "llama-3.3-70b-versatile",
-    reasoning: null,
-    vision: "llama-3.2-90b-vision-preview",
+    default: "gemini-2.5-flash",
+    reasoning: "gemini-2.5-pro",
+    vision: "gemini-2.5-flash",
   },
   features: {
+    deepResearch: false,
     internetSearch: true,
     uploadFiles: true,
     exportPDF: true,
     watermark: false,
-    processAnalysis: true, // Ativa ferramenta de análise de processos
-    usersCount: 1, // Individual
+    processAnalysis: true,
+    usersCount: 1,
   },
 };
 

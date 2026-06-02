@@ -9,13 +9,14 @@ import usePricing from '../../hooks/usePricing';
 const PLAN_NAME_TO_ID = {
   "Estudante Basic": "student_basic",
   "Estudante Pro": "student_pro",
+  "Estudante Pesquisador": "student_master",
   "Advogado Starter": "lawyer_starter",
   "Advogado Growth": "lawyer_growth",
   "Escritório Master": "office_master",
 };
 
 const Pricing = ({ onCtaClick }) => {
-  const { prices } = usePricing();
+  const { prices, planTexts } = usePricing();
 
   const getDynamicPrice = (plan) => {
     const id = PLAN_NAME_TO_ID[plan.name];
@@ -24,6 +25,19 @@ const Pricing = ({ onCtaClick }) => {
     if (!raw) return plan.price;
     const num = parseFloat(raw);
     return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const getDynamicPlan = (plan) => {
+    const id = PLAN_NAME_TO_ID[plan.name];
+    if (!id || !planTexts[id] || Object.keys(planTexts[id]).length === 0) return plan;
+    const custom = planTexts[id];
+    return {
+      ...plan,
+      name: custom.name || plan.name,
+      description: custom.description || plan.description,
+      features: custom.features ? custom.features.split('\n').filter(Boolean) : plan.features,
+      notIncluded: custom.notIncluded ? custom.notIncluded.split('\n').filter(Boolean) : plan.notIncluded,
+    };
   };
 
   return (
@@ -38,9 +52,10 @@ const Pricing = ({ onCtaClick }) => {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {plans.map((plan, i) => {
-            const Icon = plan.icon;
-            const displayPrice = getDynamicPrice(plan);
+          {plans.map((basePlan, i) => {
+            const plan = getDynamicPlan(basePlan);
+            const Icon = basePlan.icon;
+            const displayPrice = getDynamicPrice(basePlan);
             return (
               <ScrollReveal key={i} delay={i * 100} direction="up" scale={true} className="h-full">
                 <div className={`p-6 md:p-8 rounded-[40px] h-full flex flex-col relative transition-all duration-500 hover:-translate-y-4 hover:shadow-2xl hover:shadow-accent/10 group backdrop-blur-md ${

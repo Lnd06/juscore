@@ -1,6 +1,6 @@
 import express from "express";
 import { Feedback, User } from "../models/index.js";
-import { auth, authAdmin } from "../midleware/auth.js";
+import { auth, authAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 

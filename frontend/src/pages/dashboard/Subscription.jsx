@@ -44,6 +44,23 @@ const PLANS = [
     icon: <Star className="w-5 h-5 text-accent" />,
   },
   {
+    id: "student_master",
+    name: "Estudante Pesquisador",
+    price: 89.90,
+    period: "mês",
+    description: "TCCs, Artigos e Doutorado",
+    features: [
+      "Tudo do Estudante Pro",
+      "Deep Research (5/dia)",
+      "Análises profundas na Web",
+      "Resumo Inteligente de Livros",
+      "30 documentos gerados",
+      "IA com Raciocínio Avançado"
+    ],
+    highlight: false,
+    color: "purple",
+  },
+  {
     id: "lawyer_starter",
     name: "Advogado Starter",
     price: 127.00,
@@ -87,7 +104,7 @@ const PLANS = [
     features: [
       "Até 4 Usuários Inclusos",
       "Módulo Financeiro (Honorários/Despesas)",
-      "Bot de Atendimento no WhatsApp Oficial",
+      "Análise de Acervo e Auditoria de Processos por IA",
       "Gestão Completa de Permissões/Perfis",
       "Todos os recursos do Advogado Growth",
       "Histórico de Uso da IA da Equipe",
@@ -117,13 +134,22 @@ const PLANS = [
 const Subscription = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(null);
-  const { prices, loading: pricesLoading, formatPrice } = usePricing();
+  const { prices, planTexts, loading: pricesLoading, formatPrice } = usePricing();
   const role = user?.cargo || '';
   const isStudent = role.toLowerCase().includes('estudante') || role.toLowerCase().includes('bacharel');
   const isFreePlan = !user?.subscriptionPlan || user?.subscriptionPlan === 'free' || user?.tipo === 'free';
 
-  // Filtro de planos removido a pedido - todos os planos aparecem para todos
-  const filteredPlans = PLANS;
+  const filteredPlans = PLANS.map(plan => {
+    const custom = planTexts[plan.id];
+    if (!custom || Object.keys(custom).length === 0) return plan;
+    return {
+      ...plan,
+      name: custom.name || plan.name,
+      description: custom.description || plan.description,
+      features: custom.features ? custom.features.split('\n').filter(Boolean) : plan.features,
+    };
+  });
+
   const [showProfileModal, setShowProfileModal] = useState(false);
   
   // Checkout States

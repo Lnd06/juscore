@@ -1,26 +1,12 @@
+/* eslint-disable no-unused-vars */
 import React, {
   useRef, useEffect, useImperativeHandle, forwardRef, useState, useCallback
 } from 'react';
-
-function ToolBtn({ title, active, onClick, children, className = '' }) {
-  return (
-    <button
-      type="button"
-      title={title}
-      onMouseDown={e => { e.preventDefault(); onClick(); }}
-      className={`h-8 px-2 rounded text-sm font-medium transition-all select-none
-        ${active
-          ? 'bg-blue-600 text-white shadow-inner'
-          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-        } ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
+import { DocEditorToolbar } from './components/DocEditorToolbar';
+import { DocEditorImageOverlay } from './components/DocEditorImageOverlay';
 
 // ─── Componente principal ──────────────────────────────────────────────────────
-const CustomDocEditor = forwardRef(function CustomDocEditor({ initialContent = '' }, ref) {
+const CustomDocEditor = forwardRef(function CustomDocEditor({ initialContent = '', onPageCountChange }, ref) {
   const bodyRef      = useRef(null);  // a folha contentEditable
   const containerRef = useRef(null);  // o fundo cinza que envolve a folha
   const imgInputRef  = useRef(null);
@@ -36,23 +22,132 @@ const CustomDocEditor = forwardRef(function CustomDocEditor({ initialContent = '
   // estado dos botões de formatação
   const [fmt, setFmt] = useState({});
 
-  // ── Expõe .value como API do editor ────────────────────────────────────────
+  // ── Contagem de páginas A4 e quebras de folha ────────────────────────────────
+  const [mm297px, setMm297px] = useState(1122);
+  const [pageCount, setPageCount] = useState(1);
+  const observerRef = useRef(null);
+
+  const updatePageCount = useCallback(() => {
+    if (!bodyRef.current) return;
+
+    // Pausa o observer para evitar loop infinito durante modificações manuais do DOM
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    // Mede 297mm em pixels de forma exata para a tela atual
+    const temp = document.createElement('div');
+    temp.style.height = '297mm';
+    temp.style.position = 'absolute';
+    temp.style.visibility = 'hidden';
+    document.body.appendChild(temp);
+    const pxVal = temp.offsetHeight || 1122;
+    document.body.removeChild(temp);
+    setMm297px(pxVal);
+
+    // 1. Remove temporariamente todos os espaçadores existentes para obter as posições reais dos blocos
+    const existingSpacers = bodyRef.current.querySelectorAll('.page-break-spacer');
+    existingSpacers.forEach(el => el.remove());
+
+    // 2. Calcula as posições dos filhos reais para identificar onde quebrar a folha nas normas ABNT
+    const children = Array.from(bodyRef.current.children);
+    const bottomMargin = Math.round(20 * (pxVal / 297)); // Margem inferior de 20mm
+    const topMargin = Math.round(30 * (pxVal / 297));    // Margem superior de 30mm
+    const gapHeight = 24; // Espaço cinza físico entre as páginas de 24px
+    const usablePageHeight = pxVal - topMargin - bottomMargin - Math.round(8 * (pxVal / 297)); // Subtrai margem de segurança de 8mm para concordância de 100% com o PDF
+
+    let currentPage = 1;
+    let currentPageStartHeight = topMargin; // A primeira página começa com 30mm de preenchimento superior
+
+    children.forEach(child => {
+      if (child.classList.contains('page-break-spacer')) return;
+
+      const childHeight = child.offsetHeight;
+      const childTop = child.offsetTop;
+
+      // Calcula a base do elemento relativa ao início do conteúdo útil da página atual
+      const relativeBottom = childTop + childHeight - currentPageStartHeight;
+
+      // Se o elemento transbordar o espaço útil da página corrente, empurra-o para a próxima folha
+      if (relativeBottom > usablePageHeight) {
+        const spacer = document.createElement('div');
+        spacer.className = 'page-break-spacer select-none';
+        spacer.setAttribute('contenteditable', 'false');
+        spacer.style.height = `${bottomMargin + gapHeight + topMargin}px`;
+        spacer.style.margin = '0';
+        spacer.style.padding = '0';
+        spacer.style.position = 'relative';
+        spacer.style.display = 'block';
+        spacer.style.width = '100%';
+
+        // O espaçador visual replica a folha de papel:
+        // - Topo: Margem inferior branca de 20mm da folha anterior
+        // - Meio: Divisória de página de 24px cinza com rótulo
+        // - Fundo: Margem superior branca de 30mm da próxima folha
+        spacer.innerHTML = `
+          <div style="height: ${bottomMargin}px; background: #ffffff; width: 100%;"></div>
+          <div class="bg-gray-100 dark:bg-gray-900 border-y-4 border-gray-200 dark:border-gray-950 flex items-center justify-between" style="height: ${gapHeight}px; width: 100%;">
+            <span class="text-[8px] font-black text-gray-400 dark:text-gray-500 tracking-wider uppercase px-6">
+              FIM DA PÁG ${currentPage} (MARGEM 2CM)
+            </span>
+            <div style="flex: 1; border-t: 1px dashed #d1d5db; margin: 0 10px; opacity: 0.6;"></div>
+            <span class="text-[8px] font-black text-gray-400 dark:text-gray-500 tracking-wider uppercase px-6">
+              INÍCIO DA PÁG ${currentPage + 1} (MARGEM 3CM)
+            </span>
+          </div>
+          <div style="height: ${topMargin}px; background: #ffffff; width: 100%;"></div>
+        `;
+
+        bodyRef.current.insertBefore(spacer, child);
+        currentPage++;
+        currentPageStartHeight = child.offsetTop; // Atualiza a referência de início do conteúdo para o elemento deslocado
+      }
+    });
+
+    const pages = currentPage;
+    setPageCount(pages);
+    if (onPageCountChange) {
+      onPageCountChange(pages);
+    }
+
+    // Reativa o MutationObserver com as configurações necessárias
+    if (observerRef.current && bodyRef.current) {
+      observerRef.current.observe(bodyRef.current, { childList: true, subtree: true, characterData: true });
+    }
+  }, [onPageCountChange]);
+
+  // ── Expõe .value limpo como API do editor (sem resíduos de espaçadores do layout) ──
   useImperativeHandle(ref, () => ({
-    get value() { return bodyRef.current?.innerHTML ?? ''; },
+    get value() { 
+      if (!bodyRef.current) return '';
+      const clone = bodyRef.current.cloneNode(true);
+      clone.querySelectorAll('.page-break-spacer').forEach(el => el.remove());
+      return clone.innerHTML;
+    },
     set value(html) {
       if (bodyRef.current) {
         bodyRef.current.innerHTML = html;
         setSelImg(null);
         setImgRect(null);
+        setTimeout(updatePageCount, 50);
       }
     }
   }));
 
-  // ── Injeta conteúdo inicial UMA vez ────────────────────────────────────────
+  // ── Injeta conteúdo inicial UMA vez e configura MutationObserver ────────────
   useEffect(() => {
     if (bodyRef.current && initialContent) {
       bodyRef.current.innerHTML = initialContent;
     }
+
+    if (!bodyRef.current) return;
+    const observer = new MutationObserver(updatePageCount);
+    observerRef.current = observer;
+    observer.observe(bodyRef.current, { childList: true, subtree: true, characterData: true });
+
+    updatePageCount();
+
+    return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -280,129 +375,88 @@ const CustomDocEditor = forwardRef(function CustomDocEditor({ initialContent = '
     };
   }, [moving, updateImgRect]);
 
-  // ── Handles: posições dos 8 pontos ao redor do rect ───────────────────────
-  const handles = [
-    { id: 'nw', cursor: 'nw-resize' },
-    { id: 'n',  cursor: 'n-resize'  },
-    { id: 'ne', cursor: 'ne-resize' },
-    { id: 'e',  cursor: 'e-resize'  },
-    { id: 'se', cursor: 'se-resize' },
-    { id: 's',  cursor: 's-resize'  },
-    { id: 'sw', cursor: 'sw-resize' },
-    { id: 'w',  cursor: 'w-resize'  },
-  ];
-
-  const handleStyle = (id, r) => {
-    const mid = { x: r.width / 2, y: r.height / 2 };
-    const corners = {
-      nw: [0,        0       ],
-      n:  [mid.x,    0       ],
-      ne: [r.width,  0       ],
-      e:  [r.width,  mid.y   ],
-      se: [r.width,  r.height],
-      s:  [mid.x,    r.height],
-      sw: [0,        r.height],
-      w:  [0,        mid.y   ],
-    };
-    const [x, y] = corners[id];
-    return { left: `${x - 7}px`, top: `${y - 7}px` };
-  };
-
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col w-full">
+      <style>{`
+        /* Estilos e responsividade física da folha de papel */
+        .folha-papel {
+          width: 100% !important;
+          max-width: 210mm !important;
+          min-height: 50vh !important;
+          padding: 16px !important; /* Preenchimento confortável em celulares */
+          background: #ffffff !important;
+          color: #000000 !important;
+          font-family: 'Times New Roman', Times, serif !important;
+          font-size: 12pt !important;
+          line-height: 1.5 !important;
+          outline: none !important;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+          border-radius: 6px !important;
+          overflow-wrap: break-word !important;
+          word-break: break-word !important;
+          position: relative !important;
+        }
 
-      {/* ── BARRA DE FERRAMENTAS ── */}
-      <div className="flex flex-wrap items-center gap-1 px-3 py-2 bg-white dark:bg-gray-800
-                      border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
+        @media (min-width: 768px) {
+          .folha-papel {
+            min-height: 297mm !important; /* Folha A4 física em desktops */
+            padding: 30mm 20mm 20mm 30mm !important; /* Margens ABNT físicas reais */
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+            border-radius: 2px !important;
+          }
+        }
 
-        <select
-          className="h-8 px-2 text-xs rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white"
-          defaultValue="Times New Roman"
-          onMouseDown={saveRange}
-          onChange={e => { restoreRange(); exec('fontName', e.target.value); }}
-        >
-          {['Times New Roman','Arial','Calibri','Georgia','Verdana','Courier New'].map(f => (
-            <option key={f}>{f}</option>
-          ))}
-        </select>
+        /* Normas ABNT aplicadas ao editor */
+        .folha-papel p {
+          font-family: 'Times New Roman', Times, serif !important;
+          font-size: 12pt !important;
+          line-height: 1.5 !important;
+          text-align: justify !important;
+          text-indent: 1.25cm !important; /* Recuo padrão de parágrafo ABNT */
+          margin-top: 0 !important;
+          margin-bottom: 0 !important;
+          padding: 0 !important;
+        }
+        .folha-papel h1 {
+          font-family: 'Times New Roman', Times, serif !important;
+          font-size: 12pt !important;
+          font-weight: bold !important;
+          text-transform: uppercase !important;
+          text-align: center !important;
+          line-height: 1.5 !important;
+          margin-top: 1.5em !important;
+          margin-bottom: 0.8em !important;
+        }
+        .folha-papel h2 {
+          font-family: 'Times New Roman', Times, serif !important;
+          font-size: 12pt !important;
+          font-weight: bold !important;
+          text-align: left !important;
+          line-height: 1.5 !important;
+          margin-top: 1.5em !important;
+          margin-bottom: 0.8em !important;
+        }
+        .folha-papel h3 {
+          font-family: 'Times New Roman', Times, serif !important;
+          font-size: 12pt !important;
+          font-weight: bold !important;
+          font-style: italic !important;
+          text-align: left !important;
+          line-height: 1.5 !important;
+          margin-top: 1.5em !important;
+          margin-bottom: 0.8em !important;
+        }
+      `}</style>
 
-        <select
-          className="w-16 h-8 px-1 text-xs rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white"
-          defaultValue="3"
-          onMouseDown={saveRange}
-          onChange={e => { restoreRange(); exec('fontSize', e.target.value); }}
-        >
-          {[1,2,3,4,5,6,7].map((s,i) => (
-            <option key={s} value={s}>{[8,10,12,14,18,24,36][i]}pt</option>
-          ))}
-        </select>
-
-        <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-0.5" />
-
-        <ToolBtn title="Negrito" active={fmt.bold}    onClick={() => exec('bold')}>          <strong>B</strong></ToolBtn>
-        <ToolBtn title="Itálico"  active={fmt.italic}  onClick={() => exec('italic')}>         <em>I</em></ToolBtn>
-        <ToolBtn title="Sublinhado" active={fmt.underline} onClick={() => exec('underline')}>  <span style={{textDecoration:'underline'}}>S</span></ToolBtn>
-        <ToolBtn title="Tachado" active={fmt.strike}   onClick={() => exec('strikeThrough')}> <span style={{textDecoration:'line-through'}}>T</span></ToolBtn>
-
-        <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-0.5" />
-
-        <ToolBtn title="Esquerda"   active={fmt.jLeft}   onClick={() => exec('justifyLeft')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="5" width="18" height="2"/><rect x="3" y="10" width="12" height="2"/><rect x="3" y="15" width="16" height="2"/><rect x="3" y="20" width="9"  height="2"/></svg>
-        </ToolBtn>
-        <ToolBtn title="Centralizar" active={fmt.jCenter} onClick={() => exec('justifyCenter')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="5" width="18" height="2"/><rect x="6" y="10" width="12" height="2"/><rect x="3" y="15" width="18" height="2"/><rect x="6" y="20" width="12" height="2"/></svg>
-        </ToolBtn>
-        <ToolBtn title="Direita"     active={fmt.jRight}  onClick={() => exec('justifyRight')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="5" width="18" height="2"/><rect x="9" y="10" width="12" height="2"/><rect x="3" y="15" width="18" height="2"/><rect x="12" y="20" width="9" height="2"/></svg>
-        </ToolBtn>
-        <ToolBtn title="Justificar"  active={fmt.jFull}   onClick={() => exec('justifyFull')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="5" width="18" height="2"/><rect x="3" y="10" width="18" height="2"/><rect x="3" y="15" width="18" height="2"/><rect x="3" y="20" width="18" height="2"/></svg>
-        </ToolBtn>
-
-        <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-0.5" />
-
-        <ToolBtn title="Lista" active={fmt.ul} onClick={() => exec('insertUnorderedList')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="4" cy="7" r="2"/><circle cx="4" cy="14" r="2"/><circle cx="4" cy="21" r="2"/><rect x="8" y="6" width="13" height="2"/><rect x="8" y="13" width="13" height="2"/><rect x="8" y="20" width="13" height="2"/></svg>
-        </ToolBtn>
-        <ToolBtn title="Lista numerada" active={fmt.ol} onClick={() => exec('insertOrderedList')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4M5 10H3M3 14h1.5a.5.5 0 0 1 0 1H3.5a.5.5 0 0 1 0 1H5"/></svg>
-        </ToolBtn>
-        <ToolBtn title="Aumentar recuo" onClick={() => exec('indent')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="8" x2="21" y2="8"/><line x1="3" y1="16" x2="21" y2="16"/><polyline points="9 6 13 9 9 12"/><line x1="3" y1="9" x2="3" y2="12"/></svg>
-        </ToolBtn>
-        <ToolBtn title="Diminuir recuo" onClick={() => exec('outdent')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="8" x2="21" y2="8"/><line x1="3" y1="16" x2="21" y2="16"/><polyline points="11 6 7 9 11 12"/><line x1="3" y1="9" x2="3" y2="12"/></svg>
-        </ToolBtn>
-
-        <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-0.5" />
-
-        <ToolBtn title="Inserir imagem" onClick={() => { saveRange(); imgInputRef.current?.click(); }}>
-          🖼 Imagem
-        </ToolBtn>
-        <input ref={imgInputRef} type="file" accept="image/*" hidden onChange={insertImage} />
-
-        <ToolBtn title="Linha horizontal" onClick={() => exec('insertHorizontalRule')}>
-          ─ Linha
-        </ToolBtn>
-
-        <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-0.5" />
-
-        <ToolBtn title="Desfazer (Ctrl+Z)" onClick={() => exec('undo')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v6h6"/><path d="M3 13C5 7 11 4 17 6a9 9 0 0 1 4 12"/></svg>
-        </ToolBtn>
-        <ToolBtn title="Refazer (Ctrl+Y)" onClick={() => exec('redo')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 7v6h-6"/><path d="M21 13C19 7 13 4 7 6a9 9 0 0 0-4 12"/></svg>
-        </ToolBtn>
-
-        <div className="flex items-center gap-1 ml-1">
-          <span className="text-xs text-gray-500 dark:text-gray-400">Cor:</span>
-          <input type="color" title="Cor do texto" defaultValue="#000000"
-            className="w-7 h-7 cursor-pointer rounded border border-gray-200"
-            onMouseDown={saveRange}
-            onChange={e => { restoreRange(); exec('foreColor', e.target.value); }} />
-        </div>
-      </div>
+      <DocEditorToolbar 
+        saveRange={saveRange}
+        restoreRange={restoreRange}
+        exec={exec}
+        fmt={fmt}
+        imgInputRef={imgInputRef}
+        insertImage={insertImage}
+      />
 
       {/* ── ÁREA DE EDIÇÃO ── */}
       {/* containerRef envolve TUDO — absolute children são posicionados em relação a ele */}
@@ -413,98 +467,42 @@ const CustomDocEditor = forwardRef(function CustomDocEditor({ initialContent = '
         onClick={handleEditorClick}
       >
 
-        {/* ── OVERLAY: borda de seleção + alças de resize + botão de mover ── */}
-        {selImg && imgRect && (
-          <div
-            style={{
-              position:  'absolute',
-              left:      imgRect.left   + 'px',
-              top:       imgRect.top    + 'px',
-              width:     imgRect.width  + 'px',
-              height:    imgRect.height + 'px',
-              outline:   '2px solid #3b82f6',
-              zIndex:    40,
-              pointerEvents: 'none',
-            }}
-          >
-            {/* Alças de resize */}
-            {handles.map(({ id, cursor }) => (
-              <div
-                key={id}
-                onMouseDown={e => startResize(e, id)}
-                style={{
-                  position:        'absolute',
-                  ...handleStyle(id, imgRect),
-                  width:           '14px',
-                  height:          '14px',
-                  background:      '#3b82f6',
-                  border:          '2px solid #fff',
-                  borderRadius:    '3px',
-                  boxShadow:       '0 0 4px rgba(0,0,0,0.5)',
-                  cursor,
-                  pointerEvents:   'all',
-                  zIndex:          50,
-                }}
-              />
-            ))}
-
-            {/* Botão de mover — cruzinha central */}
-            <div
-              title="Arrastar para mover imagem"
-              onMouseDown={startMove}
-              style={{
-                position:      'absolute',
-                left:          `${imgRect.width  / 2 - 14}px`,
-                top:           `${imgRect.height / 2 - 14}px`,
-                width:         '28px',
-                height:        '28px',
-                background:    '#3b82f6',
-                border:        '2px solid #fff',
-                borderRadius:  '50%',
-                boxShadow:     '0 2px 8px rgba(0,0,0,0.35)',
-                cursor:        'move',
-                pointerEvents: 'all',
-                zIndex:        51,
-                display:       'flex',
-                alignItems:    'center',
-                justifyContent:'center',
-                color:         '#fff',
-                fontSize:      '16px',
-                userSelect:    'none',
-              }}
-            >
-              ✥
-            </div>
-          </div>
-        )}
-
-        {/* ── FOLHA DE PAPEL ── */}
-        <div
-          ref={bodyRef}
-          contentEditable
-          suppressContentEditableWarning
-          spellCheck
-          onKeyDown={handleKeyDown}
-          onKeyUp={updateFmt}
-          onMouseUp={updateFmt}
-          onFocus={updateFmt}
-          style={{
-            width:        '100%',
-            maxWidth:     '860px',
-            minHeight:    '297mm',
-            background:   '#ffffff',
-            color:        '#000000',
-            fontFamily:   "'Times New Roman', Times, serif",
-            fontSize:     '13pt',
-            lineHeight:   '1.6',
-            padding:      '25mm 20mm 20mm 30mm',
-            outline:      'none',
-            boxShadow:    '0 8px 32px rgba(0,0,0,0.18)',
-            borderRadius: '2px',
-            overflowWrap: 'break-word',
-            wordBreak:    'break-word',
-          }}
+        <DocEditorImageOverlay 
+          selImg={selImg}
+          imgRect={imgRect}
+          startResize={startResize}
+          startMove={startMove}
         />
+
+        {/* Wrapper relativo para alinhar as guias de quebra exatamente com a folha */}
+        <div className="relative w-full max-w-[210mm] flex flex-col items-center select-text">
+          
+          {/* ── FOLHA DE PAPEL ── */}
+          <div
+            ref={bodyRef}
+            contentEditable
+            suppressContentEditableWarning
+            spellCheck
+            className="folha-papel"
+            onKeyDown={handleKeyDown}
+            onKeyUp={updateFmt}
+            onMouseUp={updateFmt}
+            onFocus={updateFmt}
+            style={{
+              width:        '100%',
+              maxWidth:     '210mm',
+              background:   '#ffffff',
+              color:        '#000000',
+              fontFamily:   "'Times New Roman', Times, serif",
+              fontSize:     '12pt', // ABNT exato
+              lineHeight:   '1.5',  // ABNT exato
+              outline:      'none',
+              overflowWrap: 'break-word',
+              wordBreak:    'break-word',
+              position:     'relative',
+            }}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import express from "express";
-import { auth } from "../midleware/auth.js";
+import { auth } from "../middleware/auth.js";
 import { User, UserUsage, Conversation } from "../models/index.js";
 import bcrypt from "bcryptjs";
 import { Op } from "sequelize";
@@ -48,6 +48,10 @@ router.get("/", auth, async (req, res) => {
 // Estatístias BI da Equipe
 router.get("/bi-stats", auth, async (req, res) => {
   try {
+    if (req.user.parentUserId) {
+      console.log("🔍 [BI-STATS DEBUG] ACESSO NEGADO: Sub-conta tentou acessar.");
+      return res.status(403).json({ error: "Acesso ao BI restrito ao administrador do escritório." });
+    }
     const ownerId = req.user.id;
     const owner = await User.findByPk(ownerId);
     const hasPlanAccess = [
@@ -56,10 +60,14 @@ router.get("/bi-stats", auth, async (req, res) => {
       "enterprise",
     ].includes(owner?.subscriptionPlan);
 
+    console.log("🔍 [BI-STATS DEBUG] USUÁRIO LOGADO:", { id: req.user.id, email: req.user.email, tipo: req.user.tipo, plan: req.user.subscriptionPlan });
+    console.log("🔍 [BI-STATS DEBUG] HABILITADO PELO PLANO:", hasPlanAccess);
+
     if (
       !owner ||
       (!["admin", "master", "especial"].includes(owner.tipo) && !hasPlanAccess)
     ) {
+      console.log("🔍 [BI-STATS DEBUG] ACESSO NEGADO pelo tipo/plano.");
       return res.status(403).json({ error: "Acesso negado ao BI." });
     }
 
@@ -72,6 +80,7 @@ router.get("/bi-stats", auth, async (req, res) => {
     });
 
     const teamIds = teamMembers.map((u) => u.id);
+    console.log("🔍 [BI-STATS DEBUG] MEMBROS DA EQUIPE ENCONTRADOS:", teamMembers.map(m => ({ id: m.id, nome: m.nome, email: m.email })));
 
     // Soma do Uso Diário de IA (Agregado de toda a equipe)
     const todayStr = new Date().toISOString().split("T")[0];
@@ -81,6 +90,9 @@ router.get("/bi-stats", auth, async (req, res) => {
         date: todayStr,
       },
     });
+
+    console.log("🔍 [BI-STATS DEBUG] DATA DE HOJE (UTC/ISO):", todayStr);
+    console.log("🔍 [BI-STATS DEBUG] USAGES ENCONTRADOS NO DB:", usages.map(u => ({ userId: u.userId, date: u.date, docs: u.dailyDocuments, chats: u.dailyConversations })));
 
     let totalDocs = 0,
       totalChats = 0,
@@ -213,6 +225,64 @@ router.post("/invite", auth, async (req, res) => {
   } catch (error) {
     console.error("Erro ao gerar link de convite:", error);
     res.status(500).json({ error: "Erro interno ao gerar link de convite." });
+  }
+});
+
+// Editar membro da equipe (Nome e Nível de Acesso)
+router.put("/:id", auth, async (req, res) => {
+  try {
+    const targetUserId = req.params.id;
+    const { nome, tipo } = req.body;
+
+    // Busca o membro na equipe do usuário logado (dono)
+    const target = await User.findOne({
+      where: { id: targetUserId, parentUserId: req.user.id },
+    });
+
+    if (!target) {
+      return res
+        .status(404)
+        .json({ error: "Membro não encontrado em sua equipe." });
+    }
+
+    // Valida o tipo se fornecido
+    if (tipo) {
+      const owner = await User.findByPk(req.user.id);
+      if (!owner) return res.status(404).json({ error: "Administrador não encontrado." });
+
+      // O administrador só pode mudar o tipo para níveis que ele mesmo tem permissão para conceder
+      let allowedTypes = ["comum"];
+      if (owner.tipo === "especial") allowedTypes = ["comum", "especial"];
+      if (owner.tipo === "admin" || owner.tipo === "master")
+        allowedTypes = ["comum", "especial", "admin"];
+
+      if (!allowedTypes.includes(tipo)) {
+        return res.status(403).json({ error: "Você não tem permissão para conceder este nível de acesso." });
+      }
+      target.tipo = tipo;
+    }
+
+    if (nome) {
+      if (nome.trim().length === 0) {
+        return res.status(400).json({ error: "O nome não pode estar vazio." });
+      }
+      target.nome = nome.trim();
+    }
+
+    await target.save();
+
+    res.json({
+      message: "Membro atualizado com sucesso.",
+      user: {
+        id: target.id,
+        nome: target.nome,
+        email: target.email,
+        tipo: target.tipo,
+      },
+    });
+  } catch (err) {
+    console.error("Erro ao editar membro:", err);
+    res.status(500).json({ error: "Erro interno ao atualizar membro." });
   }
 });
 

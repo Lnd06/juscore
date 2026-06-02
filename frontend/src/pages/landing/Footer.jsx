@@ -1,8 +1,10 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ScrollReveal } from './Animations';
 import { Logo } from '../../components/ui/Logo';
-const Footer = ({ onCtaClick }) => {
+
+const Footer = ({ onCtaClick, onSupportClick }) => {
   return (
     <footer className="bg-gray-900 text-white pt-20 pb-10 px-6">
       <div className="max-w-7xl mx-auto">
@@ -32,7 +34,14 @@ const Footer = ({ onCtaClick }) => {
             <h4 className="font-bold mb-6 text-accent uppercase tracking-widest text-xs">Empresa</h4>
             <ul className="space-y-4 text-gray-400 font-medium">
               <li><Link to="/terms" className="hover:text-white transition-colors">Termos de Uso e Privacidade</Link></li>
-              <li><Link to="/dashboard/contact" className="hover:text-white transition-colors">Suporte</Link></li>
+              <li>
+                <button 
+                  onClick={(e) => { e.preventDefault(); onSupportClick?.(); }}
+                  className="hover:text-white transition-colors text-left font-medium"
+                >
+                  Suporte
+                </button>
+              </li>
             </ul>
           </div>
         </div>

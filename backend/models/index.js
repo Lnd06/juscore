@@ -4,7 +4,6 @@ import Cache from "./cache.js";
 import Document from "./document.js";
 import Setting from "./setting.js";
 import Coupon from "./coupon.js";
-import WhatsappInstance from "./WhatsappInstance.js";
 import KnowledgeBase from "./knowledgeBase.js";
 import UserUsage from "./UserUsage.js";
 import Client from "./Client.js";
@@ -96,13 +95,6 @@ FinancialTransaction.belongsTo(Process, { foreignKey: "processId" });
 User.hasMany(SignatureRequest, { foreignKey: "userId" });
 SignatureRequest.belongsTo(User, { foreignKey: "userId" });
 
-// Whatsapp Instances (1:N)
-User.hasMany(WhatsappInstance, {
-  foreignKey: "userId",
-  as: "WhatsappInstances",
-  onDelete: "CASCADE",
-});
-WhatsappInstance.belongsTo(User, { foreignKey: "userId", as: "Owner" });
 
 User.hasMany(Document, { foreignKey: "uploadedBy", onDelete: "CASCADE" });
 Document.belongsTo(User, { foreignKey: "uploadedBy" });
@@ -122,7 +114,6 @@ export {
   KnowledgeBase,
   Coupon,
   UserUsage,
-  WhatsappInstance,
   Client,
   Process,
   Event,

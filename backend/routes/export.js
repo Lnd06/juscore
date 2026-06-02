@@ -1,6 +1,6 @@
 import express from "express";
-import { auth } from "../midleware/auth.js";
-import { usageLimiter } from "../midleware/usageLimiter.js";
+import { auth } from "../middleware/auth.js";
+import { usageLimiter } from "../middleware/usageLimiter.js";
 import { Conversation } from "../models/index.js";
 import { generateConversationPDF } from "../services/pdfGenerator.js";
 

@@ -11,9 +11,6 @@ services:
       # MYSQL_USER: "u135442082_daniel_admin"
       # MYSQL_PASSWORD: "@Juscore_821"
       MYSQL_DATABASE: "juscore_ai"
-      MYSQL_USER: "root"
-      MYSQL_PASSWORD: ""
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     volumes:
       - juscore_db_data:/var/lib/mysql
     networks:
@@ -31,6 +28,7 @@ services:
       - ./backend/.env
     volumes:
       - juscore_uploads:/app/uploads
+      - juscore_library_data:/app/livros
     networks:
       - juscore_network
 
@@ -41,7 +39,20 @@ services:
     container_name: juscore_frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - juscore_network
+
+  frontend-master:
+    build:
+      context: ./frontend-master
+      dockerfile: Dockerfile
+    container_name: juscore_frontend_master
+    restart: unless-stopped
+    ports:
+      - "8081:80"
     depends_on:
       - backend
     networks:
@@ -56,3 +67,5 @@ volumes:
     name: juscore_uploads
   juscore_db_data:
     name: juscore_db_data
+  juscore_library_data:
+    name: juscore_library_data

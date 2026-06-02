@@ -128,9 +128,9 @@ export const TypewriterText = ({ texts, className = '' }) => {
   }, [currentText, isDeleting, loopNum, texts, typingSpeed]);
 
   return (
-    <span className={className}>
-      <span>{currentText}</span>
-      <span className="animate-pulse border-r-2 border-accent ml-1" />
+    <span className="inline-flex flex-wrap items-baseline justify-center whitespace-normal">
+      <span className={`${className} whitespace-normal break-words`}>{currentText}</span>
+      <span className="animate-pulse ml-0.5 shrink-0" style={{ borderRight: '3px solid var(--color-accent, #D4AF37)', height: '0.85em', display: 'inline-block' }} />
     </span>
   );
 };

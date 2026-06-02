@@ -6,7 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "node backend/server.js",
-    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend && npm install --prefix frontend-master",
+    "dev:client": "npm run dev --prefix frontend",
+    "dev:master": "npm run dev --prefix frontend-master",
+    "build:client": "npm run build --prefix frontend",
+    "build:master": "npm run build --prefix frontend-master",
     "install-prod": "cd backend && npm install"
   },
   "dependencies": {
@@ -34,6 +38,7 @@
     "pdfkit": "^0.17.2",
     "qrcode": "^1.5.4",
     "sequelize": "^6.37.7",
+    "ssh2": "^1.17.0",
     "whatsapp-web.js": "^1.34.6"
   }
 }

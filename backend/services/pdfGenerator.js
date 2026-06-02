@@ -312,156 +312,253 @@ export function generateProfessionalPDF(content, options) {
       lawyerSignatureImage,
     } = options;
 
-    // Margens ABNT (Padrão Acadêmico/Jurídico): Superior: 3cm, Esquerda: 3cm, Direita: 2cm, Inferior: 2cm
-    // 1 cm ~= 28.34 pt
-    const marginT = 85; // 3cm
-    const marginL = 85; // 3cm
-    const marginR = 57; // 2cm
-    const marginB = 57; // 2cm
+    // Margens ABNT: Superior 3cm, Esquerda 3cm, Direita 2cm, Inferior 2cm
+    const marginT = 85;
+    const marginL = 85;
+    const marginR = 57;
+    const marginB = 57;
+    const pageW = 595.28; // A4 width in pt
+    const pageH = 841.89; // A4 height in pt
+    const contentWidth = pageW - marginL - marginR;
 
     const doc = new PDFDocument({
       size: "A4",
       margins: { top: marginT, bottom: marginB, left: marginL, right: marginR },
       info: {
-        Title: title || "Documento Jurídico Profissional",
+        Title: title || "Documento Jurídico",
         Author: lawyerName || "JusCore AI",
-        Creator: "JusCore AI v1.6.5",
+        Creator: "JusCore AI v1.7",
       },
       bufferPages: true,
       autoFirstPage: true,
     });
 
-    // SEM MARCA D'ÁGUA para profissionais
-
-    // Cabeçalho Profissional
-    let headerY = marginT - 40; // Espaço acima da margem principal
-
-    // Logo (Lado Esquerdo Superior ou Centro)
-    // O logotipo
+    // ── Logo (papel timbrado) ──
     if (logo) {
       try {
         let imageBuffer;
         if (logo.startsWith("data:")) {
           imageBuffer = Buffer.from(logo.split(",")[1], "base64");
         } else {
-          // If it's a file path, we need to read it synchronously so errors are caught here.
-          // Often it's saved as "uploads/..." but sometimes it starts with "/".
           const cleanPath = logo.startsWith("/") ? logo.substring(1) : logo;
           imageBuffer = fs.readFileSync(path.resolve(cleanPath));
         }
-
-        doc.image(imageBuffer, marginL, headerY - 20, { height: 40 });
+        doc.image(imageBuffer, marginL, marginT - 40, { height: 36 });
       } catch (e) {
         console.warn("Logo rendering failed:", e.message);
       }
     }
 
-    // Info do Escritório (Lado Direito Superior)
-    doc
-      .fontSize(10)
-      .font("Helvetica-Bold")
-      .fillColor("#1F2937")
-      .text(officeName || "", marginL, headerY, { align: "right" });
+    // Posiciona o cursor na margem superior real
+    doc.y = marginT;
 
-    let subText = "";
-    if (lawyerName) subText += `Advogado(a): ${lawyerName}\n`;
-    if (oabNumber) subText += `OAB: ${oabNumber}\n`;
-    if (address) subText += `${address}`;
+    // ── Parser de HTML → blocos semânticos ──
+    // Transforma o HTML do editor em blocos {type, text} que o PDFKit renderiza nativamente
+    const rawHtml = String(content || "");
 
-    doc
-      .fontSize(8)
-      .font("Helvetica")
-      .fillColor("#6B7280")
-      .text(subText, { align: "right" });
+    // Função auxiliar para extrair blocos do HTML
+    const parseHtmlToBlocks = (html) => {
+      const blocks = [];
 
-    // Linha divisória após cabeçalho
-    doc
-      .moveDown(1)
-      .strokeColor("#E5E7EB")
-      .lineWidth(0.5)
-      .moveTo(marginL, doc.y)
-      .lineTo(595 - marginR, doc.y)
-      .stroke()
-      .moveDown(2);
+      // Normaliza whitespace e quebras
+      let normalized = html
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n");
 
-    // Cidade e Data (Lado Direito Abaixo da Linha)
-    if (date) {
-      doc
-        .fontSize(12)
-        .font("Helvetica")
-        .fillColor("#000000")
-        .text(date, { align: "right" })
-        .moveDown(1);
+      // Divide por tags <p> — cada <p>...</p> vira um bloco
+      // Também trata <br> como quebra de linha dentro do bloco
+      const paragraphs = normalized.split(/<\/p>/gi);
+
+      for (const raw of paragraphs) {
+        // Remove a tag <p ...> de abertura
+        let text = raw.replace(/<p[^>]*>/gi, "");
+
+        // Converte <br> em newline
+        text = text.replace(/<br\s*\/?>/gi, "\n");
+
+        // Detecta se o bloco contém apenas um <strong> (título de seção)
+        const strongOnlyMatch = text.match(/^\s*<strong>(.+?)<\/strong>\s*$/i);
+
+        // Remove todas as tags HTML restantes, preservando o texto
+        const cleanText = text.replace(/<[^>]+>/g, "").trim();
+
+        if (!cleanText) continue; // Pula blocos vazios
+
+        if (strongOnlyMatch) {
+          // Bloco que é APENAS negrito = título de seção jurídica
+          const heading = strongOnlyMatch[1].replace(/<[^>]+>/g, "").trim();
+          if (heading) {
+            blocks.push({ type: "heading", text: heading });
+          }
+        } else {
+          // Bloco de parágrafo normal
+          // Detecta segmentos bold dentro do texto para renderização mista
+          const segments = [];
+          let remaining = text;
+          const boldRegex = /<strong>(.*?)<\/strong>/gi;
+          let lastIndex = 0;
+          let match;
+
+          // Reset regex
+          boldRegex.lastIndex = 0;
+
+          while ((match = boldRegex.exec(remaining)) !== null) {
+            // Texto antes do bold
+            if (match.index > lastIndex) {
+              const before = remaining.substring(lastIndex, match.index).replace(/<[^>]+>/g, "");
+              if (before) segments.push({ bold: false, text: before });
+            }
+            // Texto bold
+            const boldText = match[1].replace(/<[^>]+>/g, "");
+            if (boldText) segments.push({ bold: true, text: boldText });
+            lastIndex = match.index + match[0].length;
+          }
+
+          // Texto restante após o último bold
+          if (lastIndex < remaining.length) {
+            const after = remaining.substring(lastIndex).replace(/<[^>]+>/g, "");
+            if (after.trim()) segments.push({ bold: false, text: after });
+          }
+
+          if (segments.length > 0) {
+            blocks.push({ type: "paragraph", segments });
+          } else if (cleanText) {
+            blocks.push({ type: "paragraph", segments: [{ bold: false, text: cleanText }] });
+          }
+        }
+      }
+
+      // Fallback: se o HTML não tinha <p> tags, trata como texto plano
+      if (blocks.length === 0 && rawHtml.trim()) {
+        const fallback = rawHtml
+          .replace(/<[^>]+>/g, "")
+          .replace(/\*\*/g, "")
+          .replace(/\*/g, "")
+          .trim();
+        if (fallback) {
+          blocks.push({ type: "paragraph", segments: [{ bold: false, text: fallback }] });
+        }
+      }
+
+      return blocks;
+    };
+
+    const blocks = parseHtmlToBlocks(rawHtml);
+
+    // Limpa placeholders genéricos da IA
+    const cleanBlockText = (text) => {
+      return text
+        .replace(/\[Local e Data\]/gi, "")
+        .replace(/\[Assinatura do Advogado\]/gi, "")
+        .replace(/\[Nome do Advogado\]/gi, "")
+        .replace(/OAB n[º°]? \[N[úu]mero da OAB\]/gi, "")
+        .replace(/\[Assinatura do Cliente\]/gi, "")
+        .replace(/\[Nome do Cliente\]/gi, "")
+        .replace(/\[CPF do Cliente\]/gi, "")
+        .replace(/____________________________________/g, "")
+        .replace(/\*\*/g, "")
+        .replace(/\*/g, "");
+    };
+
+    // ── Renderiza blocos no PDF ──
+    const usableHeight = pageH - marginB;
+
+    for (const block of blocks) {
+      if (block.type === "heading") {
+        const headingText = cleanBlockText(block.text);
+        if (!headingText.trim()) continue;
+
+        // Verifica espaço (heading + ao menos 2 linhas de texto)
+        if (doc.y + 40 > usableHeight) doc.addPage();
+
+        doc
+          .font("Helvetica-Bold")
+          .fontSize(12)
+          .fillColor("#000000")
+          .text(headingText.toUpperCase(), {
+            align: "center",
+            lineGap: 4,
+          })
+          .moveDown(0.8);
+
+      } else if (block.type === "paragraph") {
+        // Renderiza segmentos com suporte a negrito inline
+        const fullText = block.segments.map(s => cleanBlockText(s.text)).join("").trim();
+        if (!fullText) continue;
+
+        // Verifica se cabe pelo menos 1 linha
+        if (doc.y + 20 > usableHeight) doc.addPage();
+
+        // Se o parágrafo tem mistura de bold/normal, renderiza segmento por segmento
+        const hasMixedFormatting = block.segments.length > 1 && block.segments.some(s => s.bold);
+
+        if (hasMixedFormatting) {
+          for (let i = 0; i < block.segments.length; i++) {
+            const seg = block.segments[i];
+            const segText = cleanBlockText(seg.text);
+            if (!segText) continue;
+
+            const isLast = i === block.segments.length - 1;
+            doc
+              .font(seg.bold ? "Helvetica-Bold" : "Helvetica")
+              .fontSize(12)
+              .fillColor("#000000")
+              .text(segText, {
+                continued: !isLast,
+                align: "justify",
+                lineGap: 6,
+              });
+          }
+          doc.moveDown(0.6);
+        } else {
+          // Parágrafo simples (todo bold ou todo normal)
+          const isBold = block.segments[0]?.bold;
+          doc
+            .font(isBold ? "Helvetica-Bold" : "Helvetica")
+            .fontSize(12)
+            .fillColor("#000000")
+            .text(fullText, {
+              align: "justify",
+              lineGap: 6,
+              paragraphGap: 4,
+            })
+            .moveDown(0.6);
+        }
+      }
     }
 
-    // Título do Documento
-    if (title) {
-      doc
-        .fontSize(14)
-        .font("Helvetica-Bold")
-        .fillColor("#000000")
-        .text(title.toUpperCase(), { align: "center" })
-        .moveDown(2);
-    }
+    // ── Blocos de Assinatura ──
+    const sigBlocks = [];
 
-    // Conteúdo com Normas ABNT
-    // Texto Justificado, Fonte 12, Espaçamento Entre Linhas 1.5
-    const cleanContent = String(content || "")
-      .replace(/\*\*/g, "")
-      .replace(/\*/g, "")
-      .replace(/\[Local e Data\]/gi, "")
-      .replace(/\[Assinatura do Advogado\]/gi, "")
-      .replace(/\[Nome do Advogado\]/gi, "")
-      .replace(/OAB n[º°]? \[N[úu]mero da OAB\]/gi, "")
-      .replace(/\[Assinatura do Cliente\]/gi, "")
-      .replace(/\[Nome do Cliente\]/gi, "")
-      .replace(/\[CPF do Cliente\]/gi, "")
-      .replace(/____________________________________/g, "")
-      .trim();
-
-    doc.fontSize(12).font("Helvetica").fillColor("#000000").text(cleanContent, {
-      align: "justify",
-      lineGap: 6, // Espaçamento aproximado de 1.5
-      paragraphGap: 12,
-    });
-
-    // Blocos de Assinatura
-    const blocks = [];
-
-    // Bloco do Cliente
-    if (options.clientSignerName || clientSignatureImage) {
-      blocks.push({
-        name: options.clientSignerName || "Cliente",
-        doc: options.clientSignerCpf ? `CPF: ${options.clientSignerCpf}` : null,
+    if (clientSignerName || clientSignatureImage) {
+      sigBlocks.push({
+        name: clientSignerName || "Cliente",
+        doc: clientSignerCpf ? `CPF: ${clientSignerCpf}` : null,
         image: clientSignatureImage,
       });
     }
 
-    // Bloco do Advogado (Sempre exibe se o advogado assinou, OU se ninguém assinou ainda)
-    if (lawyerSignatureImage || blocks.length === 0) {
-      blocks.push({
+    if (lawyerSignatureImage || sigBlocks.length === 0) {
+      sigBlocks.push({
         name: lawyerName || user?.nome || "Advogado Responsável",
         doc: oabNumber ? `OAB: ${oabNumber}` : null,
         image: lawyerSignatureImage,
       });
     }
 
-    // Garantir espaço para assinaturas
-    const requiredSpaceForSig =
-      clientSignatureImage || lawyerSignatureImage ? 140 : 85;
-    if (
-      doc.y + requiredSpaceForSig >
-      doc.page.height - doc.page.margins.bottom
-    ) {
+    // Calcula espaço necessário para assinaturas
+    const hasImages = sigBlocks.some(b => b.image);
+    const sigHeight = hasImages ? 120 : 80;
+
+    // Só adiciona página se realmente não couber
+    if (doc.y + sigHeight + 20 > usableHeight) {
       doc.addPage();
     } else {
-      doc.moveDown(3);
+      doc.moveDown(2);
     }
 
     const startY = doc.y;
-    const innerWidth = doc.page.width - marginL - marginR;
 
-    // Helper para desenhar um bloco de assinatura
     const drawBlock = (block, xOffset, blockWidth) => {
       let currentY = startY;
 
@@ -476,61 +573,79 @@ export function generateProfessionalPDF(content, options) {
               : block.image;
             sigBuffer = fs.readFileSync(path.resolve(cleanPathSig));
           }
-          doc.image(sigBuffer, xOffset + (blockWidth - 150) / 2, currentY, {
-            height: 60,
-            align: "center",
+          const imgW = Math.min(150, blockWidth - 40);
+          doc.image(sigBuffer, xOffset + (blockWidth - imgW) / 2, currentY, {
+            height: 50,
           });
+          currentY += 55;
         } catch (e) {
           console.warn("Signature rendering failed:", e.message);
+          currentY += 10;
         }
+      } else {
+        currentY += 10;
       }
 
-      currentY = startY + 65;
-
+      // Linha de assinatura
       const lineY = currentY + 5;
+      const lineMargin = 15;
       doc
         .strokeColor("#000000")
-        .lineWidth(0.8)
-        .moveTo(xOffset + 20, lineY)
-        .lineTo(xOffset + blockWidth - 20, lineY)
+        .lineWidth(0.6)
+        .moveTo(xOffset + lineMargin, lineY)
+        .lineTo(xOffset + blockWidth - lineMargin, lineY)
         .stroke();
 
-      const textY = lineY + 5;
-      doc.fontSize(11).text(block.name, xOffset, textY, {
-        align: "center",
-        width: blockWidth,
-      });
-      if (block.doc) {
-        doc.fontSize(10).text(block.doc, xOffset, doc.y + 2, {
+      // Nome
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(10)
+        .fillColor("#000000")
+        .text(block.name, xOffset, lineY + 6, {
           align: "center",
           width: blockWidth,
         });
+
+      // Documento (OAB / CPF)
+      if (block.doc) {
+        doc
+          .font("Helvetica")
+          .fontSize(9)
+          .fillColor("#333333")
+          .text(block.doc, xOffset, doc.y + 1, {
+            align: "center",
+            width: blockWidth,
+          });
       }
     };
 
-    if (blocks.length === 1) {
-      drawBlock(blocks[0], marginL, innerWidth);
-    } else if (blocks.length === 2) {
-      drawBlock(blocks[0], marginL, innerWidth / 2);
-      drawBlock(blocks[1], marginL + innerWidth / 2, innerWidth / 2);
+    if (sigBlocks.length === 1) {
+      // Centraliza um único bloco
+      const blockW = Math.min(contentWidth * 0.6, 280);
+      const xOffset = marginL + (contentWidth - blockW) / 2;
+      drawBlock(sigBlocks[0], xOffset, blockW);
+    } else if (sigBlocks.length === 2) {
+      const gap = 30;
+      const blockW = (contentWidth - gap) / 2;
+      drawBlock(sigBlocks[0], marginL, blockW);
+      drawBlock(sigBlocks[1], marginL + blockW + gap, blockW);
     }
 
-    // Atualiza o Y final após o bloco maior
-    doc.y = startY + 120;
-    // Rodapé com Paginação
+    // ── Rodapé com paginação ──
     const pages = doc.bufferedPageRange();
     for (let i = 0; i < pages.count; i++) {
       doc.switchToPage(i);
       doc
+        .font("Helvetica")
         .fontSize(8)
         .fillColor("#9CA3AF")
         .text(
-          `Documento gerado por JusCore AI - Página ${i + 1} de ${pages.count}`,
+          `Página ${i + 1} de ${pages.count}`,
           marginL,
-          841 - 40,
+          pageH - 35,
           {
             align: "center",
-            width: 595 - marginL - marginR,
+            width: contentWidth,
             lineBreak: false,
           },
         );

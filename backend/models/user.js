@@ -47,6 +47,10 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true, // Pode ser null para usuários antigos
     },
+    oab: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     finalidade: {
       type: DataTypes.TEXT,
       allowNull: true,
@@ -128,6 +132,15 @@ const User = sequelize.define(
         model: "Organizations",
         key: "id",
       },
+    },
+    // Daily Reasoning Usage Counter
+    dailyReasoningUsed: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    dailyReasoningResetDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
     },
   },
   {

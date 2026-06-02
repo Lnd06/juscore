@@ -13,9 +13,9 @@ export default {
         // Base: Premium Dark Authority
         juri: {
           950: "#0B0F19", // Preto Profundo (Base Principal)
-          900: "#111827", // Azul Noturno (Secundário)
-          800: "#1F2937", // Azul Aço (Fundo Terciário)
-          700: "#2C3444", // Cinza Aço (Bordas/Cards)
+          900: "#131B2E", // Azul Noturno Premium (Containers)
+          800: "#1F2A45", // Azul Aço (Fundo Terciário)
+          700: "#2C354F", // Cinza Aço (Bordas/Cards)
           600: "#374151",
           500: "#6B7280", // Texto Desativado
           400: "#9CA3AF", // Texto Secundário

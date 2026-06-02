@@ -32,11 +32,11 @@ export const Input = React.forwardRef(({
           ref={ref}
           type={inputType}
           className={cn(
-            "w-full rounded-xl border bg-brand-bg dark:bg-brand-bg text-gray-900 dark:text-white outline-none transition-all duration-200",
-            "border-brand-border dark:border-brand-border focus:border-accent focus:ring-2 focus:ring-accent/20",
-            Icon ? "pl-14" : "px-4",
-            isPassword && !disableReveal ? "pr-12" : "px-4",
-            "py-3",
+            "w-full rounded-md border bg-brand-bg dark:bg-[#131B2E] text-gray-900 dark:text-white outline-none transition-all duration-150 text-sm",
+            "border-brand-border dark:border-white/5 focus:border-accent/50 focus:ring-1 focus:ring-accent/30",
+            Icon ? "pl-11" : "px-3.5",
+            isPassword && !disableReveal ? "pr-10" : "px-3.5",
+            "py-2.5",
             error && "border-red-500 focus:border-red-500 focus:ring-red-500/20",
             className
           )}

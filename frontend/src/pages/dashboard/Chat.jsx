@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { X, Building2, GraduationCap, Zap, MoreVertical, FileText, Download, Trash2 } from 'lucide-react';
-import { jsPDF } from "jspdf";
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { X } from 'lucide-react';
 import axios from 'axios';
 
 // Hooks & Context
@@ -16,9 +15,45 @@ import CameraManager from './chat/CameraManager';
 // Services
 import { convertPdfToImage } from './chat/PdfService';
 
+const markdownToHtml = (text) => {
+  if (!text) return '';
+  return text
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,   '<h1>$1</h1>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br/>');
+};
+
+const getPlanSignatureLimits = (planSlug) => {
+  if (!planSlug || planSlug === 'free' || planSlug.startsWith('student_')) {
+    return { maxDocs: 0, expiryDays: 0 };
+  }
+
+  const isOfficeOrEnterprise = ['office_master', 'enterprise'].includes(planSlug);
+  const isProOrMaster = ['pro', 'lawyer_growth'].includes(planSlug);
+
+  if (isOfficeOrEnterprise) {
+    return { maxDocs: 40, expiryDays: 30 };
+  }
+  if (isProOrMaster) {
+    return { maxDocs: 20, expiryDays: 30 };
+  }
+  return { maxDocs: 12, expiryDays: 15 };
+};
+
 const Chat = () => {
   const { user } = useAuth();
   const { messages, sendMessage, isLoading, isWaitingResponse, stopGeneration, clearHistory, loadConversation, setMessages, addMessage } = useChat();
+  const navigate = useNavigate();
+
+  const plan = user?.subscriptionPlan || user?.tipo || 'free';
+  const limits = getPlanSignatureLimits(plan);
+  const isPrivileged = user?.tipo === 'admin' || user?.tipo === 'master';
+  const hasProcessAccess = isPrivileged || ['lawyer_starter', 'lawyer_growth', 'office_master', 'enterprise'].includes(plan);
+
   const [input, setInput] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedModel, setSelectedModel] = useState('company');
@@ -33,23 +68,20 @@ const Chat = () => {
   const [expandedImage, setExpandedImage] = useState(null);
   const [videoDevices, setVideoDevices] = useState([]);
   const [facingMode, setFacingMode] = useState('environment');
-  const [isDocMode, setIsDocMode] = useState(false);
-  
+  const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState('');
+
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const dropdownRef = useRef(null);
   const menuRef = useRef(null);
   const attachMenuRef = useRef(null);
+  const modelDropdownRef = useRef(null);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const sessionIdParam = searchParams.get('sessionId');
   const [localSessionId, setLocalSessionId] = useState(sessionIdParam);
-
-  const models = [
-    { id: 'company', label: 'Empresa', icon: Building2, desc: 'Maior precisão (Jurídico)' },
-    { id: 'student', label: 'Estudante', icon: GraduationCap, desc: 'Visão + Texto' },
-    { id: 'economy', label: 'Econômico', icon: Zap, desc: 'Respostas rápidas' },
-  ];
 
   // Sync state with URL param
   useEffect(() => {
@@ -64,12 +96,15 @@ const Chat = () => {
     }
   }, [sessionIdParam, searchParams, setSearchParams]);
 
+
+
   // Close dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setIsModelDropdownOpen(false);
       if (menuRef.current && !menuRef.current.contains(event.target)) setIsMenuOpen(false);
       if (attachMenuRef.current && !attachMenuRef.current.contains(event.target)) setIsAttachMenuOpen(false);
+      if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target)) setIsModelDropdownOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -94,6 +129,20 @@ const Chat = () => {
   }, []);
 
   useEffect(() => {
+    if (hasProcessAccess) {
+      const fetchClients = async () => {
+        try {
+          const res = await axios.get('/api/clients');
+          setClients(res.data || []);
+        } catch (err) {
+          console.error("Erro ao buscar clientes:", err);
+        }
+      };
+      fetchClients();
+    }
+  }, [hasProcessAccess]);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -108,7 +157,6 @@ const Chat = () => {
             .then(img => setSelectedImage(img))
             .catch(err => {
               if (err.response?.data?.message) {
-                // Capturar mensagem amigável do backend (ex: limite de uso)
                 addMessage("system", err.response.data.message);
               } else {
                 addMessage(
@@ -245,19 +293,17 @@ const Chat = () => {
 
   const handleSend = async () => {
     if ((input.trim() || selectedImage) && !isLoading && !isProcessingFile) {
-      const effectiveModel = isDocMode ? 'document' : selectedModel;
+      const effectiveModel = selectedModel;
       const textToSend = input;
       const imageToSend = selectedImage;
       
       setInput('');
       setSelectedImage(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      // Se não temos um sessionId local, enviamos null para o backend gerar um novo
       const effectiveSessionId = localSessionId || null;
       
-      const newSessionId = await sendMessage(textToSend, imageToSend, effectiveModel, effectiveSessionId, selectedProcess);
+      const newSessionId = await sendMessage(textToSend, imageToSend, effectiveModel, effectiveSessionId, selectedProcess, selectedClient);
       
-      // Sempre atualizar a URL se for uma nova sessão
       if (newSessionId && newSessionId !== localSessionId) {
         setLocalSessionId(newSessionId);
         setSearchParams({ sessionId: newSessionId }, { replace: true });
@@ -265,79 +311,47 @@ const Chat = () => {
     }
   };
 
-  const plan = user?.subscriptionPlan || 'free';
-  const role = user?.cargo || '';
-  const isPrivileged = user?.tipo === 'admin' || user?.tipo === 'master';
-  const isProfessional = role === 'Advogado(a)' || role === 'Empresa';
-  const hasProcessAccess = isPrivileged || (isProfessional && ['lawyer_starter', 'lawyer_growth', 'office_master', 'enterprise'].includes(plan));
+
 
   return (
     <div className="relative flex flex-col h-full overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-      {/* Top Right Actions */}
-      <div className="absolute top-6 right-6 z-10" ref={menuRef}>
-        <button 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-400"
-        >
-            <MoreVertical className="w-5 h-5" />
-        </button>
-        {isMenuOpen && (
-            <div className="absolute top-full mt-2 right-0 w-48 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-xl p-2 animate-in fade-in zoom-in-50 duration-200">
-                <button 
-                onClick={handleExportTXT}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-300 transition-all"
-                >
-                    <FileText className="w-4 h-4" />
-                    <span className="text-xs font-bold">Exportar TXT</span>
-                </button>
-                <button 
-                onClick={handleExportPDF}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-300 transition-all"
-                >
-                    <Download className="w-4 h-4" />
-                    <span className="text-xs font-bold">Exportar PDF</span>
-                </button>
-                <div className="h-px bg-gray-100 dark:bg-gray-800 my-1"></div>
-                <button 
-                onClick={() => { clearHistory(); setIsMenuOpen(false); }}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 text-red-500 transition-all"
-                >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-widest">Limpar Chat</span>
-                </button>
-            </div>
-        )}
+      {/* Main Window */}
+      <div className="flex-1 flex overflow-hidden min-h-0 w-full relative">
+        
+        {/* Chat Column */}
+        <div className="flex flex-col h-full min-h-0 w-full">
+          {/* Messages */}
+          <MessageList 
+            messages={messages} 
+            bottomRef={bottomRef} 
+            setExpandedImage={setExpandedImage} 
+            isLoading={isWaitingResponse}
+          />
+
+          {/* Input */}
+          <ChatInput 
+            input={input} setInput={setInput}
+            isLoading={isLoading} isProcessingFile={isProcessingFile}
+            selectedImage={selectedImage} setSelectedImage={setSelectedImage}
+            selectedModel={selectedModel} setSelectedModel={setSelectedModel}
+            isModelDropdownOpen={isModelDropdownOpen} setIsModelDropdownOpen={setIsModelDropdownOpen}
+            isAttachMenuOpen={isAttachMenuOpen} setIsAttachMenuOpen={setIsAttachMenuOpen}
+            selectedProcess={selectedProcess} setSelectedProcess={setSelectedProcess}
+            processes={processes}
+            selectedClient={selectedClient} setSelectedClient={setSelectedClient}
+            clients={clients}
+            onSend={handleSend} onStop={stopGeneration} onClear={clearHistory}
+            onLaunchCamera={handleLaunchCamera} onLaunchFile={handleLaunchFile}
+            textareaRef={textareaRef} dropdownRef={dropdownRef} menuRef={menuRef} 
+            attachMenuRef={attachMenuRef} fileInputRef={fileInputRef}
+            modelDropdownRef={modelDropdownRef}
+            messages={messages}
+            hasProcessAccess={hasProcessAccess}
+            userPlan={plan}
+          />
+        </div>
       </div>
-
-      {/* Messages */}
-      <MessageList 
-        messages={messages} 
-        bottomRef={bottomRef} 
-        setExpandedImage={setExpandedImage} 
-        isLoading={isWaitingResponse}
-      />
-
-      {/* Input */}
-      <ChatInput 
-        input={input} setInput={setInput}
-        isLoading={isLoading} isProcessingFile={isProcessingFile}
-        selectedImage={selectedImage} setSelectedImage={setSelectedImage}
-        selectedModel={selectedModel} setSelectedModel={setSelectedModel}
-        isModelDropdownOpen={isModelDropdownOpen} setIsModelDropdownOpen={setIsModelDropdownOpen}
-        isDocMode={isDocMode} setIsDocMode={setIsDocMode}
-        isAttachMenuOpen={isAttachMenuOpen} setIsAttachMenuOpen={setIsAttachMenuOpen}
-        isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen}
-        selectedProcess={selectedProcess} setSelectedProcess={setSelectedProcess}
-        processes={processes}
-        onSend={handleSend} onStop={stopGeneration} onClear={clearHistory}
-        onLaunchCamera={handleLaunchCamera} onLaunchFile={handleLaunchFile}
-        textareaRef={textareaRef} dropdownRef={dropdownRef} menuRef={menuRef} 
-        attachMenuRef={attachMenuRef} fileInputRef={fileInputRef}
-        models={models}
-        messages={messages}
-        hasProcessAccess={hasProcessAccess}
-      />
 
       {/* Camera Modal */}
       <CameraManager 

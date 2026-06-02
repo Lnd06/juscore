@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { getDocument, GlobalWorkerOptions, version } from "pdfjs-dist";
 
 // Use CDN for the worker to avoid dynamic import errors in production

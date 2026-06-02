@@ -1,0 +1,24 @@
+MANUAL DE METODOLOGIA E REDAÇÃO DE TRABALHOS DE CONCLUSÃO DE CURSO (TCC) EM DIREITO
+
+I. ESTRUTURA DO TCC EM DIREITO (NORMAS ABNT - NBR 14724)
+A estrutura formal do trabalho acadêmico divide-se em:
+1. Elementos Pré-textuais: Capa, Folha de Rosto, Resumo/Abstract e Sumário;
+2. Elementos Textuais: Introdução, Desenvolvimento (Capítulos/Seções) e Conclusão (Considerações Finais);
+3. Elementos Pós-textuais: Referências Bibliográficas (obrigatório) e Anexos (opcional).
+
+II. DIRETRIZES DE FORMATAÇÃO GERAL ABNT
+- Fonte: Arial ou Times New Roman (Tamanho 12 para corpo do texto, 10 para citações longas e notas de rodapé);
+- Espaçamento: 1,5 entre linhas para o corpo e simples para citações diretas longas;
+- Margens: Superior e Esquerda com 3 cm; Inferior e Direita com 2 cm;
+- Alinhamento: Justificado;
+- Recuo de primeira linha de parágrafo: 1,25 cm.
+
+III. TIPOS DE CITAÇÃO (NBR 10520)
+1. Citação Direta Curta (até 3 linhas): Inserida no texto entre aspas normais, indicando autor, ano e página. Ex: "A constituição assegura a liberdade de expressão..." (SILVA, 2020, p. 45);
+2. Citação Direta Longa (mais de 3 linhas): Recuo de 4 cm da margem esquerda, fonte tamanho 10, espaçamento simples e sem aspas;
+3. Citação Indireta: Redação livre com as ideias do autor, indicando apenas autor e ano (sem necessidade de página).
+
+IV. METODOLOGIA DA PESQUISA JURÍDICA
+- Pesquisa Dogmática ou Teórica: Foco na análise das normas, doutrina e jurisprudência positivadas;
+- Pesquisa Bibliográfica: Levantamento sistemático de artigos, livros e periódicos científicos confiáveis;
+- Método Dedutivo: Partida de premissas gerais (leis, princípios) para conclusões específicas sobre o caso prático.

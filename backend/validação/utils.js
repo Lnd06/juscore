@@ -39,6 +39,7 @@ export const enviarCodigoEmail = async (email, codigo) => {
     console.error("❌ Erro ao enviar email:", error);
     // Fallback para log no console se falhar (útil para debug)
     console.log(`🔑 Código (Fallback): ${codigo}`);
-    throw error;
+    // Não relançamos o erro para permitir recuperação mesmo se o servidor de e-mail falhar temporariamente
+    return false;
   }
 };

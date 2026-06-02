@@ -3,17 +3,20 @@ const pro = {
   description:
     "Para advogados que precisam de agilidade e precisão no dia a dia.",
   limits: {
+    dailyReasoning: 5, // 5 perguntas/dia no modo raciocínio
     conversations: 50,
     historyDays: 30,
     maxCharsInput: 10000,
+    maxSignatureDocs: 20,
+    signatureDocExpiryDays: 30,
   },
   models: {
-    default: "meta-llama/llama-4-maverick-17b-128e-instruct",
-    reasoning: null,
-    vision: "meta-llama/llama-4-scout-17b-16e-instruct",
+    default: "gemini-2.5-flash",
+    reasoning: "gemini-2.5-pro",
+    vision: "gemini-2.5-flash",
   },
   features: {
-    internetSearch: true, // Busca DOU/Jurisprudência
+    internetSearch: true,
     uploadFiles: true,
     exportPDF: true,
   },

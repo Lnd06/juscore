@@ -1,5 +1,5 @@
 import express from "express";
-import { auth } from "../midleware/auth.js";
+import { auth } from "../middleware/auth.js";
 import { User } from "../models/index.js";
 import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
 

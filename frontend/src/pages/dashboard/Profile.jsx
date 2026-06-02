@@ -84,6 +84,21 @@ const isValidCNPJ = (cnpj) => {
 
 const Profile = () => {
   const { user, setUser } = useAuth();
+  const planNames = {
+    free: "Grátis",
+    student_basic: "Estudante Basic",
+    student_pro: "Estudante Pro",
+    student_master: "Estudante Pesquisador",
+    lawyer_starter: "Advogado Starter",
+    lawyer_growth: "Advogado Growth",
+    office_master: "Escritório Master",
+    enterprise: "Enterprise",
+    comum: "Grátis",
+    especial: "Premium",
+    admin: "Admin",
+    master: "Master"
+  };
+
   const [formData, setFormData] = useState({
     nome: user?.nome || '',
     email: user?.email || '',
@@ -91,6 +106,7 @@ const Profile = () => {
     cpf: user?.cpf || '',
     telefone: user?.telefone || '',
     cargo: user?.cargo || '',
+    oab: user?.oab || '',
     currentPassword: '',
     newPassword: ''
   });
@@ -352,6 +368,15 @@ const Profile = () => {
                 </div>
               </div>
             </div>
+            {formData.cargo === "Advogado" && (
+              <Input
+                label="Carteira da OAB (Ex: SP123456)"
+                name="oab"
+                placeholder="Ex: SP123456"
+                value={formData.oab}
+                onChange={handleChange}
+              />
+            )}
           </div>
 
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
@@ -399,15 +424,15 @@ const Profile = () => {
             ) : (
                <>
                  <p className="text-sm text-gray-500 mb-4">
-                   Ao cancelar sua assinatura, você deixará de ser cobrado nos próximos meses. Seu acesso será mantido até o final do período que já foi pago.
+                   Ao cancelar sua assinatura do plano <span className="font-semibold text-gray-800 dark:text-gray-200">{planNames[user?.subscriptionPlan] || 'Premium'}</span>, você deixará de ser cobrado nos próximos meses. Seu acesso será mantido até o final do período que já foi pago.
                  </p>
                  <Button 
                    type="button" 
                    variant="outline" 
-                   className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                   className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 w-full sm:w-auto"
                    onClick={() => setShowCancelModal(true)}
                  >
-                   Cancelar Assinatura
+                   Cancelar Assinatura do Plano {planNames[user?.subscriptionPlan] || 'Premium'}
                  </Button>
                </>
             )}
@@ -418,7 +443,7 @@ const Profile = () => {
         <Modal
           isOpen={showCancelModal}
           onClose={() => !cancelingSub && setShowCancelModal(false)}
-          title="Cancelar Assinatura"
+          title={`Cancelar Assinatura - Plano ${planNames[user?.subscriptionPlan] || 'Premium'}`}
         >
           <div className="flex flex-col items-center text-center space-y-4 py-4">
             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-2">
@@ -428,7 +453,7 @@ const Profile = () => {
               Tem certeza que deseja cancelar?
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Você não será mais cobrado. O acesso aos recursos do seu plano atual será mantido apenas até o fim do ciclo já faturado. Tem certeza?
+              Você não será mais cobrado. O acesso aos recursos do plano <span className="font-semibold text-gray-800 dark:text-gray-200">{planNames[user?.subscriptionPlan] || 'Premium'}</span> será mantido apenas até o fim do ciclo já faturado. Tem certeza?
             </p>
             <div className="flex gap-3 mt-6 w-full pt-4">
               <Button 

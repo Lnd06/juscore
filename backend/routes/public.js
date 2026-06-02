@@ -57,6 +57,7 @@ router.get("/prices", async (req, res) => {
   const PLAN_IDS = [
     "student_basic",
     "student_pro",
+    "student_master",
     "lawyer_starter",
     "lawyer_growth",
     "office_master",
@@ -65,6 +66,7 @@ router.get("/prices", async (req, res) => {
   const DEFAULT_PRICES = {
     student_basic: "17.90",
     student_pro: "34.00",
+    student_master: "89.90",
     lawyer_starter: "127.00",
     lawyer_growth: "147.00",
     office_master: "497.00",
@@ -84,6 +86,37 @@ router.get("/prices", async (req, res) => {
   } catch (error) {
     console.error("Erro ao buscar preços:", error);
     res.json(DEFAULT_PRICES); // fallback seguro
+  }
+});
+
+// GET /api/public/plans-config
+router.get("/plans-config", async (req, res) => {
+  const PLAN_IDS = [
+    "student_basic",
+    "student_pro",
+    "student_master",
+    "lawyer_starter",
+    "lawyer_growth",
+    "office_master",
+  ];
+  try {
+    const keys = PLAN_IDS.map((id) => `text_${id}`);
+    const settings = await Setting.findAll({ where: { key: keys } });
+
+    const texts = {};
+    settings.forEach((s) => {
+      const planId = s.key.replace("text_", "");
+      try {
+        texts[planId] = JSON.parse(s.value);
+      } catch (e) {
+        texts[planId] = {};
+      }
+    });
+
+    res.json(texts);
+  } catch (error) {
+    console.error("Erro ao buscar textos dos planos:", error);
+    res.json({}); // fallback
   }
 });
 

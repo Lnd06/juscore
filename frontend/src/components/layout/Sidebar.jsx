@@ -45,16 +45,39 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
   
   const plan = user?.subscriptionPlan || 'free';
   const role = user?.cargo || '';
+  const isOwner = !user?.parentUserId;
   const isPrivileged = user?.tipo === 'admin' || user?.tipo === 'master';
   
-  // Gestão de equipe apenas para Advogados ou Empresas com plano adequado
+  // Gestão de equipe apenas para Advogados ou Empresas com plano adequado (para donos)
   const isProfessional = role === 'Advogado(a)' || role === 'Empresa';
   
-  // Níveis de Acesso Jurídico (Hierárquico)
-  const hasStarterAccess = isPrivileged || (isProfessional && ['lawyer_starter', 'lawyer_growth', 'office_master', 'enterprise'].includes(plan));
-  const hasGrowthAccess  = isPrivileged || (isProfessional && ['lawyer_growth', 'office_master', 'enterprise'].includes(plan));
-  const hasMasterAccess  = isPrivileged || (isProfessional && ['office_master', 'enterprise'].includes(plan));
-  const hasStudentProAccess = isPrivileged || plan === 'student_pro';
+  // Níveis de Acesso Jurídico (Hierárquico) para Proprietários (Donos de plano)
+  const ownerHasStarter = isProfessional && ['lawyer_starter', 'lawyer_growth', 'office_master', 'enterprise'].includes(plan);
+  const ownerHasGrowth  = isProfessional && ['lawyer_growth', 'office_master', 'enterprise'].includes(plan);
+  const ownerHasMaster  = isProfessional && ['office_master', 'enterprise'].includes(plan);
+
+  // Níveis de Acesso Dinâmicos para Membros ou Proprietários
+  let hasStarterAccess = isPrivileged;
+  let hasGrowthAccess  = isPrivileged;
+  let hasMasterAccess  = isPrivileged;
+
+  if (isOwner) {
+    hasStarterAccess = hasStarterAccess || ownerHasStarter;
+    hasGrowthAccess  = hasGrowthAccess  || ownerHasGrowth;
+    hasMasterAccess  = hasMasterAccess  || ownerHasMaster;
+  } else {
+    // Se for sub-conta de Equipe:
+    // tipo === 'especial' (Advogado) ganha acesso Starter e Growth
+    // tipo === 'admin' (Sócio) ganha acesso Starter, Growth e Master
+    const isEspecialMember = user?.tipo === 'especial';
+    const isAdminMember = user?.tipo === 'admin';
+    
+    hasStarterAccess = isEspecialMember || isAdminMember;
+    hasGrowthAccess  = isEspecialMember || isAdminMember;
+    hasMasterAccess  = isAdminMember;
+  }
+
+  const hasStudentProAccess = isPrivileged || ['student_pro', 'student_master'].includes(plan);
 
   // --- MENU ESTRUTURA ---
   const mainNav = [
@@ -81,7 +104,9 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
 
   if (hasMasterAccess) {
     erpNav.push({ icon: DollarSign, label: 'Financeiro', href: '/dashboard/finance' });
-    erpNav.push({ icon: BarChart3, label: 'BI Jurídico', href: '/dashboard/bi' });
+    if (!user?.parentUserId) {
+      erpNav.push({ icon: BarChart3, label: 'BI Jurídico', href: '/dashboard/bi' });
+    }
     erpNav.push({ icon: Users, label: 'Gestão de Equipe', href: '/dashboard/team' });
   }
   
@@ -94,19 +119,28 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
     { icon: Calculator, label: 'Calculadora', href: '/dashboard/calculator' }
   ];
 
-  if (hasStarterAccess && plan !== 'student_pro') {
+  if (hasStarterAccess && !['student_pro', 'student_master'].includes(plan)) {
     toolsNav.push({ icon: GraduationCap, label: 'Área Acadêmica', href: '/dashboard/academic-hub' });
   }
 
-  if (plan === 'student_pro' || isPrivileged) {
+  if (['student_pro', 'student_master'].includes(plan) || isPrivileged) {
     toolsNav.push(
       { icon: Scale, label: 'Simulador OAB', href: '/dashboard/oab-simulator' },
       { icon: GraduationCap, label: 'Assistente TCC', href: '/dashboard/tcc-assistant' }
     );
+    // Para estudantes Pro e Pesquisador, adicionamos também o Gerador de Documentos
+    if (['student_pro', 'student_master'].includes(plan)) {
+      toolsNav.push({ icon: FileText, label: 'Gerador Docs', href: '/dashboard/document-generator' });
+    }
   }
 
   const bottomNav = [];
   if (plan === 'free') bottomNav.push({ icon: Star, label: 'Planos Premium', href: '/dashboard/subscription' });
+  
+  if (user?.tipo === 'master') {
+    bottomNav.push({ icon: ShieldAlert, label: 'Painel Master', href: '/master-panel' });
+  }
+
   bottomNav.push(
     { icon: User, label: 'Meu Perfil', href: '/dashboard/profile' },
     { 
@@ -158,17 +192,17 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
           }}
           end={item.href === '/dashboard' || item.href === '/dashboard/erp'}
           className={({ isActive }) => cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative overflow-visible border-l-4",
+            "flex items-center gap-3 px-3 py-2.5 rounded-md transition-all duration-200 group relative overflow-hidden text-sm font-medium",
             isActive 
-              ? "bg-gradient-to-r from-accent/20 to-transparent bg-transparent border-accent text-gray-900 dark:text-white font-bold" 
-              : "border-transparent text-gray-600 dark:text-gray-400 hover:bg-gradient-to-r hover:from-accent/20 hover:to-transparent hover:text-accent dark:hover:text-accent hover:border-accent shadow-none hover:shadow-[inset_4px_0_0_0_#D4AF37]"
+              ? "bg-white/5 text-accent" 
+              : "text-gray-500 dark:text-gray-400 hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
           )}
         >
           {({ isActive }) => (
             <>
-              {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-r-full shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>}
-              <item.icon className={cn("w-5 h-5 min-w-[1.25rem] z-10", isOpen ? "mr-0" : "mx-auto", isActive ? "text-accent" : "")} />
-              <span className={cn("whitespace-nowrap transition-all duration-200 z-10", !isOpen && !mobile && "opacity-0 w-0 overflow-hidden")}>
+              {isActive && <div className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-accent rounded-r"></div>}
+              <item.icon className={cn("w-4 h-4 min-w-[1rem] z-10", isOpen ? "mr-0" : "mx-auto", isActive ? "text-accent" : "text-gray-400 group-hover:text-gray-950 dark:group-hover:text-white")} />
+              <span className={cn("whitespace-nowrap transition-all duration-150 z-10", !isOpen && !mobile && "opacity-0 w-0 overflow-hidden")}>
                 {item.label}
               </span>
               {!isOpen && !mobile && (
@@ -185,31 +219,31 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
     return (
       <div 
         onMouseMove={handleMouseMove}
-        className="flex flex-col h-full bg-white dark:bg-juri-950 bg-brand-sidebar border-r border-gray-200 dark:border-gray-800 transition-all duration-300 relative overflow-hidden"
+        className="flex flex-col h-full bg-white dark:bg-[#0B0F19] border-r border-gray-200 dark:border-white/5 transition-all duration-300 relative overflow-hidden"
       >
         <div 
           className="pointer-events-none absolute -inset-px transition duration-300 opacity-100 z-0"
           style={{
-            background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(212, 175, 55, 0.05), transparent 40%)`
+            background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(212, 175, 55, 0.03), transparent 40%)`
           }}
         />
         
         {/* Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100 dark:border-gray-800 relative z-10">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100 dark:border-white/5 relative z-10">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="w-10 h-10 min-w-[2.5rem] flex items-center justify-center">
-              <Logo src={user?.organization?.logoUrl} bg="none" className="w-full h-full drop-shadow-lg" />
+              <Logo src={user?.organization?.logoUrl} bg="none" className="w-full h-full" />
             </div>
             <div className={cn("overflow-hidden transition-all duration-300", isOpen || mobile ? "w-auto opacity-100" : "w-0 opacity-0")}>
               <span className="font-bold text-lg whitespace-nowrap block ml-2">
-                {user?.organization?.name || "JusCore AI v1.7"}
+                {user?.organization?.name || "JusCore AI"}
               </span>
             </div>
           </div>
         {!mobile && (
           <button 
             onClick={() => setIsOpen(!isOpen)}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500"
           >
             <ChevronLeft className={cn("w-5 h-5 transition-transform", !isOpen && "rotate-180")} />
           </button>
@@ -217,7 +251,7 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
         {mobile && (
           <button 
             onClick={() => setIsOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500"
           >
             <X className="w-5 h-5" />
           </button>
@@ -239,7 +273,7 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
                 className={cn("flex items-center justify-between px-3 mb-2 cursor-pointer group", !isOpen && !mobile && "justify-center")}
                 onClick={() => { if(isOpen || mobile) setErpOpen(!erpOpen); else setIsOpen(true); }}
              >
-                <h3 className={cn("text-xs font-semibold text-gray-400 uppercase tracking-wider group-hover:text-accent transition-colors", !isOpen && !mobile && "opacity-0 w-0 h-0 overflow-hidden")}>
+                <h3 className={cn("text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest group-hover:text-accent transition-colors", !isOpen && !mobile && "opacity-0 w-0 h-0 overflow-hidden")}>
                   ERP Jurídico
                 </h3>
                  {(!isOpen && !mobile) ? (
@@ -258,7 +292,7 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
         {/* Ferramentas Section */}
         {toolsNav.length > 0 && (
           <div className="space-y-1">
-            <h3 className={cn("text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2", !isOpen && !mobile && "opacity-0 h-0 overflow-hidden")}>
+            <h3 className={cn("text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-3 mb-2", !isOpen && !mobile && "opacity-0 h-0 overflow-hidden")}>
               Ferramentas
             </h3>
             {renderNavItems(toolsNav)}
@@ -271,9 +305,9 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
         </div>
 
         {/* History Section */}
-        <div className={cn("pt-4 border-t border-gray-100 dark:border-gray-700", !isOpen && !mobile && "hidden")}>
+        <div className={cn("pt-4 border-t border-gray-100 dark:border-white/5", !isOpen && !mobile && "hidden")}>
           <div className="flex items-center justify-between px-3 mb-2">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          <h3 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
             Histórico
           </h3>
           <button 
@@ -288,7 +322,7 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
             {user?.ultimasConversas?.length > 0 ? (
               user.ultimasConversas.map((chat) => (
                 <NavLink
-                  key={chat.id}
+                  key={chat.sessionId}
                   to={`/dashboard/chat?sessionId=${chat.sessionId}`}
                   className={({ isActive }) => cn(
                     "block px-3 py-2 rounded-lg text-sm transition-all truncate mb-2 border",
@@ -309,7 +343,7 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-gray-100 dark:border-gray-700 space-y-2">
+      <div className="p-3 border-t border-gray-100 dark:border-white/5 space-y-2">
         {(isOpen || mobile) && user?.organization?.footerText && (
           <p className="text-[10px] text-gray-400 px-3 text-center truncate italic">
             {user.organization.footerText}
@@ -317,10 +351,10 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
         )}
         <button 
           onClick={() => setIsFeedbackOpen(true)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-colors group border border-transparent hover:border-purple-200 dark:hover:border-purple-800"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-500/5 transition-colors group border border-transparent"
         >
-          <Bug className={cn("w-5 h-5 min-w-[1.25rem] z-10", !isOpen && !mobile ? "mx-auto" : "")} />
-          <span className={cn("whitespace-nowrap transition-all duration-200 z-10 font-medium", !isOpen && !mobile && "opacity-0 w-0 overflow-hidden")}>
+          <Bug className={cn("w-4.5 h-4.5 min-w-[1.15rem] z-10", !isOpen && !mobile ? "mx-auto" : "")} />
+          <span className={cn("whitespace-nowrap transition-all duration-150 z-10 font-medium text-xs", !isOpen && !mobile && "opacity-0 w-0 overflow-hidden")}>
             Reportar Bug / Ideia
           </span>
           {!isOpen && !mobile && (
@@ -331,10 +365,10 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
         </button>
         <button 
           onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors group"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-red-600 hover:bg-red-500/5 transition-colors group"
         >
-          <LogOut className={cn("w-5 h-5 min-w-[1.25rem]", !isOpen && "mx-auto")} />
-          <span className={cn("whitespace-nowrap transition-all duration-200", !isOpen && !mobile && "opacity-0 w-0 overflow-hidden")}>
+          <LogOut className={cn("w-4.5 h-4.5 min-w-[1.15rem]", !isOpen && "mx-auto")} />
+          <span className={cn("whitespace-nowrap transition-all duration-150 text-xs font-medium", !isOpen && !mobile && "opacity-0 w-0 overflow-hidden")}>
             Sair
           </span>
         </button>
@@ -366,7 +400,7 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
 
   return (
     <div className={cn(
-      "hidden lg:block h-screen sticky top-0 transition-all duration-300 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-juri-950 bg-brand-sidebar",
+      "hidden lg:block h-screen sticky top-0 transition-all duration-300 border-r border-gray-200 dark:border-white/5 bg-white dark:bg-[#0B0F19]",
       isOpen ? "w-64" : "w-20"
     )}>
       <SidebarContent />

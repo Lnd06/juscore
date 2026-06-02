@@ -1,5 +1,6 @@
 import express from "express";
-import { auth } from "../midleware/auth.js";
+import { auth } from "../middleware/auth.js";
+import Cache from "../models/cache.js";
 import {
   calcularJuros,
   calcularCorrecaoMonetaria,
@@ -93,7 +94,7 @@ router.post("/deadline", auth, async (req, res) => {
    REAL-TIME ECONOMIC INDICES FROM BACEN API
    ============================================ */
 
-// Cache to avoid hammering BACEN API (1 hour TTL)
+// Cache to avoid hammering BACEN API (L1 in-memory, L2 MySQL DB)
 let indicesCache = { data: null, timestamp: 0 };
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
@@ -125,9 +126,27 @@ async function fetchBacenSeries(seriesCode, lastN = 12) {
 }
 
 async function fetchAllIndices() {
-  // Check cache first
+  // 1. Check L1 Cache (In-Memory)
   if (indicesCache.data && Date.now() - indicesCache.timestamp < CACHE_TTL) {
     return indicesCache.data;
+  }
+
+  const cacheKey = "bacen_economic_indices";
+  let cachedDb = null;
+
+  // 2. Check L2 Cache (MySQL DB)
+  try {
+    cachedDb = await Cache.findByPk(cacheKey);
+    if (cachedDb && new Date(cachedDb.expireAt) > new Date()) {
+      console.log("[Calculator] Economic indices loaded from database cache (L2)");
+      indicesCache = { 
+        data: cachedDb.data, 
+        timestamp: new Date(cachedDb.expireAt).getTime() - CACHE_TTL 
+      };
+      return cachedDb.data;
+    }
+  } catch (dbErr) {
+    console.error("[Calculator] Error reading cache from database:", dbErr.message);
   }
 
   console.log("[Calculator] Fetching real-time economic indices from BACEN...");
@@ -170,10 +189,37 @@ async function fetchAllIndices() {
   // FGTS rate is fixed at 8%
   results.fgts = { taxa: 8.0, multaRescisao: 40.0 };
 
-  // Cache it
-  indicesCache = { data: results, timestamp: Date.now() };
-  console.log("[Calculator] Economic indices cached successfully");
+  // 3. Resiliency Fallback Mechanism
+  // If some BACEN keys failed to load, merge them from the database cache (even if expired)
+  const criticalKeys = Object.keys(BACEN_SERIES);
+  const missingKeys = criticalKeys.filter((k) => !results[k]);
 
+  if (missingKeys.length > 0) {
+    console.warn(`[Calculator] BACEN API offline or failed for keys: ${missingKeys.join(", ")}`);
+    if (cachedDb && cachedDb.data) {
+      console.log("[Calculator] Activating resiliency fallback. Merging missing keys from database cache...");
+      for (const key of missingKeys) {
+        if (cachedDb.data[key]) {
+          results[key] = cachedDb.data[key];
+        }
+      }
+    }
+  }
+
+  // 4. Save to L2 (MySQL DB) and L1 (In-Memory)
+  const expireAt = new Date(Date.now() + CACHE_TTL);
+  try {
+    await Cache.upsert({
+      key: cacheKey,
+      data: results,
+      expireAt,
+    });
+    console.log("[Calculator] Economic indices successfully persisted to database cache");
+  } catch (dbErr) {
+    console.error("[Calculator] Error writing cache to database:", dbErr.message);
+  }
+
+  indicesCache = { data: results, timestamp: Date.now() };
   return results;
 }
 
@@ -223,4 +269,5 @@ router.get("/indices-public", async (req, res) => {
   }
 });
 
+export { fetchAllIndices };
 export default router;

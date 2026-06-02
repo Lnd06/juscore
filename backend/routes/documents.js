@@ -1,10 +1,12 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
-import { auth, authEspecial } from "../midleware/auth.js";
+import { auth, authEspecial } from "../middleware/auth.js";
 import { Document, Process, Client, UserUsage } from "../models/index.js";
 import { generateProfessionalPDF } from "../services/pdfGenerator.js";
-import { chamarGroqDireto } from "../services/groqService.js";
+import { chamarGemini } from "../services/geminiService.js";
+import { anonymizeText, deanonymizeText } from "../services/anonymizerService.js";
+import { buscarPorCategoria } from "../services/ragService.js";
 import getPlanConfig from "../config/plans/index.js";
 
 const router = express.Router();
@@ -107,6 +109,7 @@ router.post("/generate-ai", auth, async (req, res) => {
       date,
       logo,
       processId,
+      clientId,
     } = req.body;
 
     if (!prompt) {
@@ -115,24 +118,63 @@ router.post("/generate-ai", auth, async (req, res) => {
         .json({ error: "O comando para a IA é obrigatório" });
     }
 
-    // 1. Verificar Limites do Plano
-    const usage = await UserUsage.findOne({ where: { userId: req.user.id } });
-    if (usage) {
-      await usage.checkAndReset();
-      const plan = getPlanConfig(
-        req.user.subscriptionPlan || req.user.tipo || "free",
-      );
-      if (usage.dailyDocuments >= plan.limits.dailyDocuments) {
-        return res.status(403).json({
-          error: "Limite diário de documentos atingido para o seu plano.",
-          limit: plan.limits.dailyDocuments,
-        });
-      }
+    // 1. Verificar Limites do Plano (e criar/rastrear uso dinâmico para o BI)
+    const plan = getPlanConfig(
+      req.user.subscriptionPlan || req.user.tipo || "free",
+    );
+    let [usage] = await UserUsage.findOrCreate({
+      where: { userId: req.user.id },
+      defaults: { userId: req.user.id },
+    });
+    await usage.checkAndReset();
+    if (plan.limits.dailyDocuments < 9999 && usage.dailyDocuments >= plan.limits.dailyDocuments) {
+      return res.status(403).json({
+        error: "Limite diário de documentos atingido para o seu plano.",
+        limit: plan.limits.dailyDocuments,
+      });
     }
 
-    // 2. Coletar Contexto do Processo (se houver)
+    // 2. Coletar Contexto do Processo ou do Cliente (se houver)
     let contextProcesso = "";
-    if (processId) {
+    if (clientId) {
+      try {
+        const clientData = await Client.findOne({
+          where: { id: clientId, userId: req.user.id },
+          include: [{ model: Process, as: "processes" }],
+        });
+
+        if (clientData) {
+          contextProcesso = `
+          === DADOS DO CLIENTE VINCULADO ===
+          - Nome: ${clientData.nome}
+          - E-mail: ${clientData.email || "Não informado"}
+          - Telefone: ${clientData.telefone || "Não informado"}
+          - CPF/CNPJ: ${clientData.cpf_cnpj || "Não informado"}
+          - Endereço: ${clientData.endereco || "Não informado"}
+          - Nacionalidade: ${clientData.nacionalidade || "Não informado"}
+          - Estado Civil: ${clientData.estado_civil || "Não informado"}
+          - Profissão: ${clientData.profissao || "Não informado"}
+          `;
+
+          if (clientData.processes && clientData.processes.length > 0) {
+            contextProcesso += `\n          === PROCESSOS VINCULADOS AO CLIENTE ===`;
+            clientData.processes.forEach((proc, idx) => {
+              contextProcesso += `
+          [Processo #${idx + 1}]
+          - Número: ${proc.numero}
+          - Tribunal/Vara: ${proc.tribunal || "Não informado"} / ${proc.vara || "Não informado"}
+          - Status: ${proc.status || "Não informado"}
+          - Descrição: ${proc.descricao || "Não informado"}
+          - Valor da Causa: R$ ${proc.valorCausa || "Não informado"}
+          - Partes: ${JSON.stringify(proc.partes || {})}
+              `;
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao buscar dados do cliente para o gerador:", err);
+      }
+    } else if (processId) {
       const proc = await Process.findOne({
         where: { id: processId, userId: req.user.id },
         include: [{ model: Client }],
@@ -151,6 +193,17 @@ router.post("/generate-ai", auth, async (req, res) => {
       }
     }
 
+    // 2.5 Buscar modelos na biblioteca (RAG para documentos)
+    const modelosCategoriaDocs = buscarPorCategoria("DOCUMENTOS", 3);
+    const modelosCategoriaModelos = buscarPorCategoria("MODELO_DOCUMENTO", 3);
+    const todosModelos = [...modelosCategoriaDocs, ...modelosCategoriaModelos];
+    
+    let contextoBiblioteca = "";
+    if (todosModelos.length > 0) {
+      contextoBiblioteca = `\n\n📖 MODELOS DE DOCUMENTO DISPONÍVEIS NA BIBLIOTECA (USE COMO MOLDE/INSPIRAÇÃO):\n` +
+        todosModelos.map(d => `[Modelo: ${d.title}]\n${d.content}`).join("\n\n");
+    }
+
     // 3. Chamar IA para gerar o texto
     const systemPrompt = `Você é um advogado sênior especialista em redação jurídica brasileira.
     Sua tarefa é redigir um documento jurídico formal seguindo estritamente as normas da ABNT e a linguagem técnica adequada.
@@ -163,13 +216,27 @@ router.post("/generate-ai", auth, async (req, res) => {
     - NÃO inclua conversas, introduções como "Aqui está seu documento" ou conclusões. Comece diretamente no título ou preâmbulo e termine no encerramento.
     
     ${contextProcesso}
+    ${contextoBiblioteca}
     
     COMANDO DO USUÁRIO: ${prompt}`;
 
-    const aiContent = await chamarGroqDireto(
-      [{ role: "system", content: systemPrompt }],
-      "llama-3.3-70b-versatile",
+    // Selecionar o melhor modelo do plano do usuário (Preferência por Flash para Documentos rápidos)
+    const selectedModel = plan.models.default || "gemini-2.5-flash";
+    console.log(`📄 [DOCUMENT MODO] Gerando documento com o modelo: ${selectedModel}`);
+
+    // Anonimizar todas as mensagens enviadas para a IA (Privacidade Total & LGPD Compliance)
+    const combinedMapping = {};
+    const { anonymizedText: anonymizedSystem, mapping: mapSys } = anonymizeText(systemPrompt);
+    const { anonymizedText: anonymizedUser, mapping: mapUser } = anonymizeText(prompt);
+    Object.assign(combinedMapping, mapSys, mapUser);
+
+    const rawAiContent = await chamarGemini(
+      [{ role: "system", content: anonymizedSystem }, { role: "user", content: anonymizedUser }],
+      selectedModel,
     );
+
+    // Desanonimizar a resposta da IA para restaurar dados reais no documento final
+    const aiContent = deanonymizeText(rawAiContent, combinedMapping);
 
     // 4. Gerar PDF
     const pdfDoc = await generateProfessionalPDF(aiContent, {

@@ -1,5 +1,5 @@
 import express from "express";
-import { auth } from "../midleware/auth.js";
+import { auth } from "../middleware/auth.js";
 import {
   Client,
   Process,
@@ -14,8 +14,9 @@ const router = express.Router();
 // Listar todos os clientes do usuário logado
 router.get("/", auth, async (req, res) => {
   try {
+    const ownerId = req.user.parentUserId || req.user.id;
     const clients = await Client.findAll({
-      where: { userId: req.user.id },
+      where: { userId: ownerId },
       order: [["nome", "ASC"]],
     });
     res.json(clients);
@@ -28,9 +29,10 @@ router.get("/", auth, async (req, res) => {
 // Criar novo cliente
 router.post("/", auth, checkPlanLimits, async (req, res) => {
   try {
+    const ownerId = req.user.parentUserId || req.user.id;
     const client = await Client.create({
       ...req.body,
-      userId: req.user.id,
+      userId: ownerId,
     });
     res.status(201).json(client);
   } catch (error) {
@@ -43,26 +45,26 @@ router.post("/", auth, checkPlanLimits, async (req, res) => {
 router.get("/:id/timeline", auth, async (req, res) => {
   try {
     const clientId = req.params.id;
-    const userId = req.user.id;
+    const ownerId = req.user.parentUserId || req.user.id;
 
-    const client = await Client.findOne({ where: { id: clientId, userId } });
+    const client = await Client.findOne({ where: { id: clientId, userId: ownerId } });
     if (!client)
       return res.status(404).json({ error: "Cliente não encontrado" });
 
     const processes = await Process.findAll({
-      where: { clientId, userId },
+      where: { clientId, userId: ownerId },
       order: [["updatedAt", "DESC"]],
     });
 
     // Simplest way to get events related to this client's processes
     const processIds = processes.map((p) => p.id);
     const events = await Event.findAll({
-      where: { userId, processId: { [Op.in]: processIds } },
+      where: { userId: ownerId, processId: { [Op.in]: processIds } },
       order: [["dataHora", "DESC"]],
     });
 
     const finances = await FinancialTransaction.findAll({
-      where: { clientId, userId },
+      where: { clientId, userId: ownerId },
       order: [["dataVencimento", "DESC"]],
     });
 
@@ -81,8 +83,9 @@ router.get("/:id/timeline", auth, async (req, res) => {
 // Buscar cliente por ID
 router.get("/:id", auth, async (req, res) => {
   try {
+    const ownerId = req.user.parentUserId || req.user.id;
     const client = await Client.findOne({
-      where: { id: req.params.id, userId: req.user.id },
+      where: { id: req.params.id, userId: ownerId },
     });
     if (!client)
       return res.status(404).json({ error: "Cliente não encontrado" });
@@ -95,8 +98,9 @@ router.get("/:id", auth, async (req, res) => {
 // Atualizar cliente
 router.put("/:id", auth, async (req, res) => {
   try {
+    const ownerId = req.user.parentUserId || req.user.id;
     const [updated] = await Client.update(req.body, {
-      where: { id: req.params.id, userId: req.user.id },
+      where: { id: req.params.id, userId: ownerId },
     });
     if (!updated)
       return res.status(404).json({ error: "Cliente não encontrado" });
@@ -111,8 +115,9 @@ router.put("/:id", auth, async (req, res) => {
 // Deletar cliente
 router.delete("/:id", auth, async (req, res) => {
   try {
+    const ownerId = req.user.parentUserId || req.user.id;
     const deleted = await Client.destroy({
-      where: { id: req.params.id, userId: req.user.id },
+      where: { id: req.params.id, userId: ownerId },
     });
     if (!deleted)
       return res.status(404).json({ error: "Cliente não encontrado" });

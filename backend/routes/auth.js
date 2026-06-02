@@ -21,6 +21,14 @@ router.post("/register", async (req, res) => {
       });
     }
 
+    // Validação estrita de formato de email (Defesa em Profundidade contra payloads inesperados)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email) || email.length > 255) {
+      return res.status(400).json({
+        error: "Formato de e-mail inválido.",
+      });
+    }
+
     // Validação de Senha Forte
     const passwordRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
     if (!passwordRegex.test(senha) || senha.length < 6) {
@@ -82,6 +90,12 @@ router.post("/login", async (req, res) => {
 
     if (!email || !senha) {
       return res.status(400).json({ error: "Email e senha são obrigatórios" });
+    }
+
+    // Validação estrita de formato de email (Defesa em Profundidade contra payloads inesperados)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email) || email.length > 255) {
+      return res.status(400).json({ error: "Formato de e-mail inválido." });
     }
 
     const user = await User.findOne({
@@ -303,6 +317,7 @@ router.put("/profile", async (req, res) => {
       newPassword,
       cpf,
       telefone,
+      oab,
     } = req.body;
 
     // Atualizar dados de texto
@@ -311,6 +326,7 @@ router.put("/profile", async (req, res) => {
     if (cargo) user.cargo = cargo;
     if (cpf) user.cpf = cpf;
     if (telefone) user.telefone = telefone;
+    if (oab !== undefined) user.oab = oab;
 
     // Alterar senha (se fornecida)
     if (newPassword) {

@@ -8,8 +8,10 @@ import {
   getLibraryMetadata,
   deleteDocument,
   updateDocument,
+  getDocumentContent,
+  updateDocumentContent
 } from "../services/libraryService.js";
-import { authAdmin } from "../midleware/auth.js";
+import { authAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 const upload = multer({
@@ -17,7 +19,7 @@ const upload = multer({
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
 });
 
-const CATEGORIAS_VALIDAS = ["GERAL", "OAB", "TCC", "DOCUMENTOS"];
+const CATEGORIAS_VALIDAS = ["GERAL", "OAB", "TCC", "DOCUMENTOS", "MODELO_DOCUMENTO"];
 
 /* ========================================
    POST /upload — Processa PDFs → .txt local
@@ -38,66 +40,25 @@ router.post(
         ? categoria
         : "GERAL";
 
-      console.log(
-        `📚 Processando ${files.length} PDF(s) → FS Local | Categoria: ${categoriaFinal}`,
-      );
-
       const results = [];
       const errors = [];
 
       for (const file of files) {
         try {
-          console.log(`📄 Iniciando parse de: ${file.originalname} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
-
           const title = file.originalname.replace(/\.pdf$/i, "");
           const content = await parsePdfAsync(file.buffer);
 
           if (!content || content.trim().length === 0) {
-            console.warn(`⚠️ PDF sem texto extraível: ${file.originalname}`);
-            errors.push({
-              file: file.originalname,
-              error: "Texto não extraído do PDF",
-            });
+            errors.push({ file: file.originalname, error: "Texto não extraído" });
             continue;
           }
 
-          console.log(`📝 Texto extraído: ${content.length} caracteres`);
-
-          // Gerar nome seguro para o arquivo .txt
-          const safeName = title
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-zA-Z0-9_-]/g, "_")
-            .substring(0, 80);
-          const txtFilename = `${safeName}_${Date.now()}.txt`;
-          const txtPath = `${LIVROS_PATH}/${txtFilename}`;
-
-          // Escrever o arquivo .txt fisicamente
-          fs.writeFileSync(txtPath, content, "utf-8");
-          console.log(`💾 Arquivo escrito: ${txtPath}`);
-
-          // Registrar no metadata.json
-          const newDoc = addDocument(
-            title,
-            categoriaFinal,
-            txtFilename,
-            req.user.id,
-          );
-
+          const newDoc = addDocument(title, categoriaFinal, content, req.user.id, true);
           results.push(newDoc);
         } catch (err) {
-          console.error(
-            `❌ Erro ao processar "${file.originalname}":`,
-            err.message,
-            err.stack,
-          );
           errors.push({ file: file.originalname, error: err.message });
         }
       }
-
-      console.log(
-        `✅ Upload concluído: ${results.length} sucesso(s), ${errors.length} erro(s)`,
-      );
 
       res.json({
         success: true,
@@ -107,10 +68,7 @@ router.post(
         ...(errors.length > 0 ? { failures: errors } : {}),
       });
     } catch (error) {
-      console.error("❌ Erro fatal no upload:", error.message, error.stack);
-      res
-        .status(500)
-        .json({ error: error.message || "Falha ao processar PDFs" });
+      res.status(500).json({ error: "Falha ao processar PDFs" });
     }
   },
 );
@@ -118,12 +76,11 @@ router.post(
 /* ========================================
    GET / — Listar documentos
    ======================================== */
-router.get("/", authAdmin, async (req, res) => {
+router.get("/", authAdmin, (req, res) => {
   try {
     const { categoria } = req.query;
     let docs = getLibraryMetadata();
 
-    // Ordenar por data (mais recente primeiro)
     docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     if (categoria && CATEGORIAS_VALIDAS.includes(categoria)) {
@@ -132,7 +89,6 @@ router.get("/", authAdmin, async (req, res) => {
 
     res.json(docs);
   } catch (error) {
-    console.error("❌ Erro ao listar biblioteca:", error.message);
     res.status(500).json({ error: "Falha ao listar biblioteca" });
   }
 });
@@ -140,29 +96,16 @@ router.get("/", authAdmin, async (req, res) => {
 /* ========================================
    POST /manual — Cria documento a partir de texto inserido
    ======================================== */
-router.post("/manual", authAdmin, async (req, res) => {
+router.post("/manual", authAdmin, (req, res) => {
   try {
     const { title, categoria, content } = req.body;
-    if (!title || !content) {
-      return res.status(400).json({ error: "Título e conteúdo são obrigatórios" });
-    }
+    if (!title || !content) return res.status(400).json({ error: "Título e conteúdo são obrigatórios" });
 
     const categoriaFinal = CATEGORIAS_VALIDAS.includes(categoria) ? categoria : "GERAL";
     
-    const safeName = title
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-zA-Z0-9_-]/g, "_")
-      .substring(0, 80);
-    const txtFilename = `${safeName}_${Date.now()}.txt`;
-    const txtPath = `${LIVROS_PATH}/${txtFilename}`;
-
-    fs.writeFileSync(txtPath, content, "utf-8");
-    
-    const newDoc = addDocument(title, categoriaFinal, txtFilename, req.user.id);
+    const newDoc = addDocument(title, categoriaFinal, content, req.user.id, true);
     res.json({ success: true, document: newDoc });
   } catch (error) {
-    console.error("❌ Erro no upload manual:", error.message);
     res.status(500).json({ error: "Falha ao salvar texto manual" });
   }
 });
@@ -170,21 +113,16 @@ router.post("/manual", authAdmin, async (req, res) => {
 /* ========================================
    PUT /:id/content — Editar o conteúdo do texto
    ======================================== */
-router.put("/:id/content", authAdmin, async (req, res) => {
+router.put("/:id/content", authAdmin, (req, res) => {
   try {
     const { content } = req.body;
-    const docs = getLibraryMetadata();
-    const doc = docs.find(d => d.id === req.params.id);
-    
-    if (!doc) return res.status(404).json({ error: "Documento não encontrado" });
     if (!content) return res.status(400).json({ error: "Conteúdo não pode ser vazio" });
 
-    const txtPath = `${LIVROS_PATH}/${doc.filename}`;
-    fs.writeFileSync(txtPath, content, "utf-8");
+    const success = updateDocumentContent(req.params.id, content);
+    if (!success) return res.status(404).json({ error: "Documento não encontrado" });
     
     res.json({ success: true });
   } catch (error) {
-    console.error("❌ Erro ao atualizar conteúdo do documento:", error.message);
     res.status(500).json({ error: "Falha ao atualizar conteúdo" });
   }
 });
@@ -192,22 +130,12 @@ router.put("/:id/content", authAdmin, async (req, res) => {
 /* ========================================
    GET /:id/content — Obter o conteúdo do texto
    ======================================== */
-router.get("/:id/content", authAdmin, async (req, res) => {
+router.get("/:id/content", authAdmin, (req, res) => {
   try {
-    const docs = getLibraryMetadata();
-    const doc = docs.find(d => d.id === req.params.id);
-    
-    if (!doc) return res.status(404).json({ error: "Documento não encontrado" });
-
-    const txtPath = `${LIVROS_PATH}/${doc.filename}`;
-    if (fs.existsSync(txtPath)) {
-      const content = fs.readFileSync(txtPath, "utf-8");
-      return res.json({ content });
-    } else {
-      return res.status(404).json({ error: "Arquivo físico não encontrado" });
-    }
+    const content = getDocumentContent(req.params.id);
+    if (content === null) return res.status(404).json({ error: "Documento não encontrado" });
+    res.json({ content });
   } catch (error) {
-    console.error("❌ Erro ao ler conteúdo do documento:", error.message);
     res.status(500).json({ error: "Falha ao ler conteúdo" });
   }
 });
@@ -215,7 +143,7 @@ router.get("/:id/content", authAdmin, async (req, res) => {
 /* ========================================
    PUT /:id — Editar título, categoria ou ativar/desativar
    ======================================== */
-router.put("/:id", authAdmin, async (req, res) => {
+router.put("/:id", authAdmin, (req, res) => {
   try {
     const { title, categoria, isActive } = req.body;
     const updates = {};
@@ -224,27 +152,23 @@ router.put("/:id", authAdmin, async (req, res) => {
     if (isActive !== undefined) updates.isActive = isActive;
 
     const updated = updateDocument(req.params.id, updates);
-    if (!updated)
-      return res.status(404).json({ error: "Documento não encontrado" });
+    if (!updated) return res.status(404).json({ error: "Documento não encontrado" });
 
     res.json(updated);
   } catch (error) {
-    console.error("❌ Erro ao atualizar documento:", error.message);
     res.status(500).json({ error: "Falha ao atualizar documento" });
   }
 });
 
 /* ========================================
-   DELETE /:id — Excluir permanentemente (arquivo + metadado)
+   DELETE /:id — Excluir permanentemente
    ======================================== */
-router.delete("/:id", authAdmin, async (req, res) => {
+router.delete("/:id", authAdmin, (req, res) => {
   try {
     const success = deleteDocument(req.params.id);
-    if (!success)
-      return res.status(404).json({ error: "Documento não encontrado" });
+    if (!success) return res.status(404).json({ error: "Documento não encontrado" });
     res.json({ success: true });
   } catch (error) {
-    console.error("❌ Erro ao excluir documento:", error.message);
     res.status(500).json({ error: "Falha ao excluir documento" });
   }
 });

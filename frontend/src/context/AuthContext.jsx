@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +9,18 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const setAuthCookie = (token) => {
+    const isJuscore = window.location.hostname.includes('juscore.net');
+    const cookieDomain = isJuscore ? '; domain=.juscore.net' : '';
+    document.cookie = `juscore_token=${token}; path=/; max-age=604800; SameSite=Lax${cookieDomain}`;
+  };
+
+  const deleteAuthCookie = () => {
+    const isJuscore = window.location.hostname.includes('juscore.net');
+    const cookieDomain = isJuscore ? '; domain=.juscore.net' : '';
+    document.cookie = `juscore_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${cookieDomain}`;
+  };
+
   // Poll localStorage for google_auth_result set by backend callback page
   // (postMessage fails when window.opener is null after cross-origin redirects)
   const startGooglePoll = useRef(null);
@@ -15,6 +28,7 @@ export const AuthProvider = ({ children }) => {
   const handleGoogleAuthResult = useCallback((payload) => {
     if (payload.token && payload.user) {
       localStorage.setItem('token', payload.token);
+      setAuthCookie(payload.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${payload.token}`;
       setUser({ ...payload.user, token: payload.token });
       navigate('/dashboard');
@@ -88,6 +102,7 @@ export const AuthProvider = ({ children }) => {
         const { token, user: userData } = event.data;
         // Save token + user immediately
         localStorage.setItem('token', token);
+        setAuthCookie(token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         setUser({ ...userData, token });
         // Navigate to dashboard
@@ -155,6 +170,7 @@ export const AuthProvider = ({ children }) => {
     const res = await axios.post('/api/auth/login', { email, senha: password });
     const { token, user: userData } = res.data;
     localStorage.setItem('token', token);
+    setAuthCookie(token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser({ ...userData, token });
     return res.data;
@@ -167,12 +183,14 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    deleteAuthCookie();
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
   };
 
   const loginWithToken = (token, userData) => {
     localStorage.setItem('token', token);
+    setAuthCookie(token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser({ ...userData, token });
   };

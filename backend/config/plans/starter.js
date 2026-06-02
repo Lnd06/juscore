@@ -3,16 +3,21 @@ const starter = {
   description:
     "Plano inicial para estudantes e advogados em início de carreira.",
   limits: {
-    conversations: 5, // Limite de conversas simultâneas ou diárias (exemplo)
-    historyDays: 7, // Dias de histórico
+    dailyDeepResearch: 0,
+    dailyReasoning: 0, // Sem acesso ao modo raciocínio
+    conversations: 5,
+    historyDays: 7,
     maxCharsInput: 2000,
+    maxSignatureDocs: 12,
+    signatureDocExpiryDays: 15,
   },
   models: {
-    default: "meta-llama/llama-4-maverick-17b-128e-instruct",
+    default: "gemini-2.5-flash",
     reasoning: null,
-    vision: "meta-llama/llama-4-scout-17b-16e-instruct",
+    vision: "gemini-2.5-flash",
   },
   features: {
+    deepResearch: false,
     internetSearch: false,
     uploadFiles: false,
     exportPDF: false,

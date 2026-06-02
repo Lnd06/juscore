@@ -1,0 +1,19 @@
+GUIA PRÁTICO OAB - MANUAL DE ESTRUTURAÇÃO DE PEÇAS DE SEGUNDA FASE (BANCA CESPE/CEBRASPE)
+
+I. CRITÉRIOS DE AVALIAÇÃO DA BANCA EXAMINADORA
+A avaliação da prova prático-profissional da 2ª Fase da OAB é baseada em rigorosa pontuação distribuída nos seguintes blocos:
+1. Endereçamento e Competência (até 0,50 ponto): Identificação correta do órgão julgador e da jurisdição de acordo com as regras de competência do CPC, CPP ou CLT;
+2. Qualificação das Partes (até 0,50 ponto): Qualificação completa do polo ativo e passivo, bem como indicação correta do fundamento legal da ação ou recurso;
+3. Fatos e Fundamentação Jurídica (até 2,50 pontos): Argumentação silogística (fato, fundamento jurídico e aplicação ao caso concreto). É mandatória a indicação expressa de artigos da Constituição, códigos e leis especiais;
+4. Pedidos e Requerimentos (até 1,00 ponto): Concordância e especificação de todos os provimentos finais necessários (procedência, intimação do MP, produção de provas, condenação em honorários);
+5. Fechamento da Peça (até 0,50 ponto): Local, data, indicação de advogado e inscrição OAB (sem identificação nominal sob pena de desclassificação).
+
+II. MODELO DE QUALIFICAÇÃO PADRÃO CPC (CÍVEL)
+"[NOME DO CLIENTE], [nacionalidade], [estado civil], [profissão], portador do RG nº... e inscrito no CPF sob o nº..., residente e domiciliado na [endereço completo], por seu advogado signatário (procuração anexa), vem, perante Vossa Excelência, propor [NOME DA PEÇA EM CAIXA ALTA] com fulcro no artigo [artigo da lei], em face de [NOME DO REQUERIDO], [qualificação completa], pelos fatos e fundamentos a seguir expostos..."
+
+III. REGRAS GERAIS DE RECURSOS (APELAÇÃO, AGRAVO)
+Sempre atentar para os requisitos de admissibilidade recursal (tempestividade, preparo e legitimidade) e endereçar a peça de interposição ao juízo *a quo* e as razões recursais ao tribunal *ad quem*.
+
+IV. PONTOS QUE ZERAM A PROVA
+- Assinatura fora do local demarcado ou preenchimento de dados fictícios que possam identificar a autoria da prova;
+- Erro grosseiro na indicação da peça jurídica cabível (inadequação da via eleita).

@@ -1,5 +1,5 @@
 import express from "express";
-import { authEspecial, authAdmin } from "../midleware/auth.js";
+import { authEspecial, authAdmin } from "../middleware/auth.js";
 import {
   User,
   Conversation,
@@ -12,7 +12,7 @@ import { Op } from "sequelize";
 import sequelize from "../config/database.js";
 import axios from "axios";
 
-import { brandingUpload } from "../midleware/brandingUpload.js";
+import { brandingUpload } from "../middleware/brandingUpload.js";
 
 const router = express.Router();
 
@@ -157,28 +157,6 @@ router.get("/dashboard", authEspecial, async (req, res) => {
       health.openrouter = false;
     }
 
-    // Tendências de Pesquisa (Fase 8)
-    const topicos = await Conversation.findAll({
-      attributes: [
-        "topic",
-        [sequelize.fn("COUNT", sequelize.col("id")), "total"],
-      ],
-      group: ["topic"],
-      order: [[sequelize.literal("total"), "DESC"]],
-      limit: 5,
-      raw: true,
-    });
-
-    // Sentiment Analysis (Fase 12)
-    const sentimentos = await Conversation.findAll({
-      attributes: [
-        "sentiment",
-        [sequelize.fn("COUNT", sequelize.col("id")), "total"],
-      ],
-      group: ["sentiment"],
-      raw: true,
-    });
-
     console.log("✅ Dashboard carregado com sucesso");
     res.json({
       estatisticas: {
@@ -193,8 +171,6 @@ router.get("/dashboard", authEspecial, async (req, res) => {
       health,
       docDistrib,
       crescimento,
-      topicos,
-      sentimentos,
       usuario: {
         nome: req.user.nome,
         tipo: req.user.tipo,
@@ -726,11 +702,12 @@ router.put("/organizations/:id", authAdmin, async (req, res) => {
 /* =========================
    GERENCIAMENTO DE PREÇOS
    ========================= */
-const LIBRARY_SETTING_KEY = "library_enabled";
+
 
 const PRICING_PLAN_IDS = [
   "student_basic",
   "student_pro",
+  "student_master",
   "lawyer_starter",
   "lawyer_growth",
   "office_master",
@@ -786,6 +763,55 @@ router.post("/settings/prices", authAdmin, async (req, res) => {
 });
 
 /* =========================
+   GERENCIAMENTO DE TEXTOS DOS PLANOS
+   ========================= */
+router.get("/settings/plan-texts", authAdmin, async (req, res) => {
+  try {
+    const keys = PRICING_PLAN_IDS.map((id) => `text_${id}`);
+    const settings = await Setting.findAll({ where: { key: keys } });
+
+    const texts = {};
+    settings.forEach((s) => {
+      const planId = s.key.replace("text_", "");
+      try {
+        texts[planId] = JSON.parse(s.value);
+      } catch (e) {
+        texts[planId] = {};
+      }
+    });
+
+    res.json(texts);
+  } catch (error) {
+    console.error("Erro ao buscar textos dos planos:", error);
+    res.status(500).json({ error: "Erro ao buscar textos" });
+  }
+});
+
+router.post("/settings/plan-texts", authAdmin, async (req, res) => {
+  try {
+    const updates = req.body; // { student_basic: { name: "...", description: "...", features: "..." }, ... }
+
+    for (const [planId, data] of Object.entries(updates)) {
+      if (!PRICING_PLAN_IDS.includes(planId)) continue;
+      const key = `text_${planId}`;
+      const existing = await Setting.findOne({ where: { key } });
+      const valueStr = JSON.stringify(data);
+      if (existing) {
+        existing.value = valueStr;
+        await existing.save();
+      } else {
+        await Setting.create({ key, value: valueStr });
+      }
+    }
+
+    res.json({ message: "Textos atualizados com sucesso!" });
+  } catch (error) {
+    console.error("Erro ao salvar textos:", error);
+    res.status(500).json({ error: "Erro ao salvar textos" });
+  }
+});
+
+/* =========================
    FINANÇAS (Admin)
    ========================= */
 router.get("/finance/stats", authAdmin, async (req, res) => {
@@ -823,43 +849,5 @@ router.get("/finance/stats", authAdmin, async (req, res) => {
   }
 });
 
-/* =========================
-   CONTROLE DA BIBLIOTECA (MongoDB)
-   ========================= */
-router.get("/settings/library", authAdmin, async (req, res) => {
-  try {
-    const setting = await Setting.findOne({
-      where: { key: LIBRARY_SETTING_KEY },
-    });
-    res.json({ enabled: setting ? setting.value === "true" : false });
-  } catch (error) {
-    console.error("Erro ao buscar status da biblioteca:", error);
-    res.status(500).json({ error: "Erro ao buscar status da biblioteca" });
-  }
-});
-
-router.post("/settings/library", authAdmin, async (req, res) => {
-  try {
-    const { enabled } = req.body;
-    let setting = await Setting.findOne({
-      where: { key: LIBRARY_SETTING_KEY },
-    });
-    if (setting) {
-      setting.value = String(enabled);
-      await setting.save();
-    } else {
-      await Setting.create({
-        key: LIBRARY_SETTING_KEY,
-        value: String(enabled),
-      });
-    }
-    res.json({
-      message: `Biblioteca ${enabled ? "ativada" : "desativada"} com sucesso!`,
-    });
-  } catch (error) {
-    console.error("Erro ao atualizar status da biblioteca:", error);
-    res.status(500).json({ error: "Erro ao atualizar status da biblioteca" });
-  }
-});
 
 export default router;

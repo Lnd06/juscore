@@ -1,5 +1,5 @@
 import express from "express";
-import { auth } from "../midleware/auth.js";
+import { auth } from "../middleware/auth.js";
 import { FinancialTransaction, Client, Process } from "../models/index.js";
 import { Op } from "sequelize";
 import sequelize from "../config/database.js";

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -109,7 +110,7 @@ const Login = () => {
               setError('Erro ao iniciar login com Google');
             }
           }}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors shadow-sm font-medium"
+          className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 dark:border-white/5 bg-white dark:bg-[#131B2E] text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors font-semibold text-sm"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path

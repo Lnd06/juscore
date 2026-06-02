@@ -1,5 +1,5 @@
 import express from "express";
-import { auth } from "../midleware/auth.js";
+import { auth } from "../middleware/auth.js";
 import { WhatsappInstance, User } from "../models/index.js";
 import * as evolutionApi from "../services/evolutionApi.js";
 import { chamarGroqDireto } from "../services/groqService.js";

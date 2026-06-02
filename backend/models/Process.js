@@ -80,6 +80,18 @@ const Process = sequelize.define("Process", {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  lastMovement: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  aiSummary: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  nextSteps: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
 });
 
 export default Process;
