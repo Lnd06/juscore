@@ -35,16 +35,32 @@ router.post("/create_payment", auth, async (req, res) => {
       await user.save(); // Save if updated from request
     }
 
-    // 1. Determine Base Price Securely
+    // 1. Check Plan Visibility
+    const visiblePlansSetting = await Setting.findOne({ where: { key: "visible_plans" } });
+    if (visiblePlansSetting && visiblePlansSetting.value) {
+      try {
+        const visiblePlans = JSON.parse(visiblePlansSetting.value);
+        if (Array.isArray(visiblePlans) && !visiblePlans.includes(planType)) {
+          return res.status(400).json({ error: "Este plano não está disponível para contratação." });
+        }
+      } catch (e) {
+        console.error("Erro ao validar visible_plans no checkout:", e);
+      }
+    }
+
+    // 2. Determine Base Price Securely
     const DEFAULT_PRICES = {
+      free: 0.0,
       student_basic: 17.9,
       student_pro: 34.0,
+      student_master: 89.9,
       lawyer_starter: 127.0,
       lawyer_growth: 147.0,
       office_master: 497.0,
+      enterprise: 0.0,
     };
 
-    if (!DEFAULT_PRICES[planType] && planType !== "enterprise") {
+    if (DEFAULT_PRICES[planType] === undefined) {
       return res.status(400).json({ error: "Plano inválido." });
     }
 

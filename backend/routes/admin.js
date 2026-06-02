@@ -705,20 +705,25 @@ router.put("/organizations/:id", authAdmin, async (req, res) => {
 
 
 const PRICING_PLAN_IDS = [
+  "free",
   "student_basic",
   "student_pro",
   "student_master",
   "lawyer_starter",
   "lawyer_growth",
   "office_master",
+  "enterprise",
 ];
 
 const DEFAULT_PRICES = {
+  free: "0.00",
   student_basic: "17.90",
   student_pro: "34.00",
+  student_master: "89.90",
   lawyer_starter: "127.00",
   lawyer_growth: "147.00",
   office_master: "497.00",
+  enterprise: "0.00",
 };
 
 router.get("/settings/prices", authAdmin, async (req, res) => {
@@ -759,6 +764,45 @@ router.post("/settings/prices", authAdmin, async (req, res) => {
   } catch (error) {
     console.error("Erro ao salvar preços:", error);
     res.status(500).json({ error: "Erro ao salvar preços" });
+  }
+});
+
+/* =========================
+   GERENCIAMENTO DE VISIBILIDADE DOS PLANOS
+   ========================= */
+router.get("/settings/visible-plans", authAdmin, async (req, res) => {
+  try {
+    const setting = await Setting.findOne({ where: { key: "visible_plans" } });
+    if (setting && setting.value) {
+      return res.json({ visiblePlans: JSON.parse(setting.value) });
+    }
+    res.json({ visiblePlans: null });
+  } catch (error) {
+    console.error("Erro ao buscar planos visíveis:", error);
+    res.status(500).json({ error: "Erro ao buscar planos visíveis" });
+  }
+});
+
+router.post("/settings/visible-plans", authAdmin, async (req, res) => {
+  try {
+    const { visiblePlans } = req.body;
+    if (!Array.isArray(visiblePlans)) {
+      return res.status(400).json({ error: "Formato inválido. Esperado um array de IDs de planos." });
+    }
+
+    const valueStr = JSON.stringify(visiblePlans);
+    let setting = await Setting.findOne({ where: { key: "visible_plans" } });
+    if (setting) {
+      setting.value = valueStr;
+      await setting.save();
+    } else {
+      await Setting.create({ key: "visible_plans", value: valueStr });
+    }
+
+    res.json({ message: "Visibilidade dos planos atualizada com sucesso!" });
+  } catch (error) {
+    console.error("Erro ao salvar visibilidade dos planos:", error);
+    res.status(500).json({ error: "Erro ao salvar visibilidade dos planos" });
   }
 });
 

@@ -16,7 +16,7 @@ const PLAN_NAME_TO_ID = {
 };
 
 const Pricing = ({ onCtaClick }) => {
-  const { prices, planTexts } = usePricing();
+  const { prices, planTexts, visiblePlans } = usePricing();
 
   const getDynamicPrice = (plan) => {
     const id = PLAN_NAME_TO_ID[plan.name];
@@ -52,7 +52,17 @@ const Pricing = ({ onCtaClick }) => {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {plans.map((basePlan, i) => {
+          {plans
+            .filter((basePlan) => {
+              let id = PLAN_NAME_TO_ID[basePlan.name];
+              if (basePlan.name === "Grátis") id = "free";
+              if (basePlan.name === "Enterprise") id = "enterprise";
+              if (visiblePlans && id && !visiblePlans.includes(id)) {
+                return false;
+              }
+              return true;
+            })
+            .map((basePlan, i) => {
             const plan = getDynamicPlan(basePlan);
             const Icon = basePlan.icon;
             const displayPrice = getDynamicPrice(basePlan);

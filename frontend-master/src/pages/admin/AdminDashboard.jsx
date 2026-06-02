@@ -246,7 +246,10 @@ const AdminDashboard = () => {
       fetchLibraryStatus();
       fetchTerms();
     }
-    if (activeTab === 'prices') fetchPrices();
+    if (activeTab === 'prices') {
+      fetchPrices();
+      fetchVisiblePlans();
+    }
     if (activeTab === 'overview') fetchDashboardStats();
   }, [activeTab]);
 
@@ -264,19 +267,29 @@ const AdminDashboard = () => {
 
   // ====== PRICING STATE ======
   const PLAN_LABELS = [
+    { id: 'free',           label: 'Grátis' },
     { id: 'student_basic',  label: 'Estudante Basic' },
     { id: 'student_pro',    label: 'Estudante Pro' },
+    { id: 'student_master', label: 'Estudante Pesquisador' },
     { id: 'lawyer_starter', label: 'Advogado Starter' },
     { id: 'lawyer_growth',  label: 'Advogado Growth' },
     { id: 'office_master',  label: 'Escritório Master' },
+    { id: 'enterprise',     label: 'Enterprise' },
   ];
 
   const DEFAULT_PRICES = {
-    student_basic: '17.90', student_pro: '34.00',
-    lawyer_starter: '127.00', lawyer_growth: '147.00', office_master: '497.00',
+    free: '0.00',
+    student_basic: '17.90',
+    student_pro: '34.00',
+    student_master: '89.90',
+    lawyer_starter: '127.00',
+    lawyer_growth: '147.00',
+    office_master: '497.00',
+    enterprise: '0.00',
   };
 
   const [pricingForm, setPricingForm] = useState(DEFAULT_PRICES);
+  const [visiblePlansForm, setVisiblePlansForm] = useState([]);
   const [loadingPrices, setLoadingPrices] = useState(false);
   const [priceSaveStatus, setPriceSaveStatus] = useState(null); // 'success' | 'error' | null
 
@@ -289,15 +302,32 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchVisiblePlans = async () => {
+    try {
+      const res = await axios.get('/api/admin/settings/visible-plans');
+      if (res.data && Array.isArray(res.data.visiblePlans)) {
+        setVisiblePlansForm(res.data.visiblePlans);
+      } else {
+        // Por padrão todos são visíveis
+        setVisiblePlansForm(PLAN_LABELS.map(p => p.id));
+      }
+    } catch (err) {
+      console.error('Erro ao buscar planos visíveis', err);
+    }
+  };
+
   const handleSavePrices = async (e) => {
     e.preventDefault();
     setLoadingPrices(true);
     setPriceSaveStatus(null);
     try {
-      await axios.post('/api/admin/settings/prices', pricingForm);
+      await Promise.all([
+        axios.post('/api/admin/settings/prices', pricingForm),
+        axios.post('/api/admin/settings/visible-plans', { visiblePlans: visiblePlansForm })
+      ]);
       setPriceSaveStatus('success');
     } catch (err) {
-      console.error('Erro ao salvar preços', err);
+      console.error('Erro ao salvar preços e visibilidade', err);
       setPriceSaveStatus('error');
     } finally {
       setLoadingPrices(false);
@@ -836,31 +866,72 @@ const AdminDashboard = () => {
       {activeTab === 'prices' && (
         <Card>
           <div className="p-6 border-b border-brand-border dark:border-brand-border/50">
-            <h3 className="font-bold flex items-center gap-2 text-lg">
+            <h3 className="font-bold flex items-center gap-2 text-lg text-gray-900 dark:text-white">
               <DollarSign className="w-5 h-5 text-accent" />
-              Gerenciamento de Preços
+              Gerenciamento de Planos e Preços
             </h3>
-            <p className="text-sm text-gray-500 mt-1">Alterações refletem imediatamente na Landing Page e na tela de Assinatura.</p>
+            <p className="text-sm text-gray-500 mt-1">Alterações de preços e visibilidade refletem imediatamente na Landing Page e no Aplicativo.</p>
           </div>
           <form onSubmit={handleSavePrices} className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {PLAN_LABELS.map(({ id, label }) => (
-                <div key={id} className="space-y-1">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{label}</label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-500">R$</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={pricingForm[id] || ''}
-                      onChange={(e) => setPricingForm(prev => ({ ...prev, [id]: e.target.value }))}
-                      className="flex-1 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-juri-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition-all"
-                      placeholder="0.00"
-                    />
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-left text-sm text-gray-600 dark:text-gray-400">
+                <thead className="bg-brand-border/5 dark:bg-brand-border/10 text-xs uppercase font-semibold text-gray-500">
+                  <tr>
+                    <th className="px-6 py-4">Plano</th>
+                    <th className="px-6 py-4">Preço Mensal (R$)</th>
+                    <th className="px-6 py-4 text-center">Visível no Site & App</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-brand-border dark:divide-brand-border/50">
+                  {PLAN_LABELS.map(({ id, label }) => {
+                    const isVisible = visiblePlansForm.includes(id);
+                    return (
+                      <tr key={id} className="hover:bg-gray-55 dark:hover:bg-gray-800/50 transition-colors">
+                        <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
+                          {label}
+                        </td>
+                        <td className="px-6 py-4">
+                          {id === 'free' || id === 'enterprise' ? (
+                            <span className="text-gray-400 dark:text-gray-500 text-sm italic font-medium">
+                              {id === 'free' ? 'Grátis (Fixo)' : 'Sob Consulta'}
+                            </span>
+                          ) : (
+                            <div className="flex items-center gap-2 max-w-[180px]">
+                              <span className="text-sm font-bold text-gray-500">R$</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={pricingForm[id] || ''}
+                                onChange={(e) => setPricingForm(prev => ({ ...prev, [id]: e.target.value }))}
+                                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-juri-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-accent/50 focus:border-accent outline-none transition-all"
+                                placeholder="0.00"
+                              />
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex justify-center">
+                            <input
+                              type="checkbox"
+                              id={`visibility-${id}`}
+                              checked={isVisible}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setVisiblePlansForm(prev => [...prev, id]);
+                                } else {
+                                  setVisiblePlansForm(prev => prev.filter(x => x !== id));
+                                }
+                              }}
+                              className="w-5 h-5 rounded text-accent bg-gray-100 border-gray-300 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 focus:ring-2 cursor-pointer"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
             <div className="mt-8 flex items-center gap-4">
               <button
@@ -869,11 +940,11 @@ const AdminDashboard = () => {
                 className="flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white font-bold hover:bg-accent-dark transition-all disabled:opacity-50 shadow-lg shadow-accent/20"
               >
                 <Save className="w-4 h-4" />
-                {loadingPrices ? 'Salvando...' : 'Salvar Preços'}
+                {loadingPrices ? 'Salvando...' : 'Salvar Alterações'}
               </button>
               {priceSaveStatus === 'success' && (
                 <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400 text-sm font-medium animate-in fade-in">
-                  <CheckCircle className="w-4 h-4" /> Preços salvos com sucesso!
+                  <CheckCircle className="w-4 h-4" /> Configurações salvas com sucesso!
                 </span>
               )}
               {priceSaveStatus === 'error' && (

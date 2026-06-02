@@ -4,36 +4,43 @@ import axios from "axios";
 
 // Default prices — used as fallback when API is unavailable
 export const DEFAULT_PRICES = {
+  free: "0.00",
   student_basic: "17.90",
   student_pro: "34.00",
   student_master: "89.90",
   lawyer_starter: "127.00",
   lawyer_growth: "147.00",
   office_master: "497.00",
+  enterprise: "0.00",
 };
 
 /**
  * Hook that fetches plan prices from the API.
  * Falls back to DEFAULT_PRICES if the API is unavailable.
- * @returns {{ prices: Object, loading: boolean }}
+ * @returns {{ prices: Object, planTexts: Object, visiblePlans: Array|null, loading: boolean }}
  */
 const usePricing = () => {
   const [prices, setPrices] = useState(DEFAULT_PRICES);
   const [planTexts, setPlanTexts] = useState({});
+  const [visiblePlans, setVisiblePlans] = useState(null); // null means all visible
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPricesAndTexts = async () => {
       try {
-        const [pricesRes, textsRes] = await Promise.all([
+        const [pricesRes, textsRes, visibleRes] = await Promise.all([
           axios.get("/api/public/prices"),
           axios.get("/api/public/plans-config").catch(() => ({ data: {} })),
+          axios.get("/api/public/visible-plans").catch(() => ({ data: { visiblePlans: null } })),
         ]);
         if (pricesRes.data && typeof pricesRes.data === "object") {
           setPrices({ ...DEFAULT_PRICES, ...pricesRes.data });
         }
         if (textsRes.data && typeof textsRes.data === "object") {
           setPlanTexts(textsRes.data);
+        }
+        if (visibleRes.data && Array.isArray(visibleRes.data.visiblePlans)) {
+          setVisiblePlans(visibleRes.data.visiblePlans);
         }
       } catch (err) {
         console.warn("usePricing: Usando preços padrão (fallback).");
@@ -60,7 +67,7 @@ const usePricing = () => {
     });
   };
 
-  return { prices, planTexts, loading, formatPrice };
+  return { prices, planTexts, visiblePlans, loading, formatPrice };
 };
 
 export default usePricing;

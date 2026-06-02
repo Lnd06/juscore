@@ -134,21 +134,28 @@ const PLANS = [
 const Subscription = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(null);
-  const { prices, planTexts, loading: pricesLoading, formatPrice } = usePricing();
+  const { prices, planTexts, visiblePlans, loading: pricesLoading, formatPrice } = usePricing();
   const role = user?.cargo || '';
   const isStudent = role.toLowerCase().includes('estudante') || role.toLowerCase().includes('bacharel');
   const isFreePlan = !user?.subscriptionPlan || user?.subscriptionPlan === 'free' || user?.tipo === 'free';
 
-  const filteredPlans = PLANS.map(plan => {
-    const custom = planTexts[plan.id];
-    if (!custom || Object.keys(custom).length === 0) return plan;
-    return {
-      ...plan,
-      name: custom.name || plan.name,
-      description: custom.description || plan.description,
-      features: custom.features ? custom.features.split('\n').filter(Boolean) : plan.features,
-    };
-  });
+  const filteredPlans = PLANS
+    .filter(plan => {
+      if (visiblePlans && !visiblePlans.includes(plan.id)) {
+        return false;
+      }
+      return true;
+    })
+    .map(plan => {
+      const custom = planTexts[plan.id];
+      if (!custom || Object.keys(custom).length === 0) return plan;
+      return {
+        ...plan,
+        name: custom.name || plan.name,
+        description: custom.description || plan.description,
+        features: custom.features ? custom.features.split('\n').filter(Boolean) : plan.features,
+      };
+    });
 
   const [showProfileModal, setShowProfileModal] = useState(false);
   

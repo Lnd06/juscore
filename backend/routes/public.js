@@ -55,21 +55,25 @@ router.get("/contact", async (req, res) => {
 // GET /api/public/prices (sem autenticação — landing page pode consumir)
 router.get("/prices", async (req, res) => {
   const PLAN_IDS = [
+    "free",
     "student_basic",
     "student_pro",
     "student_master",
     "lawyer_starter",
     "lawyer_growth",
     "office_master",
+    "enterprise",
   ];
 
   const DEFAULT_PRICES = {
+    free: "0.00",
     student_basic: "17.90",
     student_pro: "34.00",
     student_master: "89.90",
     lawyer_starter: "127.00",
     lawyer_growth: "147.00",
     office_master: "497.00",
+    enterprise: "0.00",
   };
 
   try {
@@ -92,12 +96,14 @@ router.get("/prices", async (req, res) => {
 // GET /api/public/plans-config
 router.get("/plans-config", async (req, res) => {
   const PLAN_IDS = [
+    "free",
     "student_basic",
     "student_pro",
     "student_master",
     "lawyer_starter",
     "lawyer_growth",
     "office_master",
+    "enterprise",
   ];
   try {
     const keys = PLAN_IDS.map((id) => `text_${id}`);
@@ -117,6 +123,20 @@ router.get("/plans-config", async (req, res) => {
   } catch (error) {
     console.error("Erro ao buscar textos dos planos:", error);
     res.json({}); // fallback
+  }
+});
+
+// GET /api/public/visible-plans (sem autenticação)
+router.get("/visible-plans", async (req, res) => {
+  try {
+    const setting = await Setting.findOne({ where: { key: "visible_plans" } });
+    if (setting && setting.value) {
+      return res.json({ visiblePlans: JSON.parse(setting.value) });
+    }
+    res.json({ visiblePlans: null });
+  } catch (error) {
+    console.error("Erro ao buscar planos visíveis:", error);
+    res.json({ visiblePlans: null });
   }
 });
 
