@@ -119,7 +119,15 @@ app.use(
     origin: (origin, callback) => {
       // Permite requisições sem origem (ex: chamadas internas do servidor ou ferramentas locais)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith("http://localhost:")) {
+      const isAllowed = 
+        allowedOrigins.indexOf(origin) !== -1 || 
+        origin.startsWith("http://localhost:") ||
+        origin.startsWith("https://localhost:") ||
+        origin.startsWith("http://127.0.0.1:") ||
+        origin.endsWith("juscore.net") ||
+        /187\.77\.226\.73/.test(origin);
+
+      if (isAllowed) {
         return callback(null, true);
       }
       return callback(new Error("CORS policy: Origin not allowed by security rules."), false);
