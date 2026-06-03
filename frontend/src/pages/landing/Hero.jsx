@@ -18,7 +18,7 @@ const HeroMockup = () => (
         <div className="w-3 h-3 rounded-full bg-green-500/40" />
       </div>
       <div className="flex-1 max-w-xl mx-auto bg-white/5 h-6 rounded-lg border border-white/5 flex items-center justify-center text-[10px] text-gray-500 font-mono">
-        juscore.net/dashboard/erp
+        juscore.net/dashboard/estudos
       </div>
     </div>
 
@@ -35,20 +35,19 @@ const HeroMockup = () => (
 
         {/* Nav Items */}
         <div className="flex-1 px-2 space-y-1">
-           {/* Active Item: Dashboard */}
+           {/* Active Item: Estudos */}
            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 text-accent font-bold border-l-2 border-accent">
-              <Layout className="w-4 h-4 text-accent" />
-              <span className="text-[10px] hidden md:block uppercase tracking-wider">Painel Geral</span>
+              <GraduationCap className="w-4 h-4 text-accent" />
+              <span className="text-[10px] hidden md:block uppercase tracking-wider">Estudos / OAB</span>
            </div>
 
            {/* Inactive Items */}
            {[
-             { label: 'Processos', icon: Folder },
-             { label: 'Clientes', icon: User },
-             { label: 'Assinaturas', icon: FileCheck },
-             { label: 'Cálculos', icon: Clock },
-             { label: 'Estudos', icon: GraduationCap },
-             { label: 'Copiloto', icon: Sparkles }
+             { label: 'Simulador OAB', icon: FileCheck },
+             { label: 'Gerador de Peças', icon: Folder },
+             { label: 'Assistente de TCC', icon: User },
+             { label: 'Banco de Petições', icon: Clock },
+             { label: 'Copiloto IA', icon: Sparkles }
            ].map((item, i) => {
              const Icon = item.icon;
              return (
@@ -67,13 +66,13 @@ const HeroMockup = () => (
         {/* Top bar header inside dashboard */}
         <div className="flex items-center justify-between border-b border-white/5 pb-4">
           <div>
-            <h4 className="text-xs md:text-sm font-bold text-white tracking-wide">Área de Controle Integrado</h4>
-            <p className="text-[9px] md:text-[10px] text-gray-500">Monitoramento e desempenho da banca advocatícia em tempo real</p>
+            <h4 className="text-xs md:text-sm font-bold text-white tracking-wide">Área de Controle Acadêmico</h4>
+            <p className="text-[9px] md:text-[10px] text-gray-500">Acompanhamento de estudos, simulados e peças profissionais</p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden md:inline-block text-[9px] font-bold bg-accent/10 text-accent px-2 py-1 rounded border border-accent/20">Dr. Dan Sênior</span>
+            <span className="hidden md:inline-block text-[9px] font-bold bg-accent/10 text-accent px-2 py-1 rounded border border-accent/20">Estudante VIP</span>
             <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center border border-accent/30 text-accent font-bold text-[10px]">
-              D
+              E
             </div>
           </div>
         </div>
@@ -81,10 +80,10 @@ const HeroMockup = () => (
         {/* Metrics Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { title: "Processos Ativos", val: "148", sub: "Tribunais integrados", color: "border-blue-500/20 text-blue-400 bg-blue-500/5" },
-            { title: "Prazos em Alerta", val: "3", sub: "1 urgente hoje", color: "border-amber-500/20 text-amber-400 bg-amber-500/5" },
-            { title: "Assinaturas Pendentes", val: "12", sub: "Validação jurídica", color: "border-emerald-500/20 text-emerald-400 bg-emerald-500/5" },
-            { title: "Cálculos Realizados", val: "254", sub: "Liquidações homologadas", color: "border-purple-500/20 text-purple-400 bg-purple-500/5" }
+            { title: "Peças Geradas", val: "42", sub: "Treinos OAB ativos", color: "border-blue-500/20 text-blue-400 bg-blue-500/5" },
+            { title: "Dias para OAB", val: "18", sub: "Cronograma de estudos", color: "border-amber-500/20 text-amber-400 bg-amber-500/5" },
+            { title: "Resumos Criados", val: "15", sub: "Matéria revisada", color: "border-emerald-500/20 text-emerald-400 bg-emerald-500/5" },
+            { title: "Consultas à IA", val: "184", sub: "Dúvidas solucionadas", color: "border-purple-500/20 text-purple-400 bg-purple-500/5" }
           ].map((card, i) => (
             <div key={i} className={`p-3 md:p-4 rounded-2xl border bg-white/5 backdrop-blur-md flex flex-col gap-1 transition-all ${card.color}`}>
               <span className="text-[8px] md:text-[9px] uppercase tracking-widest text-gray-500 font-extrabold">{card.title}</span>
@@ -100,16 +99,16 @@ const HeroMockup = () => (
           {/* Left Column: ERP Process Tracking (8/12 width) */}
           <div className="lg:col-span-7 bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col gap-3 min-h-[220px]">
             <div className="flex items-center justify-between border-b border-white/5 pb-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">Movimentações Judiciais e Contratos</span>
-              <span className="text-[8px] text-accent font-bold hover:underline cursor-pointer">Ver todos</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">Histórico de Simulados e Peças Praticadas</span>
+              <span className="text-[8px] text-accent font-bold hover:underline cursor-pointer">Ver histórico</span>
             </div>
 
             {/* List of mock process items */}
             <div className="space-y-3 flex-1 overflow-y-auto">
               {[
-                { client: "Mariana Silva de Souza", action: "Ação de Cobrança / Honorários", status: "Audiência Próxima", tagColor: "bg-blue-500/10 text-blue-400 border border-blue-500/20", progress: "Conclusos para Despacho Judicial", date: "Há 2 horas" },
-                { client: "Carlos Eduardo Santos", action: "Revisional de Contrato", status: "Assinado via Link", tagColor: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20", progress: "Contrato assinado eletronicamente pelo cliente", date: "Ontem" },
-                { client: "Gisele Ferreira Lima", action: "Apelação Cível", status: "Prazo em Curso", tagColor: "bg-amber-500/10 text-amber-400 border border-amber-500/20", progress: "Aguardando petição de recurso (prazo final 18h)", date: "Há 1 dia" }
+                { client: "Petição Inicial - Direito do Trabalho", action: "Peça prática profissional", status: "Nota 9.5", tagColor: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20", progress: "Estrutura correta, fundamentação completa com base na CLT", date: "Há 2 horas" },
+                { client: "Apelação Cível - Direito do Consumidor", action: "Recurso cível simulado", status: "Corrigida", tagColor: "bg-blue-500/10 text-blue-400 border border-blue-500/20", progress: "Identificado erro na tempestividade, revisar prazos recursais", date: "Ontem" },
+                { client: "TCC - Capítulo 2 (Fundamentação)", action: "Monografia acadêmica", status: "Em Revisão", tagColor: "bg-amber-500/10 text-amber-400 border border-amber-500/20", progress: "Geradas referências em formato ABNT e estrutura lógica", date: "Há 1 dia" }
               ].map((row, idx) => (
                 <div key={idx} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between gap-3 text-[9px] hover:bg-white/[0.05] transition-colors">
                   <div className="flex-1 min-w-0">
@@ -131,9 +130,9 @@ const HeroMockup = () => (
             <div className="flex items-center justify-between border-b border-[#ffffff0a] pb-2">
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-accent animate-pulse" />
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-accent">Copiloto Jurídico</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-accent">Professor IA & Corretor</span>
               </div>
-              <span className="text-[7px] text-gray-500">Modelo: JusCore Pro Sênior</span>
+              <span className="text-[7px] text-gray-500">Modelo: JusCore Acadêmico Pro</span>
             </div>
 
             {/* Quick chat bubbles mockup */}
@@ -142,7 +141,7 @@ const HeroMockup = () => (
               <div className="flex flex-col items-end gap-1">
                 <span className="text-[7px] font-black text-gray-500 uppercase tracking-wider">Você</span>
                 <div className="bg-accent text-gray-950 p-2.5 rounded-2xl rounded-tr-none text-[8.5px] font-medium leading-relaxed max-w-[90%]">
-                  Verifique o risco de perda na apelação do processo de Mariana Silva.
+                  Corrija minha peça de Embargos de Declaração e explique os requisitos.
                 </div>
               </div>
 
@@ -150,14 +149,14 @@ const HeroMockup = () => (
               <div className="flex flex-col items-start gap-1">
                 <span className="text-[7px] font-black text-accent uppercase tracking-wider">JusCore AI</span>
                 <div className="bg-white/5 border border-white/5 text-gray-300 p-2.5 rounded-2xl rounded-tl-none text-[8.5px] leading-relaxed max-w-[95%]">
-                  Analisando o acórdão de Mariana Silva contra a súmula 381 do STJ, identifico risco **médio-alto** (65% de improvimento) por jurisprudência pacífica. Recomendo conciliação nesta fase para resguardar honorários.
+                  Sua peça atende ao Art. 1.022 do CPC. Indiquei a correção do prazo e elaborei a fundamentação de omissão.
                   
                   <div className="mt-2 flex gap-1.5">
                     <button className="flex items-center gap-1 px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-[7px] font-bold text-accent transition-all">
-                      <FileText className="w-2.5 h-2.5" /> Revisar Risco
+                      <FileText className="w-2.5 h-2.5" /> Revisar Estrutura
                     </button>
                     <button className="flex items-center gap-1 px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-[7px] font-bold text-accent transition-all">
-                      <Download className="w-2.5 h-2.5" /> Relatório PDF
+                      <GraduationCap className="w-2.5 h-2.5" /> Aula Didática
                     </button>
                   </div>
                 </div>
@@ -175,12 +174,12 @@ const HeroMockup = () => (
 
 const Hero = ({ onCtaClick }) => {
   const typewriterTexts = React.useMemo(() => [
-    'Para Advogados e Estudantes',
-    'Sem Burocracia',
-    'Focada na sua OAB',
-    'De Alta Performance',
-    'Para o seu TCC',
-    'Ágil e Decisiva'
+    'Passe na 2ª Fase OAB',
+    'Explicação Didática de Peças',
+    'TCC Estruturado em Minutos',
+    'Estudos Jurídicos 10x Mais Rápidos',
+    'Prática e Treino de Peças',
+    'Sem Bloqueios de Escrita'
   ], []);
 
   return (
@@ -197,14 +196,14 @@ const Hero = ({ onCtaClick }) => {
         <ScrollReveal direction="down" delay={200}>
           <div className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold mb-8 backdrop-blur-md tracking-wide">
             <ShieldCheck className="w-4 h-4 text-accent" />
-            <span>O Ecossistema Completo de Gestão e Alta Performance Jurídica</span>
+            <span>O Copiloto Inteligente Focado na sua Aprovação e Estudos Jurídicos</span>
           </div>
         </ScrollReveal>
 
         {/* Striking Modern Heading with Typewriter */}
         <ScrollReveal delay={400}>
           <h1 className="text-[7.5vw] sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-950 dark:text-white tracking-tight leading-[1.12] mb-8 select-none flex flex-col items-center">
-            <span>A Inteligência Jurídica</span>
+            <span>Passe na OAB com IA</span>
             <span className="text-[5.8vw] sm:text-4xl md:text-5xl lg:text-7xl block mt-1 sm:mt-2 whitespace-normal sm:whitespace-nowrap">
               <TypewriterText 
                 texts={typewriterTexts}
@@ -217,8 +216,8 @@ const Hero = ({ onCtaClick }) => {
         {/* Clean, high-conversion Paragraph */}
         <ScrollReveal delay={600}>
           <p className="max-w-3xl mx-auto text-base md:text-lg text-gray-650 dark:text-gray-400 mb-12 leading-relaxed px-4 font-normal">
-            Automatize petições, domine jurisprudência e impulsione seus estudos 10x mais rápido.
-            <span className="text-accent font-medium"> Essencial para o seu escritório, indispensável para a sua OAB.</span>
+            Gere peças profissionais completas para a 2ª fase, entenda a estrutura jurídica ideal e pratique sem travar.
+            <span className="text-accent font-medium"> Didática descomplicada para o seu estudo e indispensável para a sua aprovação.</span>
           </p>
         </ScrollReveal>
 

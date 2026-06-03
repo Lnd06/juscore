@@ -4,9 +4,9 @@ import axios from "axios";
 
 // Default prices — used as fallback when API is unavailable
 export const DEFAULT_PRICES = {
-  student_basic: "17.90",
-  student_pro: "34.00",
-  student_master: "89.90",
+  student_basic: "19.90",
+  student_pro: "29.90",
+  student_master: "59.90",
   lawyer_starter: "127.00",
   lawyer_growth: "147.00",
   office_master: "497.00",

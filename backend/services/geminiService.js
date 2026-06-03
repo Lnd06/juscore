@@ -63,7 +63,7 @@ async function executarChamadaGemini(messages, modelToUse, useSearchGrounding) {
     : undefined;
 
   // Formatar histórico para o Gemini
-  const history = messages
+  const contents = messages
     .filter(m => m.role !== "system")
     .map(m => {
       let parts = [];
@@ -85,9 +85,7 @@ async function executarChamadaGemini(messages, modelToUse, useSearchGrounding) {
       };
     });
 
-  // A última mensagem será enviada via sendMessage()
-  const lastMessage = history.pop();
-  if (!lastMessage) {
+  if (contents.length === 0) {
     throw new Error("Nenhuma mensagem do usuário/modelo encontrada para enviar à API do Gemini.");
   }
 
@@ -102,15 +100,13 @@ async function executarChamadaGemini(messages, modelToUse, useSearchGrounding) {
 
   const model = genAI.getGenerativeModel(modelParams);
 
-  const chat = model.startChat({
-    history: history,
+  const result = await model.generateContent({
+    contents: contents,
     generationConfig: {
       temperature: 0.3,
     },
   });
 
-  // Envia a última mensagem
-  const result = await chat.sendMessage(lastMessage.parts);
   return result.response.text();
 }
 
@@ -257,7 +253,7 @@ async function executarChamadaGeminiStream(messages, modelToUse, useSearchGround
     : undefined;
 
   // Formatar histórico para o Gemini
-  const history = messages
+  const contents = messages
     .filter(m => m.role !== "system")
     .map(m => {
       let parts = [];
@@ -278,9 +274,7 @@ async function executarChamadaGeminiStream(messages, modelToUse, useSearchGround
       };
     });
 
-  // A última mensagem será enviada via sendMessageStream()
-  const lastMessage = history.pop();
-  if (!lastMessage) {
+  if (contents.length === 0) {
     throw new Error("Nenhuma mensagem do usuário/modelo encontrada para enviar à API do Gemini.");
   }
 
@@ -294,14 +288,12 @@ async function executarChamadaGeminiStream(messages, modelToUse, useSearchGround
 
   const model = genAI.getGenerativeModel(modelParams);
 
-  const chat = model.startChat({
-    history: history,
+  const resultStream = await model.generateContentStream({
+    contents: contents,
     generationConfig: {
       temperature: 0.3,
     },
   });
-
-  const resultStream = await chat.sendMessageStream(lastMessage.parts);
   let fullText = "";
 
   for await (const chunk of resultStream.stream) {

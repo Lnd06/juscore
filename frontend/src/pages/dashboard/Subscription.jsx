@@ -12,11 +12,11 @@ const PLANS = [
   {
     id: "student_basic",
     name: "Estudante Basic",
-    price: 17.90,
+    price: 19.90,
     period: "mês",
     description: "Foco em pesquisa acadêmica",
     features: [
-      "5 documentos por dia",
+      "3 documentos por dia",
       "IA acadêmica avançada",
       "Resumos dinâmicos de matéria",
       "IA ensina como professor",
@@ -28,7 +28,7 @@ const PLANS = [
   {
     id: "student_pro",
     name: "Estudante Pro",
-    price: 34.00,
+    price: 29.90,
     period: "mês",
     description: "OAB, TCC e Estágio",
     features: [
@@ -37,7 +37,8 @@ const PLANS = [
       "Assistente completo de TCC",
       "Central Acadêmica exclusiva",
       "IA com Visão (Análise de PDFs)",
-      "12 documentos gerados"
+      "8 documentos por dia",
+      "Deep Research (1/dia)"
     ],
     highlight: true,
     color: "accent",
@@ -46,7 +47,7 @@ const PLANS = [
   {
     id: "student_master",
     name: "Estudante Pesquisador",
-    price: 89.90,
+    price: 59.90,
     period: "mês",
     description: "TCCs, Artigos e Doutorado",
     features: [
@@ -54,7 +55,7 @@ const PLANS = [
       "Deep Research (5/dia)",
       "Análises profundas na Web",
       "Resumo Inteligente de Livros",
-      "30 documentos gerados",
+      "15 documentos por dia",
       "IA com Raciocínio Avançado"
     ],
     highlight: false,

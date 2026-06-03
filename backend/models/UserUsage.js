@@ -30,6 +30,10 @@ const UserUsage = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    dailyDeepResearch: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
   },
   {
     timestamps: true,
@@ -47,6 +51,7 @@ UserUsage.prototype.checkAndReset = async function () {
     this.dailyCalculations = 0;
     this.dailyDocuments = 0;
     this.dailyVision = 0;
+    this.dailyDeepResearch = 0;
     await this.save();
   }
 };

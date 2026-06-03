@@ -51,9 +51,9 @@ router.post("/create_payment", auth, async (req, res) => {
     // 2. Determine Base Price Securely
     const DEFAULT_PRICES = {
       free: 0.0,
-      student_basic: 17.9,
-      student_pro: 34.0,
-      student_master: 89.9,
+      student_basic: 19.9,
+      student_pro: 29.9,
+      student_master: 59.9,
       lawyer_starter: 127.0,
       lawyer_growth: 147.0,
       office_master: 497.0,

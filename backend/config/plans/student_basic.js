@@ -8,7 +8,7 @@ const student_basic = {
     historyDays: 7,
     maxCharsInput: 4000,
     dailyCalculations: 9999,
-    dailyDocuments: 5,
+    dailyDocuments: 3,
     maxSignatureDocs: 0,
     signatureDocExpiryDays: 0,
   },

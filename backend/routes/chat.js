@@ -1,7 +1,7 @@
 import express from "express";
 import { auth } from "../middleware/auth.js";
 import { usageLimiter } from "../middleware/usageLimiter.js";
-import { Conversation, User, Process, Client } from "../models/index.js";
+import { Conversation, User, Process, Client, UserUsage } from "../models/index.js";
 import crypto from "crypto";
 import { verificarPoliticas } from "../services/moderationService.js";
 import { analisarContexto } from "../services/contextAnalyzerService.js";
@@ -73,13 +73,37 @@ router.post("/", auth, usageLimiter("conversations"), async (req, res) => {
       planSlug
     } = await resolverModeloEPlano(req, model);
 
-    // Validação estrita de acesso a Deep Research
-    if (model === "deep-research" && (!userPlan.features || !userPlan.features.deepResearch)) {
-      return res.status(403).json({
-        error: "Recurso Exclusivo",
-        message: "O recurso Deep Research é exclusivo de planos acadêmicos avançados (Estudante Pesquisador) ou planos profissionais superiores. Faça upgrade para acessar!",
-        upgradeRequired: true
+    // Validação estrita de acesso e limite diário do Deep Research
+    if (model === "deep-research" || (resolvedModel && resolvedModel.includes("deep-research"))) {
+      // 1. Verificar se o plano dá acesso ao Deep Research
+      if (!userPlan.features || !userPlan.features.deepResearch) {
+        return res.status(403).json({
+          error: "Recurso Exclusivo",
+          message: "O recurso Deep Research é exclusivo de planos acadêmicos avançados (Estudante Pro ou superior) ou planos profissionais superiores. Faça upgrade para acessar!",
+          upgradeRequired: true
+        });
+      }
+
+      // 2. Verificar o limite de uso diário
+      const [usage] = await UserUsage.findOrCreate({
+        where: { userId },
+        defaults: { userId }
       });
+      await usage.checkAndReset();
+
+      const limit = userPlan.limits.dailyDeepResearch || 0;
+      if (usage.dailyDeepResearch >= limit) {
+        return res.status(403).json({
+          error: "Limite Diário Atingido",
+          message: `O seu limite diário para buscas no Deep Research acabou para o plano ${userPlan.name}. Faça upgrade ou aguarde até amanhã para continuar pesquisando!`,
+          upgradeRequired: true
+        });
+      }
+
+      // Incrementar uso do Deep Research
+      usage.dailyDeepResearch += 1;
+      await usage.save();
+      console.log(`📈 [DEEP RESEARCH] Uso incrementado para o usuário ${userId}. Uso atual: ${usage.dailyDeepResearch}/${limit}`);
     }
 
 

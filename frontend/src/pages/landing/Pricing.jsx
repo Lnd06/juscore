@@ -40,6 +40,23 @@ const Pricing = ({ onCtaClick }) => {
     };
   };
 
+  const activePlans = plans.filter((basePlan) => {
+    let id = PLAN_NAME_TO_ID[basePlan.name];
+    if (basePlan.name === "Grátis") id = "free";
+    if (basePlan.name === "Enterprise") id = "enterprise";
+    if (visiblePlans && id && !visiblePlans.includes(id)) {
+      return false;
+    }
+    return true;
+  });
+
+  const getGridClasses = (count) => {
+    if (count === 1) return "grid grid-cols-1 gap-8 max-w-md mx-auto";
+    if (count === 2) return "grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto";
+    if (count === 3) return "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto";
+    return "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto";
+  };
+
   return (
     <section id="pricing" className="py-32 px-6 relative bg-gray-50/50 dark:bg-gray-900/10">
       <div className="max-w-7xl mx-auto text-center">
@@ -51,18 +68,8 @@ const Pricing = ({ onCtaClick }) => {
           <p className="text-gray-500 dark:text-gray-400">Escolha o plano ideal para a sua advocacia ou jornada acadêmica.</p>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {plans
-            .filter((basePlan) => {
-              let id = PLAN_NAME_TO_ID[basePlan.name];
-              if (basePlan.name === "Grátis") id = "free";
-              if (basePlan.name === "Enterprise") id = "enterprise";
-              if (visiblePlans && id && !visiblePlans.includes(id)) {
-                return false;
-              }
-              return true;
-            })
-            .map((basePlan, i) => {
+        <div className={getGridClasses(activePlans.length)}>
+          {activePlans.map((basePlan, i) => {
             const plan = getDynamicPlan(basePlan);
             const Icon = basePlan.icon;
             const displayPrice = getDynamicPrice(basePlan);
