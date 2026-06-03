@@ -302,7 +302,7 @@ const startServer = async () => {
 
         // Auto-seed visible_plans if not exists
         try {
-          const Setting = (await import("./models/Setting.js")).default;
+          const { Setting } = await import("./models/index.js");
           const exists = await Setting.findOne({ where: { key: "visible_plans" } });
           if (!exists) {
             await Setting.create({
