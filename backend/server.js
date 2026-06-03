@@ -271,6 +271,16 @@ const startServer = async () => {
           // Ignores error if column already exists
         }
 
+        // Schema Patch for UserUsages dailyDeepResearch column
+        try {
+          await sequelize.query(
+            "ALTER TABLE UserUsages ADD COLUMN dailyDeepResearch INT DEFAULT 0;",
+          );
+          console.log("Schema Patch: dailyDeepResearch column injected in UserUsages table.");
+        } catch (colErr) {
+          // Ignores error if column already exists
+        }
+
         // Signature v2 patches (crypto + identity fields)
         const sigV2Cols = [
           "signerEmail VARCHAR(255) NULL",
@@ -289,6 +299,22 @@ const startServer = async () => {
 
         await sequelize.sync();
         console.log("MySQL conectado e sincronizado");
+
+        // Auto-seed visible_plans if not exists
+        try {
+          const Setting = (await import("./models/Setting.js")).default;
+          const exists = await Setting.findOne({ where: { key: "visible_plans" } });
+          if (!exists) {
+            await Setting.create({
+              key: "visible_plans",
+              value: JSON.stringify(["free", "student_basic", "student_pro", "student_master", "enterprise"])
+            });
+            console.log("Database Seed: visible_plans default seeded.");
+          }
+        } catch (seedErr) {
+          console.error("Failed to seed visible_plans:", seedErr.message);
+        }
+
         connected = true;
       } catch (err) {
         console.error("Falha na conexao com MySQL:", err.message);
