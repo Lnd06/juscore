@@ -17,6 +17,30 @@ O **JusCore.net** combina uma interface **Editorial Escura (Dark Mode)** minimal
 - **Vídeo Promocional & Marketing**: Remotion v4 (React 19 + TypeScript + Tailwind CSS v4) com suporte a narrações e síntese de áudio.
 - **Exportação & Documentos**: Suporte a exportação PDF ABNT com `html2pdf.js`.
 
+### 📐 Fluxo de Arquitetura & Execução (Pipeline RAG)
+
+```mermaid
+graph TD
+    A["Frontend React (JusCore.net)"] -->|1. Envia mensagem + Token JWT| B("Backend Express API")
+    B -->|2. Middleware: Auth, Rate Limit & Controle de Planos| C{"Middleware & Guardrails"}
+    
+    C -->|Não Autorizado / Limite Excedido| D["Retorna HTTP 401/429 (Modal Upgrade/Login)"]
+    C -->|Requisição Autorizada| E["Chat & RAG Controller"]
+    
+    E -->|3. Busca Perfil do Usuário & Histórico| F[("Banco de Dados MySQL")]
+    E -->|4. Embeddings (gemini-embedding-001 3072d)| G[("Pinecone Vector Database")]
+    G -->|Retorna Doutrina, Legislação & Súmulas| E
+    
+    E -->|5. Compila Persona Jurídica + Contexto RAG| H["LLM Engine (Google Gemini 2.0 / Flash)"]
+    H -->|6. Resposta Legal-Tech Formatada| E
+    
+    E -->|7. Registra Uso & Atualiza Métricas| F
+    E -->|8. Resposta Estruturada + Ações Rápidas| A
+    
+    A -->|9. Ação 'Editar no Documento A4'| I["Editor Lateral A4 (CustomDocEditor)"]
+    I -->|10. Exportação com Margens ABNT| J["Exportador PDF (html2pdf.js)"]
+```
+
 ---
 
 ## 🚀 Funcionalidades Principais (v1.6.5)
