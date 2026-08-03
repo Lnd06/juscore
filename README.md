@@ -27,8 +27,8 @@ graph TD
     C -->|Não Autorizado / Limite Excedido| D["Retorna HTTP 401/429 (Modal Upgrade/Login)"]
     C -->|Requisição Autorizada| E["Chat & RAG Controller"]
     
-    E -->|3. Busca Perfil do Usuário & Histórico| F[("Banco de Dados MySQL")]
-    E -->|4. Embeddings (gemini-embedding-001 3072d)| G[("Pinecone Vector Database")]
+    E -->|3. Busca Perfil do Usuário & Histórico| F[(Banco de Dados MySQL)]
+    E -->|4. Embeddings (gemini-embedding-001 3072d)| G[(Pinecone Vector Database)]
     G -->|Retorna Doutrina, Legislação & Súmulas| E
     
     E -->|5. Compila Persona Jurídica + Contexto RAG| H["LLM Engine (Google Gemini 2.0 / Flash)"]
@@ -37,7 +37,7 @@ graph TD
     E -->|7. Registra Uso & Atualiza Métricas| F
     E -->|8. Resposta Estruturada + Ações Rápidas| A
     
-    A -->|9. Ação 'Editar no Documento A4'| I["Editor Lateral A4 (CustomDocEditor)"]
+    A -->|9. Ação Editar no Documento A4| I["Editor Lateral A4 (CustomDocEditor)"]
     I -->|10. Exportação com Margens ABNT| J["Exportador PDF (html2pdf.js)"]
 ```
 
@@ -94,7 +94,7 @@ v1.6.5_anty/
 
 ## 🔒 Segurança & Privacidade
 
-- **Variáveis de Ambiente**: Arquivos `.env`, credenciais VPS e chaves privadas estão strictamente excluídos pelo `.gitignore`.
+- **Variáveis de Ambiente**: Arquivos `.env`, credenciais VPS e chaves privadas estão estritamente excluídos pelo `.gitignore`.
 - **Sanitização de Código**: Scripts temporários de manutenção (`scratch/`), arquivos de análise (`graphify-out/`), ambientes virtuais (`.venv/`) e caches (`__pycache__/`) não são rastreados.
 - **Autenticação**: Hash de senha via `bcrypt` e tokens `JWT` para controle de sessão.
 
