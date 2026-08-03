@@ -1,27 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, useInView, useMotionValue, useTransform, animate } from 'framer-motion';
 
-// Intersection Observer hook for scroll-triggered animations
+// Intersection Observer hook (migrated to useInView under the hood for clean integration)
 export const useScrollReveal = (options = {}) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const elementRef = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIsVisible(true);
-        if (options.once !== false) observer.unobserve(entry.target);
-      }
-    }, { threshold: 0.1, ...options });
-
-    const currentElement = elementRef.current;
-    if (currentElement) observer.observe(currentElement);
-
-    return () => {
-      if (currentElement) observer.unobserve(currentElement);
-    };
-  }, [options]);
-
-  return [elementRef, isVisible];
+  const ref = useRef(null);
+  const isInView = useInView(ref, { 
+    once: options.once !== false, 
+    amount: options.threshold || 0.1 
+  });
+  return [ref, isInView];
 };
 
 // Parallax hook
@@ -39,98 +26,122 @@ export const useParallax = (speed = 0.3) => {
   return offset;
 };
 
-// Fade + Slide (configurable direction)
+// Fade + Slide (Framer Motion spring-based component)
 export const ScrollReveal = ({ children, className = '', delay = 0, direction = 'up', duration = 800, scale = false }) => {
-  const [ref, isVisible] = useScrollReveal();
-  
   const directions = {
-    up: 'translate-y-12',
-    down: '-translate-y-12',
-    left: 'translate-x-12',
-    right: '-translate-x-12',
-    none: ''
+    up: { y: 30 },
+    down: { y: -30 },
+    left: { x: 30 },
+    right: { x: -30 },
+    none: {}
+  };
+
+  const initialVal = {
+    opacity: 0,
+    ...directions[direction],
+    ...(scale ? { scale: 0.95 } : {})
   };
 
   return (
-    <div
-      ref={ref}
-      className={`transition-all ${className}`}
-      style={{
-        transitionDuration: `${duration}ms`,
-        transitionDelay: `${delay}ms`,
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible 
-          ? 'translate(0, 0) scale(1)' 
-          : `${directions[direction]} ${scale ? 'scale(0.95)' : ''}`,
+    <motion.div
+      className={className}
+      initial={initialVal}
+      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: "-10%" }}
+      transition={{
+        duration: duration / 1000,
+        delay: delay / 1000,
+        type: 'spring',
+        stiffness: 60,
+        damping: 15
       }}
     >
       {children}
-    </div>
+    </motion.div>
   );
 };
 
-// Animated Number Counter
+// Animated Number Counter with Framer Motion animate and transform
 export const AnimatedCounter = ({ end, duration = 2000, suffix = '', prefix = '' }) => {
-  const [count, setCount] = useState(0);
-  const [ref, isVisible] = useScrollReveal();
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => Math.round(latest).toLocaleString());
+  const [displayValue, setDisplayValue] = useState("0");
   
   useEffect(() => {
-    if (!isVisible) return;
-    
-    let startTimestamp = null;
-    const step = (timestamp) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      setCount(Math.floor(progress * end));
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      }
-    };
-    window.requestAnimationFrame(step);
-  }, [end, duration, isVisible]);
+    if (isInView) {
+      const controls = animate(count, end, {
+        duration: duration / 1000,
+        ease: "easeOut"
+      });
+      return controls.stop;
+    }
+  }, [isInView, end, duration]);
+  
+  useEffect(() => {
+    return rounded.on("change", (latest) => {
+      setDisplayValue(latest);
+    });
+  }, [rounded]);
 
-  return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
+  return <span ref={ref}>{prefix}{displayValue}{suffix}</span>;
 };
 
 export const TypewriterText = ({ texts, className = '' }) => {
-  const [currentText, setCurrentText] = useState('');
+  const [text, setText] = useState('');
+  const [index, setIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [loopNum, setLoopNum] = useState(0);
-  const [typingSpeed, setTypingSpeed] = useState(150);
+  const [speed, setSpeed] = useState(80);
 
   useEffect(() => {
-    let timer;
-    
-    const handleType = () => {
-      const i = loopNum % texts.length;
-      const fullText = texts[i];
+    if (!texts || texts.length === 0) return;
 
-      if (isDeleting) {
-        setCurrentText(fullText.substring(0, currentText.length - 1));
-        setTypingSpeed(40);
+    const currentWord = texts[index % texts.length];
+
+    const timer = setTimeout(() => {
+      if (!isDeleting) {
+        // Typing: add next character
+        const nextText = currentWord.substring(0, text.length + 1);
+        setText(nextText);
+
+        if (nextText === currentWord) {
+          // Finished typing: pause at the end of the word
+          setSpeed(1500);
+          setIsDeleting(true);
+        } else {
+          // Keep typing characters
+          setSpeed(80);
+        }
       } else {
-        setCurrentText(fullText.substring(0, currentText.length + 1));
-        setTypingSpeed(80);
-      }
+        // Deleting: remove character
+        const nextText = currentWord.substring(0, text.length - 1);
+        setText(nextText);
 
-      if (!isDeleting && currentText === fullText) {
-        setTypingSpeed(1500); // Pause at end
-        setIsDeleting(true);
-      } else if (isDeleting && currentText === '') {
-        setIsDeleting(false);
-        setLoopNum(loopNum + 1);
-        setTypingSpeed(300); // Pause before next word
+        if (nextText === '') {
+          // Finished deleting: pause before starting the next word
+          setIsDeleting(false);
+          setIndex((prev) => prev + 1);
+          setSpeed(300);
+        } else {
+          // Keep deleting characters
+          setSpeed(40);
+        }
       }
-    };
+    }, speed);
 
-    timer = setTimeout(handleType, typingSpeed);
     return () => clearTimeout(timer);
-  }, [currentText, isDeleting, loopNum, texts, typingSpeed]);
+  }, [text, isDeleting, index, speed, texts]);
 
   return (
     <span className="inline-flex flex-wrap items-baseline justify-center whitespace-normal">
-      <span className={`${className} whitespace-normal break-words`}>{currentText}</span>
-      <span className="animate-pulse ml-0.5 shrink-0" style={{ borderRight: '3px solid var(--color-accent, #D4AF37)', height: '0.85em', display: 'inline-block' }} />
+      <span className={`${className} whitespace-normal break-words`}>{text}</span>
+      <motion.span 
+        className="ml-0.5 shrink-0" 
+        style={{ borderRight: '3px solid var(--brand-primary, #D4AF37)', height: '0.85em', display: 'inline-block' }}
+        animate={{ opacity: [1, 0, 1] }}
+        transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+      />
     </span>
   );
 };

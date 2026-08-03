@@ -1,5 +1,4 @@
-import React from 'react';
-import { Aperture, Sparkles, Cpu } from 'lucide-react';
+import { Sparkles, Cpu } from 'lucide-react';
 
 export const Loader = ({ text = "Iniciando o Núcleo de Processamento..." }) => {
   return (
@@ -16,7 +15,15 @@ export const Loader = ({ text = "Iniciando o Núcleo de Processamento..." }) => 
         
         {/* O Núcleo (The Core) */}
         <div className="relative flex items-center justify-center w-12 h-12 bg-gray-900 rounded-full shadow-[0_0_30px_rgba(200,162,110,0.4)]">
-          <Aperture className="w-6 h-6 text-accent animate-pulse" />
+          <svg viewBox="0 0 108 125" fill="none" className="w-5 h-5 text-accent animate-pulse" xmlns="http://www.w3.org/2000/svg">
+            <path 
+              d="M2.51465 32.7531L53.5146 64.2531M105.015 32.7531L105.515 90.2531L53.5146 122.253L1.51465 90.7531L2.51465 32.7531L54.0146 1.75305L105.015 32.7531ZM53.5146 64.2531V122.253M53.5146 64.2531L105.015 32.7531" 
+              stroke="currentColor" 
+              strokeWidth="6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
           <Sparkles className="w-3 h-3 text-[#4A90E2] absolute -top-1 -right-2 animate-ping" />
         </div>
       </div>

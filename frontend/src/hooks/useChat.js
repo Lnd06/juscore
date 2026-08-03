@@ -7,6 +7,7 @@ export const useChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isWaitingResponse, setIsWaitingResponse] = useState(false);
   const abortControllerRef = useRef(null);
+  const responseTimeoutRef = useRef(null);
   const { user, setUser } = useAuth(); // for auth context if needed
 
   const addMessage = useCallback((role, content, mode = null) => {
@@ -45,7 +46,16 @@ export const useChat = () => {
 
       addMessage("user", userMessageContent, model); // Also tag user message
       setIsLoading(true);
-      setIsWaitingResponse(true);
+
+      // Limpa qualquer timeout anterior por garantia
+      if (responseTimeoutRef.current) {
+        clearTimeout(responseTimeoutRef.current);
+      }
+      // Apenas exibe o indicador de "digitando/carregando" se a resposta demorar mais de 450ms.
+      // Isso evita o efeito "glitch" de piscar o carregamento em respostas ultra rápidas.
+      responseTimeoutRef.current = setTimeout(() => {
+        setIsWaitingResponse(true);
+      }, 450);
 
       abortControllerRef.current = new AbortController();
 
@@ -82,6 +92,12 @@ export const useChat = () => {
 
         // Add assistant message bubble as empty string first
         addMessage("assistant", "", model);
+        
+        // Limpa o timeout para que o loading não apareça caso ainda não tenha disparado
+        if (responseTimeoutRef.current) {
+          clearTimeout(responseTimeoutRef.current);
+          responseTimeoutRef.current = null;
+        }
         setIsWaitingResponse(false); // Já começou a responder, as bolinhas de loading somem.
 
         const reader = response.body.getReader();
@@ -175,6 +191,10 @@ export const useChat = () => {
           );
         }
       } finally {
+        if (responseTimeoutRef.current) {
+          clearTimeout(responseTimeoutRef.current);
+          responseTimeoutRef.current = null;
+        }
         setIsLoading(false);
         setIsWaitingResponse(false);
         abortControllerRef.current = null;
@@ -184,6 +204,10 @@ export const useChat = () => {
   );
 
   const stopGeneration = useCallback(() => {
+    if (responseTimeoutRef.current) {
+      clearTimeout(responseTimeoutRef.current);
+      responseTimeoutRef.current = null;
+    }
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       setIsLoading(false);

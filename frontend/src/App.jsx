@@ -12,6 +12,7 @@ import Chat from './pages/dashboard/Chat';
 import Profile from './pages/dashboard/Profile';
 import Calculator from './pages/dashboard/Calculator';
 import DashboardContact from './pages/dashboard/Contact';
+import About from './pages/dashboard/About';
 import History from './pages/dashboard/History'; 
 import { useAuth } from './context/AuthContext';
 import { Loader } from './components/ui';
@@ -32,6 +33,8 @@ import ErpDashboard from './pages/dashboard/legal/ErpDashboard';
 import AcademicHub from './pages/dashboard/AcademicHub';
 import Signatures from './pages/dashboard/legal/Signatures';
 import SignDocument from './pages/public/SignDocument';
+import PublicCalculatorPage from './pages/public/PublicCalculatorPage';
+import PublicAbout from './pages/public/PublicAbout';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -161,6 +164,11 @@ function App() {
       <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
       
       <Route path="/" element={<Landing />} />
+      <Route path="/funcionalidades" element={<Landing />} />
+      <Route path="/calculadoras" element={<Landing />} />
+      <Route path="/precos" element={<Landing />} />
+      <Route path="/calculadoras/:type" element={<PublicCalculatorPage />} />
+      <Route path="/sobre" element={<PublicAbout />} />
       <Route 
         path="/dashboard" 
         element={
@@ -174,6 +182,7 @@ function App() {
         <Route path="profile" element={<Profile />} />
         <Route path="calculator" element={<Calculator />} />
         <Route path="contact" element={<DashboardContact />} />
+        <Route path="about" element={<About />} />
         <Route path="history" element={<History />} />
         <Route path="subscription" element={<Subscription />} />
         <Route path="team" element={<GrowthRoute><Team /></GrowthRoute>} />

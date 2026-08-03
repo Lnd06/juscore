@@ -7,6 +7,24 @@ import {
   CheckSquare, LineChart, ShieldCheck, ChevronRight, FileCheck, HelpCircle, Layout, GraduationCap
 } from 'lucide-react';
 import { ScrollReveal, TypewriterText } from './Animations';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+
+const CubeIcon = ({ className }) => (
+  <svg 
+    viewBox="0 0 108 125" 
+    fill="none" 
+    className={className} 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path 
+      d="M2.51465 32.7531L53.5146 64.2531M105.015 32.7531L105.515 90.2531L53.5146 122.253L1.51465 90.7531L2.51465 32.7531L54.0146 1.75305L105.015 32.7531ZM53.5146 64.2531V122.253M53.5146 64.2531L105.015 32.7531" 
+      stroke="currentColor" 
+      strokeWidth="6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 const HeroMockup = () => (
   <div className="relative w-full aspect-[16/9] bg-[#070A13] rounded-2xl overflow-hidden border border-white/10 group transition-all duration-500 shadow-2xl">
@@ -43,16 +61,16 @@ const HeroMockup = () => (
 
            {/* Inactive Items */}
            {[
-             { label: 'Simulador OAB', icon: FileCheck },
+             { label: 'Simulador OAB', icon: CubeIcon },
              { label: 'Gerador de Peças', icon: Folder },
-             { label: 'Assistente de TCC', icon: User },
+             { label: 'Assistente de TCC', icon: CubeIcon },
              { label: 'Banco de Petições', icon: Clock },
-             { label: 'Copiloto IA', icon: Sparkles }
+             { label: 'Copiloto IA', icon: CubeIcon }
            ].map((item, i) => {
              const Icon = item.icon;
              return (
                <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:text-gray-300 transition-colors cursor-pointer">
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 text-gray-500" />
                   <span className="text-[10px] hidden md:block font-semibold uppercase tracking-wider">{item.label}</span>
                </div>
              );
@@ -172,6 +190,45 @@ const HeroMockup = () => (
   </div>
 );
 
+const TiltContainer = ({ children }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  const rotateX = useSpring(useTransform(y, [-300, 300], [6, -6]), { stiffness: 120, damping: 25 });
+  const rotateY = useSpring(useTransform(x, [-300, 300], [-6, 6]), { stiffness: 120, damping: 25 });
+  
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left - width / 2;
+    const mouseY = e.clientY - rect.top - height / 2;
+    x.set(mouseX);
+    y.set(mouseY);
+  };
+  
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+  
+  return (
+    <motion.div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: "preserve-3d",
+        perspective: 1000
+      }}
+      className="relative max-w-5xl mx-auto group cursor-pointer"
+    >
+      {children}
+    </motion.div>
+  );
+};
+
 const Hero = ({ onCtaClick }) => {
   const typewriterTexts = React.useMemo(() => [
     'Passe na 2ª Fase OAB',
@@ -183,9 +240,19 @@ const Hero = ({ onCtaClick }) => {
   ], []);
 
   return (
-    <section className="relative pt-36 pb-24 px-6 overflow-hidden bg-white dark:bg-gray-950">
-      {/* Background elegant gradient blooms */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full -z-10 opacity-20 dark:opacity-10 pointer-events-none">
+    <section className="relative pt-36 pb-24 px-6 overflow-hidden bg-[#080B15]">
+      {/* Background elegant grid pattern & light blooms */}
+      <div 
+        className="absolute inset-0 -z-10 opacity-[0.035] pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px'
+        }}
+      />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full -z-10 opacity-20 dark:opacity-15 pointer-events-none">
         <div className="absolute top-[-5%] left-[-5%] w-[45%] h-[45%] bg-accent/20 rounded-full blur-[140px]" />
         <div className="absolute bottom-[20%] right-[-5%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]" />
       </div>
@@ -194,7 +261,7 @@ const Hero = ({ onCtaClick }) => {
         
         {/* Fine, prestigious top badge */}
         <ScrollReveal direction="down" delay={200}>
-          <div className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold mb-8 backdrop-blur-md tracking-wide">
+          <div className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-full bg-accent/10 border border-accent/25 text-accent text-xs font-bold mb-8 backdrop-blur-md tracking-wide">
             <ShieldCheck className="w-4 h-4 text-accent" />
             <span>O Copiloto Inteligente Focado na sua Aprovação e Estudos Jurídicos</span>
           </div>
@@ -202,12 +269,12 @@ const Hero = ({ onCtaClick }) => {
 
         {/* Striking Modern Heading with Typewriter */}
         <ScrollReveal delay={400}>
-          <h1 className="text-[7.5vw] sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-950 dark:text-white tracking-tight leading-[1.12] mb-8 select-none flex flex-col items-center">
-            <span>Passe na OAB com IA</span>
-            <span className="text-[5.8vw] sm:text-4xl md:text-5xl lg:text-7xl block mt-1 sm:mt-2 whitespace-normal sm:whitespace-nowrap">
+          <h1 className="text-[7.5vw] sm:text-5xl md:text-6xl lg:text-7xl tracking-tight leading-[1.12] mb-8 select-none flex flex-col items-center">
+            <span className="font-serif italic font-normal text-gray-100 mb-2 tracking-wide">Passe na OAB com Inteligência Artificial</span>
+            <span className="text-[5.8vw] sm:text-4xl md:text-5xl lg:text-7xl block mt-1 sm:mt-2 whitespace-normal sm:whitespace-nowrap min-h-[2.4em] sm:min-h-[1.2em] flex items-center justify-center">
               <TypewriterText 
                 texts={typewriterTexts}
-                className="bg-clip-text text-transparent bg-gradient-to-r from-accent via-[#F2D272] to-accent font-black tracking-wide"
+                className="text-accent font-display font-black tracking-wide"
               />
             </span>
           </h1>
@@ -215,7 +282,7 @@ const Hero = ({ onCtaClick }) => {
 
         {/* Clean, high-conversion Paragraph */}
         <ScrollReveal delay={600}>
-          <p className="max-w-3xl mx-auto text-base md:text-lg text-gray-650 dark:text-gray-400 mb-12 leading-relaxed px-4 font-normal">
+          <p className="max-w-3xl mx-auto text-base md:text-lg text-gray-400 mb-12 leading-relaxed px-4 font-normal">
             Gere peças profissionais completas para a 2ª fase, entenda a estrutura jurídica ideal e pratique sem travar.
             <span className="text-accent font-medium"> Didática descomplicada para o seu estudo e indispensável para a sua aprovação.</span>
           </p>
@@ -242,14 +309,14 @@ const Hero = ({ onCtaClick }) => {
 
         {/* Interactive Dashboard Hero Mockup Container */}
         <ScrollReveal delay={1000} direction="up" className="px-4">
-          <div className="relative max-w-5xl mx-auto group">
+          <TiltContainer>
             {/* Elegant backdrop glow effect */}
             <div className="absolute inset-0 bg-gradient-to-t from-accent/20 to-transparent blur-[100px] opacity-0 group-hover:opacity-40 transition-opacity duration-1000 -z-10" />
             
-            <div className="bg-white/5 dark:bg-gray-950 rounded-[32px] border border-gray-200 dark:border-white/10 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] overflow-hidden p-2.5 backdrop-blur-xl">
+            <div className="bg-white/5 dark:bg-gray-950 rounded-[32px] border border-gray-200 dark:border-white/10 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] overflow-hidden p-2.5 backdrop-blur-xl transition-all duration-300 group-hover:border-accent/20">
                <HeroMockup />
             </div>
-          </div>
+          </TiltContainer>
         </ScrollReveal>
       </div>
     </section>

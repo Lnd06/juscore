@@ -3,11 +3,26 @@ import { Mail, Instagram, Phone } from 'lucide-react';
 import { Card } from '../../components/ui';
 import axios from 'axios';
 
+const TiktokIcon = ({ className }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
+
 const Contact = () => {
   const [links, setLinks] = useState({
     contact_email: 'contato@juscore.ai',
     contact_whatsapp: '5511999999999',
-    contact_instagram: 'https://instagram.com/juscore'
+    contact_instagram: 'https://instagram.com/juscore',
+    contact_tiktok: 'https://tiktok.com/@juscore'
   });
 
   useEffect(() => {
@@ -43,6 +58,13 @@ const Contact = () => {
       value: 'Visite-nos', 
       href: links.contact_instagram,
       color: 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400'
+    },
+    { 
+      icon: TiktokIcon, 
+      label: 'TikTok', 
+      value: 'Assista aos vídeos', 
+      href: links.contact_tiktok,
+      color: 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'
     }
   ];
 

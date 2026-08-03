@@ -406,7 +406,8 @@ router.get("/settings/contact", authAdmin, async (req, res) => {
       "contact_email",
       "contact_whatsapp",
       "contact_instagram",
-      "contact_github",
+      "contact_tiktok",
+      "contact_linkedin",
     ];
     const settings = await Setting.findAll({ where: { key: keys } });
 
@@ -428,13 +429,15 @@ router.post("/settings/contact", authAdmin, async (req, res) => {
       contact_email,
       contact_whatsapp,
       contact_instagram,
-      contact_github,
+      contact_tiktok,
+      contact_linkedin,
     } = req.body;
     const data = {
       contact_email,
       contact_whatsapp,
       contact_instagram,
-      contact_github,
+      contact_tiktok,
+      contact_linkedin,
     };
 
     for (const [key, value] of Object.entries(data)) {

@@ -12,7 +12,8 @@ router.get("/contact", async (req, res) => {
           "contact_email",
           "contact_whatsapp",
           "contact_instagram",
-          "contact_github",
+          "contact_tiktok",
+          "contact_linkedin",
         ],
       },
     });
@@ -21,7 +22,8 @@ router.get("/contact", async (req, res) => {
       contact_email: "",
       contact_whatsapp: "",
       contact_instagram: "",
-      contact_github: "",
+      contact_tiktok: "",
+      contact_linkedin: "",
     };
 
     settings.forEach((setting) => {
@@ -31,8 +33,10 @@ router.get("/contact", async (req, res) => {
         contactInfo.contact_whatsapp = setting.value;
       if (setting.key === "contact_instagram")
         contactInfo.contact_instagram = setting.value;
-      if (setting.key === "contact_github")
-        contactInfo.contact_github = setting.value;
+      if (setting.key === "contact_tiktok")
+        contactInfo.contact_tiktok = setting.value;
+      if (setting.key === "contact_linkedin")
+        contactInfo.contact_linkedin = setting.value;
     });
 
     // If no settings found, return defaults used in frontend so it doesn't break
@@ -41,7 +45,8 @@ router.get("/contact", async (req, res) => {
         contact_email: "contato@juscore.ai",
         contact_whatsapp: "5511999999999",
         contact_instagram: "https://instagram.com/juscore",
-        contact_github: "https://github.com/juscore",
+        contact_tiktok: "https://tiktok.com/@juscore",
+        contact_linkedin: "https://linkedin.com/company/juscore",
       });
     }
 

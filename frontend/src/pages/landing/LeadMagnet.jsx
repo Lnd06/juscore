@@ -52,14 +52,30 @@ const LeadMagnet = () => {
               ))}
             </div>
 
-            <Button 
-              onClick={() => navigate('/register')}
-              variant="outline"
-              className="h-16 px-10 rounded-2xl border-2 border-gray-100 dark:border-gray-800 text-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-900 group"
-            >
-              Ver Todas as Calculadoras
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <div className="space-y-4">
+              <div className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                Acesse as Páginas Dedicadas (SEO & Detalhes):
+              </div>
+              <div className="flex flex-wrap gap-2.5 max-w-xl">
+                {[
+                  { name: 'Rescisão Trabalhista', path: '/calculadoras/rescisao' },
+                  { name: 'Atualização Monetária', path: '/calculadoras/atualizacao' },
+                  { name: 'Honorários OAB', path: '/calculadoras/honorarios' },
+                  { name: 'Juros Moratórios', path: '/calculadoras/juros' },
+                  { name: 'Prazos Processuais', path: '/calculadoras/prazos' },
+                  { name: 'Pensão Alimentícia', path: '/calculadoras/pensao' },
+                  { name: 'Cálculo Financeiro', path: '/calculadoras/financeira' }
+                ].map((item, index) => (
+                  <button 
+                    key={index}
+                    onClick={() => navigate(item.path)}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-gray-50 hover:bg-accent hover:text-white dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:border-accent dark:hover:border-accent/30 transition-all duration-200"
+                  >
+                    {item.name}
+                  </button>
+                ))}
+              </div>
+            </div>
           </ScrollReveal>
 
           <ScrollReveal direction="right" delay={400}>

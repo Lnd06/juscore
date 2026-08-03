@@ -19,13 +19,13 @@ const bgStyles = {
 export const Logo = ({ className, src, bg = BG_STYLE }) => {
   const bgClass = bgStyles[bg] ?? '';
 
-  const imgSrc = src || '/icone.png';
+  const imgSrc = src || '/juscore.svg';
 
   return (
     <div className={cn('relative flex items-center justify-center group', bgClass)}>
       {/* 
         Para alterar o tamanho interno da logo (dar "zoom"), 
-        mude o valor de scale-[1.4] abaixo. 
+        mude o valor de scale-[1.3] abaixo. 
         Ex: scale-[1.2], scale-[1.8], scale-[2.0]
       */}
       {/* Soft circular glow effect behind the logo on hover */}
@@ -35,7 +35,7 @@ export const Logo = ({ className, src, bg = BG_STYLE }) => {
         src={imgSrc}
         alt="JusCore AI Logo"
         className={cn(
-          'w-full h-full object-contain transform scale-[1.4] relative z-10',
+          'w-full h-full object-contain transform scale-[1.3] relative z-10',
           'transition-all duration-300',
           className
         )}

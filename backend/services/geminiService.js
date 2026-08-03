@@ -1,6 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import crypto from "crypto";
 import Cache from "../models/cache.js";
+import axios from "axios";
+import { chamarGroqDireto } from "./groqService.js";
 
 let genAIInstance = null;
 
@@ -20,7 +22,7 @@ function memCacheGet(key) {
   return entry.data;
 }
 
-function memCacheSet(key, data, ttlMs = 24 * 60 * 60 * 1000) {
+function memCacheSet(key, data, ttlMs = 72 * 60 * 60 * 1000) {
   // Evict oldest entries if cache is full (simple FIFO)
   if (_responseCache.size >= MAX_RESPONSE_CACHE_SIZE) {
     const firstKey = _responseCache.keys().next().value;
@@ -104,10 +106,153 @@ async function executarChamadaGemini(messages, modelToUse, useSearchGrounding) {
     contents: contents,
     generationConfig: {
       temperature: 0.3,
+      maxOutputTokens: 2048,
+      thinkingConfig: {
+        thinkingBudget: 1024,
+      },
     },
   });
 
   return result.response.text();
+}
+
+const openRouterGeminiMap = {
+  "gemini-2.5-flash": "google/gemini-2.5-flash",
+  "gemini-2.5-pro": "google/gemini-2.5-pro",
+  "gemini-flash-latest": "google/gemini-2.5-flash",
+  "gemini-pro-latest": "google/gemini-2.5-pro",
+  "company": "google/gemini-2.5-flash",
+  "reasoning": "google/gemini-2.5-pro",
+  "deep-research": "google/gemini-2.5-pro",
+};
+
+async function chamarOpenRouterFallback(messages, modelToUse, cacheKey, onChunk = null) {
+  if (!process.env.OPENROUTER_API_KEY) {
+    console.warn("⚠️ [GEMINI OPENROUTER FALLBACK] OPENROUTER_API_KEY não configurada no ambiente.");
+    return null;
+  }
+
+  const preferredModel = openRouterGeminiMap[modelToUse] || "google/gemini-2.5-flash";
+  const modelsToTry = [
+    preferredModel,
+    "google/gemma-4-26b-a4b-it:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "meta-llama/llama-3.2-3b-instruct:free"
+  ];
+
+  const uniqueModels = [...new Set(modelsToTry)];
+
+  const formattedMessages = messages.map(m => {
+    if (Array.isArray(m.content)) {
+      const textParts = m.content
+        .filter(part => part.type === "text")
+        .map(part => part.text)
+        .join("\n");
+      return { role: m.role, content: textParts };
+    }
+    return { role: m.role, content: String(m.content) };
+  });
+
+  let lastError = null;
+
+  for (const model of uniqueModels) {
+    console.log(`🔄 [GEMINI SERVICE] Tentando fallback via OpenRouter com o modelo: ${model}`);
+    try {
+      const response = await axios.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          model: model,
+          messages: formattedMessages,
+          temperature: 0.3,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "HTTP-Referer": "https://juscore.net",
+            "X-Title": "JusCore AI",
+            "Content-Type": "application/json",
+          },
+          timeout: 25000
+        }
+      );
+
+      const answer = response.data?.choices?.[0]?.message?.content;
+      if (answer) {
+        console.log(`✅ [GEMINI SERVICE] Resposta obtida com sucesso via OpenRouter Fallback (${model})`);
+        
+        if (onChunk) {
+          onChunk(answer);
+        }
+
+        if (answer.length > 50) {
+          memCacheSet(cacheKey, answer);
+          Cache.upsert({
+            key: cacheKey,
+            data: answer,
+            expireAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          }).catch(() => null);
+        }
+
+        return answer;
+      }
+    } catch (error) {
+      const status = error.response?.status;
+      const dataStr = error.response ? JSON.stringify(error.response.data) : error.message;
+      console.warn(`⚠️ [GEMINI SERVICE] Falha no OpenRouter com ${model} (Status ${status}): ${dataStr}. Tentando próximo modelo...`);
+      lastError = error;
+    }
+  }
+
+  console.error("❌ [GEMINI SERVICE] Todos os modelos de fallback da OpenRouter falharam.");
+  return null;
+}
+
+async function chamarGroqFallback(messages, modelToUse, cacheKey, onChunk = null) {
+  try {
+    const modelMap = {
+      "gemini-2.5-flash": "llama-3.3-70b-versatile",
+      "gemini-2.5-pro": "llama-3.3-70b-versatile",
+      "gemini-flash-latest": "llama-3.1-8b-instant",
+      "gemini-pro-latest": "llama-3.3-70b-versatile",
+      "company": "llama-3.3-70b-versatile",
+      "reasoning": "llama-3.3-70b-versatile",
+      "deep-research": "llama-3.3-70b-versatile",
+    };
+
+    const groqModel = modelMap[modelToUse] || "llama-3.3-70b-versatile";
+    console.log(`🔄 [GEMINI SERVICE] Iniciando fallback secundário via Groq com o modelo: ${groqModel}`);
+    
+    const formattedMessages = messages.map(m => {
+      if (Array.isArray(m.content)) {
+        const textParts = m.content
+          .filter(part => part.type === "text")
+          .map(part => part.text)
+          .join("\n");
+        return { role: m.role, content: textParts };
+      }
+      return { role: m.role, content: String(m.content) };
+    });
+
+    const answer = await chamarGroqDireto(formattedMessages, groqModel);
+    if (answer) {
+      console.log(`✅ [GEMINI SERVICE] Resposta obtida com sucesso via Groq Fallback (${groqModel})`);
+      if (onChunk) {
+        onChunk(answer);
+      }
+      if (answer.length > 50) {
+        memCacheSet(cacheKey, answer);
+        Cache.upsert({
+          key: cacheKey,
+          data: answer,
+          expireAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        }).catch(() => null);
+      }
+      return answer;
+    }
+  } catch (error) {
+    console.error(`❌ [GEMINI SERVICE] Erro ao chamar fallback do Groq:`, error.message);
+  }
+  return null;
 }
 
 export async function chamarGemini(messages, modelToUse = process.env.GEMINI_MODEL || "gemini-2.5-flash", useSearchGrounding = false) {
@@ -192,6 +337,18 @@ export async function chamarGemini(messages, modelToUse = process.env.GEMINI_MOD
       console.warn(`⚠️ [GEMINI SERVICE] Falha com o modelo ${currentModel}: ${err.message}. Tentando próximo fallback...`);
       lastError = err;
     }
+  }
+
+  // Fallback via OpenRouter caso todos os modelos locais falhem (ex: créditos esgotados)
+  const openRouterAnswer = await chamarOpenRouterFallback(messages, modelToUse, cacheKey);
+  if (openRouterAnswer) {
+    return openRouterAnswer;
+  }
+
+  // Fallback via Groq caso até o OpenRouter falhe (ex: rate limits ou fora de saldo)
+  const groqAnswer = await chamarGroqFallback(messages, modelToUse, cacheKey);
+  if (groqAnswer) {
+    return groqAnswer;
   }
 
   console.error("❌ [GEMINI SERVICE] Todos os modelos de fallback falharam.");
@@ -292,6 +449,10 @@ async function executarChamadaGeminiStream(messages, modelToUse, useSearchGround
     contents: contents,
     generationConfig: {
       temperature: 0.3,
+      maxOutputTokens: 2048,
+      thinkingConfig: {
+        thinkingBudget: 1024,
+      },
     },
   });
   let fullText = "";
@@ -399,6 +560,18 @@ export async function chamarGeminiStream(
       console.warn(`⚠️ [GEMINI SERVICE STREAM] Falha com o modelo ${currentModel}: ${err.message}. Tentando próximo fallback...`);
       lastError = err;
     }
+  }
+
+  // Fallback via OpenRouter caso todos os modelos locais falhem (ex: créditos esgotados)
+  const openRouterAnswer = await chamarOpenRouterFallback(messages, modelToUse, cacheKey, onChunk);
+  if (openRouterAnswer) {
+    return openRouterAnswer;
+  }
+
+  // Fallback via Groq caso até o OpenRouter falhe (ex: rate limits ou fora de saldo)
+  const groqAnswer = await chamarGroqFallback(messages, modelToUse, cacheKey, onChunk);
+  if (groqAnswer) {
+    return groqAnswer;
   }
 
   console.error("❌ [GEMINI SERVICE STREAM] Todos os modelos de fallback falharam.");

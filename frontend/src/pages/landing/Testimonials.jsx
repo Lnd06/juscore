@@ -33,6 +33,33 @@ const Testimonials = () => {
             </ScrollReveal>
           ))}
         </div>
+
+        {/* Institution Logos Section */}
+        <div className="mt-24 pt-16 border-t border-gray-100 dark:border-white/5 text-center">
+          <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-10">
+            Estudantes e graduados das principais instituições utilizam o JusCore AI
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-8 opacity-50 dark:opacity-40">
+            <span className="text-xl md:text-2xl font-extrabold tracking-tighter text-gray-700 dark:text-gray-300 hover:text-accent dark:hover:text-accent transition-colors duration-300">
+              USP
+            </span>
+            <span className="text-xl md:text-2xl font-black italic tracking-widest text-gray-700 dark:text-gray-300 hover:text-accent dark:hover:text-accent transition-colors duration-300">
+              FGV
+            </span>
+            <span className="text-xl md:text-2xl font-bold tracking-tight text-gray-700 dark:text-gray-300 hover:text-accent dark:hover:text-accent transition-colors duration-300">
+              PUC
+            </span>
+            <span className="text-xl md:text-2xl font-black tracking-normal text-gray-700 dark:text-gray-300 hover:text-accent dark:hover:text-accent transition-colors duration-300">
+              MACKENZIE
+            </span>
+            <span className="text-xl md:text-2xl font-extrabold tracking-wide text-gray-700 dark:text-gray-300 hover:text-accent dark:hover:text-accent transition-colors duration-300">
+              UFRJ
+            </span>
+            <span className="text-xl md:text-2xl font-bold tracking-widest text-gray-700 dark:text-gray-300 hover:text-accent dark:hover:text-accent transition-colors duration-300">
+              UFMG
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   );

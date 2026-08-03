@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import { Bot, User, Trash2, Download, FileText, ArrowRight } from 'lucide-react';
+import { User, Trash2, Download, FileText, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '../../../components/ui';
 import { jsPDF } from "jspdf";
 import ReactMarkdown from 'react-markdown';
@@ -149,12 +150,20 @@ const MessageList = ({ messages, bottomRef, setExpandedImage, isLoading }) => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-8 custom-scrollbar">
+    <div className="flex-1 overflow-y-auto px-4 pt-8 pb-3 custom-scrollbar">
       <div className="max-w-6xl mx-auto space-y-10">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[50vh] text-center space-y-6">
             <div className="w-20 h-20 bg-accent/5 rounded-full flex items-center justify-center animate-bounce-slow">
-              <Bot className="w-10 h-10 text-accent/40" />
+              <svg viewBox="0 0 108 125" fill="none" className="w-10 h-10 text-accent/40" xmlns="http://www.w3.org/2000/svg">
+                <path 
+                  d="M2.51465 32.7531L53.5146 64.2531M105.015 32.7531L105.515 90.2531L53.5146 122.253L1.51465 90.7531L2.51465 32.7531L54.0146 1.75305L105.015 32.7531ZM53.5146 64.2531V122.253M53.5146 64.2531L105.015 32.7531" 
+                  stroke="currentColor" 
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-black text-gray-900 dark:text-white">Como posso ajudar hoje?</h2>
@@ -181,16 +190,31 @@ const MessageList = ({ messages, bottomRef, setExpandedImage, isLoading }) => {
             const imageSrc = getImage(msg);
 
             return (
-            <div 
+            <motion.div 
               key={idx} 
-              className={`flex gap-4 group ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in slide-in-from-bottom-2 duration-500`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 120, damping: 18 }}
+              className={`flex gap-4 group ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
             >
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
                 msg.role === 'user' 
                   ? 'bg-accent text-white' 
                   : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700'
               }`}>
-                {msg.role === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5 text-accent" />}
+                {msg.role === 'user' ? (
+                  <User className="w-5 h-5" />
+                ) : (
+                  <svg viewBox="0 0 108 125" fill="none" className="w-5 h-5 text-accent" xmlns="http://www.w3.org/2000/svg">
+                    <path 
+                      d="M2.51465 32.7531L53.5146 64.2531M105.015 32.7531L105.515 90.2531L53.5146 122.253L1.51465 90.7531L2.51465 32.7531L54.0146 1.75305L105.015 32.7531ZM53.5146 64.2531V122.253M53.5146 64.2531L105.015 32.7531" 
+                      stroke="currentColor" 
+                      strokeWidth="6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
               </div>
 
               <div className={`flex flex-col space-y-2 max-w-[85%] ${msg.role === 'user' ? 'items-end' : ''}`}>
@@ -242,27 +266,53 @@ const MessageList = ({ messages, bottomRef, setExpandedImage, isLoading }) => {
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           )})
         )}
 
         {isLoading && (
-            <div className={`flex gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-500`}>
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 120, damping: 18 }}
+              className={`flex gap-4 group`}
+            >
               <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                <Bot className="w-5 h-5 text-accent" />
+                <svg viewBox="0 0 108 125" fill="none" className="w-5 h-5 text-accent" xmlns="http://www.w3.org/2000/svg">
+                  <path 
+                    d="M2.51465 32.7531L53.5146 64.2531M105.015 32.7531L105.515 90.2531L53.5146 122.253L1.51465 90.7531L2.51465 32.7531L54.0146 1.75305L105.015 32.7531ZM53.5146 64.2531V122.253M53.5146 64.2531L105.015 32.7531" 
+                    stroke="currentColor" 
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </div>
 
               <div className="flex flex-col space-y-2 max-w-[85%]">
-                <div className="relative group/bubble p-5 rounded-[28px] text-sm leading-relaxed bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-none shadow-sm flex items-center gap-1.5 h-[60px] min-w-[70px]">
-                   <span className="w-2.5 h-2.5 rounded-full bg-accent opacity-60 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                   <span className="w-2.5 h-2.5 rounded-full bg-accent opacity-60 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                   <span className="w-2.5 h-2.5 rounded-full bg-accent opacity-60 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                <div className="relative group/bubble p-5 rounded-[28px] text-sm leading-relaxed bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-none shadow-sm flex items-center gap-3 h-[60px] min-w-[100px]">
+                   <div className="animate-spin w-5 h-5 flex items-center justify-center text-accent shrink-0">
+                     <svg viewBox="0 0 108 125" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+                       <path 
+                         d="M2.51465 32.7531L53.5146 64.2531M105.015 32.7531L105.515 90.2531L53.5146 122.253L1.51465 90.7531L2.51465 32.7531L54.0146 1.75305L105.015 32.7531ZM53.5146 64.2531V122.253M53.5146 64.2531L105.015 32.7531" 
+                         stroke="currentColor" 
+                         strokeWidth="6"
+                         strokeLinecap="round"
+                         strokeLinejoin="round"
+                       />
+                     </svg>
+                   </div>
+                   <div className="flex gap-1 items-center">
+                     <span className="w-1.5 h-1.5 rounded-full bg-accent opacity-60 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                     <span className="w-1.5 h-1.5 rounded-full bg-accent opacity-60 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                     <span className="w-1.5 h-1.5 rounded-full bg-accent opacity-60 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
         )}
 
-        <div ref={bottomRef} className="h-32" />
+        <div ref={bottomRef} className="h-4" />
       </div>
     </div>
   );

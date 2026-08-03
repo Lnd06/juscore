@@ -8,6 +8,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", "sans-serif"],
+        display: ["Outfit", "sans-serif"],
+        serif: ['"Playfair Display"', "serif"],
       },
       colors: {
         // Base: Premium Dark Authority

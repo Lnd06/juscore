@@ -315,6 +315,36 @@ const startServer = async () => {
           console.error("Failed to seed visible_plans:", seedErr.message);
         }
 
+        // Auto-seed contact_tiktok if not exists
+        try {
+          const { Setting } = await import("./models/index.js");
+          const exists = await Setting.findOne({ where: { key: "contact_tiktok" } });
+          if (!exists) {
+            await Setting.create({
+              key: "contact_tiktok",
+              value: "https://tiktok.com/@juscore"
+            });
+            console.log("Database Seed: contact_tiktok default seeded.");
+          }
+        } catch (seedErr) {
+          console.error("Failed to seed contact_tiktok:", seedErr.message);
+        }
+
+        // Auto-seed contact_linkedin if not exists
+        try {
+          const { Setting } = await import("./models/index.js");
+          const exists = await Setting.findOne({ where: { key: "contact_linkedin" } });
+          if (!exists) {
+            await Setting.create({
+              key: "contact_linkedin",
+              value: "https://linkedin.com/company/juscore"
+            });
+            console.log("Database Seed: contact_linkedin default seeded.");
+          }
+        } catch (seedErr) {
+          console.error("Failed to seed contact_linkedin:", seedErr.message);
+        }
+
         connected = true;
       } catch (err) {
         console.error("Falha na conexao com MySQL:", err.message);

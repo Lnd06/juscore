@@ -15,7 +15,7 @@ router.post("/register", async (req, res) => {
   try {
     const { nome, email, senha, apelido, cargo, finalidade } = req.body;
 
-    if (!nome || !email || !senha || !apelido || !cargo || !finalidade) {
+    if (!nome || !email || !senha || !apelido || !cargo) {
       return res.status(400).json({
         error: "Todos os campos são obrigatórios.",
       });

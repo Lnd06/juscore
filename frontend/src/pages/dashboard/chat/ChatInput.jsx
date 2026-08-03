@@ -5,6 +5,7 @@ import {
   Camera, Image as ImageIcon, X, ChevronDown,
   RefreshCw, Zap, Brain, Sparkles, Lock, User
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ─── Model Tier Definitions ────────────────────────────────────────
 const MODEL_TIERS = [
@@ -99,7 +100,7 @@ const ChatInput = ({
   };
 
   return (
-    <div className="absolute bottom-0 left-0 w-full z-20 px-3 sm:px-4 pb-2 sm:pb-2.5 pt-0 flex justify-center pointer-events-none">
+    <div className="sticky bottom-0 left-0 w-full z-20 px-3 sm:px-4 pb-2 sm:pb-3 pt-1 flex justify-center bg-gradient-to-t from-juri-950 via-juri-950/95 to-transparent pointer-events-none">
       <div className="relative w-full max-w-6xl pointer-events-auto">
         
         {/* Selected Image Preview */}
@@ -146,64 +147,80 @@ const ChatInput = ({
                <Paperclip className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
              </button>
              
-             {isAttachMenuOpen && (
-               <div className="absolute bottom-full mb-2 left-0 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 z-50">
-                 {hasProcessAccess && (
-                   <button 
-                     onClick={() => {
-                       setIsClientSelectOpen(!isClientSelectOpen);
-                       setIsAttachMenuOpen(false);
-                     }}
-                     className="w-11 h-11 sm:w-12 sm:h-12 bg-gray-800/90 backdrop-blur rounded-full border border-gray-700 shadow-xl flex items-center justify-center text-accent hover:scale-110 transition-transform"
-                     title="Vincular Cliente"
-                   >
-                     <User className="w-5 h-5 sm:w-6 sm:h-6" />
-                   </button>
-                 )}
-                 <button 
-                   onClick={onLaunchCamera}
-                   className="w-11 h-11 sm:w-12 sm:h-12 bg-gray-800/90 backdrop-blur rounded-full border border-gray-700 shadow-xl flex items-center justify-center text-accent hover:scale-110 transition-transform"
-                   title="Câmera"
+             <AnimatePresence>
+               {isAttachMenuOpen && (
+                 <motion.div 
+                   initial={{ opacity: 0, scale: 0.9, y: 15 }}
+                   animate={{ opacity: 1, scale: 1, y: 0 }}
+                   exit={{ opacity: 0, scale: 0.9, y: 15 }}
+                   transition={{ duration: 0.2, type: "spring", stiffness: 220, damping: 20 }}
+                   className="absolute bottom-full mb-2 left-0 flex flex-col gap-2 z-50"
                  >
-                   <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
-                 </button>
-                 <button 
-                   onClick={onLaunchFile}
-                   className="w-11 h-11 sm:w-12 sm:h-12 bg-gray-800/90 backdrop-blur rounded-full border border-gray-700 shadow-xl flex items-center justify-center text-accent hover:scale-110 transition-transform"
-                   title="Galeria / PDF"
-                 >
-                   <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                 </button>
-               </div>
-             )}
-
-             {isClientSelectOpen && (
-               <div className="absolute bottom-full mb-2 left-0 w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/80 rounded-2xl shadow-2xl p-2.5 z-50 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                 <div className="text-[10px] font-black uppercase text-gray-400 dark:text-gray-600 tracking-widest px-1">
-                   Selecionar Cliente
-                 </div>
-                 <div className="max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800/50 pr-1">
-                   {clients.length === 0 ? (
-                     <div className="py-4 text-center text-xs text-gray-400 dark:text-gray-600 italic">
-                       Nenhum cliente cadastrado
-                     </div>
-                   ) : (
-                     clients.map(c => (
-                       <button
-                         key={c.id}
-                         onClick={() => {
-                           setSelectedClient(c.id);
-                           setIsClientSelectOpen(false);
-                         }}
-                         className="w-full text-left py-2 px-2.5 rounded-xl text-xs hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300 transition-all font-semibold"
-                       >
-                         {c.nome}
-                       </button>
-                     ))
+                   {hasProcessAccess && (
+                     <button 
+                       onClick={() => {
+                         setIsClientSelectOpen(!isClientSelectOpen);
+                         setIsAttachMenuOpen(false);
+                       }}
+                       className="w-11 h-11 sm:w-12 sm:h-12 bg-gray-800/90 backdrop-blur rounded-full border border-gray-700 shadow-xl flex items-center justify-center text-accent hover:scale-110 transition-transform"
+                       title="Vincular Cliente"
+                     >
+                       <User className="w-5 h-5 sm:w-6 sm:h-6" />
+                     </button>
                    )}
-                 </div>
-               </div>
-             )}
+                   <button 
+                     onClick={onLaunchCamera}
+                     className="w-11 h-11 sm:w-12 sm:h-12 bg-gray-800/90 backdrop-blur rounded-full border border-gray-700 shadow-xl flex items-center justify-center text-accent hover:scale-110 transition-transform"
+                     title="Câmera"
+                   >
+                     <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
+                   </button>
+                   <button 
+                     onClick={onLaunchFile}
+                     className="w-11 h-11 sm:w-12 sm:h-12 bg-gray-800/90 backdrop-blur rounded-full border border-gray-700 shadow-xl flex items-center justify-center text-accent hover:scale-110 transition-transform"
+                     title="Galeria / PDF"
+                   >
+                     <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                   </button>
+                 </motion.div>
+               )}
+             </AnimatePresence>
+
+             <AnimatePresence>
+               {isClientSelectOpen && (
+                 <motion.div 
+                   initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                   animate={{ opacity: 1, scale: 1, y: 0 }}
+                   exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                   transition={{ duration: 0.2 }}
+                   className="absolute bottom-full mb-2 left-0 w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/80 rounded-2xl shadow-2xl p-2.5 z-50 flex flex-col gap-2"
+                 >
+                   <div className="text-[10px] font-black uppercase text-gray-400 dark:text-gray-600 tracking-widest px-1">
+                     Selecionar Cliente
+                   </div>
+                   <div className="max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800/50 pr-1">
+                     {clients.length === 0 ? (
+                       <div className="py-4 text-center text-xs text-gray-400 dark:text-gray-600 italic">
+                         Nenhum cliente cadastrado
+                       </div>
+                     ) : (
+                       clients.map(c => (
+                         <button
+                           key={c.id}
+                           onClick={() => {
+                             setSelectedClient(c.id);
+                             setIsClientSelectOpen(false);
+                           }}
+                           className="w-full text-left py-2 px-2.5 rounded-xl text-xs hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300 transition-all font-semibold"
+                         >
+                           {c.nome}
+                         </button>
+                       ))
+                     )}
+                   </div>
+                 </motion.div>
+               )}
+             </AnimatePresence>
            </div>
 
            {/* Textarea */}
@@ -218,6 +235,7 @@ const ChatInput = ({
                }
              }}
              placeholder={getPlaceholder()}
+             maxLength={12000}
              className="flex-1 bg-transparent border-none py-2 sm:py-2.5 px-1 sm:px-2 text-sm sm:text-base text-gray-900 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:ring-0 outline-none resize-none max-h-[200px] min-w-0 [&::-webkit-scrollbar]:hidden"
              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
              rows={1}
@@ -245,50 +263,57 @@ const ChatInput = ({
                  <ChevronDown className={`w-3 h-3 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
                </button>
 
-               {/* Dropdown Menu */}
-               {isModelDropdownOpen && (
-                 <div className="absolute bottom-full mb-2 right-0 w-52 sm:w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-2xl dark:shadow-black/50 p-1 animate-in fade-in slide-in-from-bottom-2 duration-200 z-50">
-                   <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-600">
-                     Modelo
-                   </div>
-                   {MODEL_TIERS.map((model) => {
-                     const available = isModelAvailable(model);
-                     const isSelected = model.id === selectedModel;
-                     const ModelIcon = model.icon;
-                     
-                     return (
-                       <button
-                         key={model.id}
-                         onClick={() => available && handleSelectModel(model.id)}
-                         disabled={!available}
-                         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all ${
-                           isSelected 
-                             ? `${model.bgActive} border` 
-                             : available 
-                               ? 'hover:bg-gray-50 dark:hover:bg-gray-800/50 border border-transparent' 
-                               : 'opacity-40 cursor-not-allowed border border-transparent'
-                         }`}
-                       >
-                         <ModelIcon className={`w-4 h-4 flex-shrink-0 ${isSelected ? model.color : 'text-gray-400 dark:text-gray-500'}`} />
-                         <div className="flex-1 min-w-0">
-                           <div className={`text-xs font-semibold leading-tight ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
-                             {model.label}
+               <AnimatePresence>
+                 {isModelDropdownOpen && (
+                   <motion.div 
+                     initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                     animate={{ opacity: 1, scale: 1, y: 0 }}
+                     exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                     transition={{ duration: 0.2 }}
+                     className="absolute bottom-full mb-2 right-0 w-52 sm:w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-2xl dark:shadow-black/50 p-1 z-50"
+                   >
+                     <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-600">
+                       Modelo
+                     </div>
+                     {MODEL_TIERS.map((model) => {
+                       const available = isModelAvailable(model);
+                       const isSelected = model.id === selectedModel;
+                       const ModelIcon = model.icon;
+                       
+                       return (
+                         <button
+                           key={model.id}
+                           onClick={() => available && handleSelectModel(model.id)}
+                           disabled={!available}
+                           className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all ${
+                             isSelected 
+                               ? `${model.bgActive} border` 
+                               : available 
+                                 ? 'hover:bg-gray-50 dark:hover:bg-gray-800/50 border border-transparent' 
+                                 : 'opacity-40 cursor-not-allowed border border-transparent'
+                           }`}
+                         >
+                           <ModelIcon className={`w-4 h-4 flex-shrink-0 ${isSelected ? model.color : 'text-gray-400 dark:text-gray-500'}`} />
+                           <div className="flex-1 min-w-0">
+                             <div className={`text-xs font-semibold leading-tight ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                               {model.label}
+                             </div>
+                             <div className="text-[10px] text-gray-400 dark:text-gray-600 leading-tight">
+                               {model.desc}
+                             </div>
                            </div>
-                           <div className="text-[10px] text-gray-400 dark:text-gray-600 leading-tight">
-                             {model.desc}
-                           </div>
-                         </div>
-                         {!available && (
-                           <Lock className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                         )}
-                         {isSelected && (
-                           <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${model.dotColor}`} />
-                         )}
-                       </button>
-                     );
-                   })}
-                 </div>
-               )}
+                           {!available && (
+                             <Lock className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                           )}
+                           {isSelected && (
+                             <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${model.dotColor}`} />
+                           )}
+                         </button>
+                       );
+                     })}
+                   </motion.div>
+                 )}
+               </AnimatePresence>
              </div>
 
              {/* Send/Stop Button */}

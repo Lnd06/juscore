@@ -13,9 +13,14 @@
 backend/.env.vps
 
 # ============================================
-# DEPENDÊNCIAS
+# DEPENDÊNCIAS & VENV
 # ============================================
 node_modules/
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -61,6 +66,9 @@ temp_calc_backup.txt
 # ============================================
 # SCRIPTS TEMPORÁRIOS E TESTES
 # ============================================
+scratch/
+graphify-out/
+**/graphify-out/
 check.cjs
 check_mysql.js
 test_asaas.js

@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
         link.rel = 'icon';
         document.getElementsByTagName('head')[0].appendChild(link);
       }
-      link.href = user.organization.faviconUrl || '/icone.png';
+      link.href = user.organization.faviconUrl || '/juscore.svg';
 
       // Title
       document.title = user.organization.name || 'JusCore AI';
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
       document.documentElement.style.setProperty('--brand-border', '');
       
       let link = document.querySelector("link[rel~='icon']");
-      if (link) link.href = '/icone.png'; // Default favicon
+      if (link) link.href = '/juscore.svg'; // Default favicon
       
       document.title = 'JusCore AI';
     }

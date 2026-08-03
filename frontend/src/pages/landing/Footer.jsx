@@ -4,7 +4,11 @@ import { Link } from 'react-router-dom';
 import { ScrollReveal } from './Animations';
 import { Logo } from '../../components/ui/Logo';
 
-const Footer = ({ onCtaClick, onSupportClick }) => {
+const Footer = ({ onCtaClick, onSupportClick, links }) => {
+  const linkedin = links?.contact_linkedin || 'https://linkedin.com/company/juscore';
+  const instagram = links?.contact_instagram || 'https://instagram.com/juscore';
+  const whatsapp = links?.contact_whatsapp ? `https://wa.me/${links.contact_whatsapp.replace(/\D/g, '')}` : '#';
+
   return (
     <footer className="bg-gray-900 text-white pt-20 pb-10 px-6">
       <div className="max-w-7xl mx-auto">
@@ -16,23 +20,24 @@ const Footer = ({ onCtaClick, onSupportClick }) => {
               </div>
               <span className="text-2xl font-black tracking-tighter text-white">JusCore AI</span>
             </div>
-            <p className="text-gray-400 max-w-sm leading-relaxed mb-8">
+            <p className="text-gray-300 max-w-sm leading-relaxed mb-8">
               Transformando a advocacia e os estudos de Direito através da inteligência artificial de última geração. Produtividade, aprendizado e precisão jurídica.
             </p>
           </div>
           
           <div>
             <h4 className="font-bold mb-6 text-accent uppercase tracking-widest text-xs">Produto</h4>
-            <ul className="space-y-4 text-gray-400 font-medium">
-              <li><a href="#features" className="hover:text-white transition-colors">Funcionalidades</a></li>
-              <li><a href="#pricing" className="hover:text-white transition-colors">Preços</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Calculadoras</a></li>
+            <ul className="space-y-4 text-gray-300 font-medium">
+              <li><Link to="/funcionalidades" className="hover:text-white transition-colors">Funcionalidades</Link></li>
+              <li><Link to="/precos" className="hover:text-white transition-colors">Preços</Link></li>
+              <li><Link to="/calculadoras" className="hover:text-white transition-colors">Calculadoras</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold mb-6 text-accent uppercase tracking-widest text-xs">Empresa</h4>
-            <ul className="space-y-4 text-gray-400 font-medium">
+            <ul className="space-y-4 text-gray-300 font-medium">
+              <li><Link to="/sobre" className="hover:text-white transition-colors">Sobre Nós</Link></li>
               <li><Link to="/terms" className="hover:text-white transition-colors">Termos de Uso e Privacidade</Link></li>
               <li>
                 <button 
@@ -46,12 +51,12 @@ const Footer = ({ onCtaClick, onSupportClick }) => {
           </div>
         </div>
 
-        <div className="pt-10 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-gray-500 font-medium">
+        <div className="pt-10 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-gray-400 font-medium">
           <p>© 2026 JusCore AI. Todos os direitos reservados.</p>
           <div className="flex gap-8">
-             <a href="#" className="hover:text-white">LinkedIn</a>
-             <a href="#" className="hover:text-white">Instagram</a>
-             <a href="#" className="hover:text-white">WhatsApp</a>
+             {linkedin && <a href={linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn do JusCore AI" className="hover:text-white transition-colors">LinkedIn</a>}
+             {instagram && <a href={instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram do JusCore AI" className="hover:text-white transition-colors">Instagram</a>}
+             {whatsapp && whatsapp !== '#' && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp do JusCore AI" className="hover:text-white transition-colors">WhatsApp</a>}
           </div>
         </div>
       </div>

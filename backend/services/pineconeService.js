@@ -25,15 +25,34 @@ function getGenAI() {
   return _genAI;
 }
 
+// ============================================================
+// CACHE IN-MEMORY DE EMBEDDINGS (evita chamadas repetidas à API)
+// ============================================================
+const _embeddingCache = new Map();
+const MAX_EMBEDDING_CACHE = 200;
+
 /**
- * Gera o vetor de embedding de 768 dimensões para o texto usando o modelo text-embedding-004 do Gemini
+ * Gera o vetor de embedding de 3072 dimensões para o texto usando o modelo gemini-embedding-001 do Gemini.
+ * Inclui cache in-memory para evitar chamadas repetidas com textos similares.
  */
 export async function gerarEmbedding(texto) {
   try {
+    // Verificar cache de embeddings (normaliza para evitar duplicatas triviais)
+    const cacheKey = texto.substring(0, 200).toLowerCase().trim();
+    if (_embeddingCache.has(cacheKey)) {
+      console.log("⚡ [PINECONE] Embedding retornado do cache in-memory.");
+      return _embeddingCache.get(cacheKey);
+    }
+
     const ai = getGenAI();
     const model = ai.getGenerativeModel({ model: "gemini-embedding-001" });
     const result = await model.embedContent(texto);
     if (result && result.embedding && result.embedding.values) {
+      // Salvar no cache (FIFO eviction)
+      if (_embeddingCache.size >= MAX_EMBEDDING_CACHE) {
+        _embeddingCache.delete(_embeddingCache.keys().next().value);
+      }
+      _embeddingCache.set(cacheKey, result.embedding.values);
       return result.embedding.values;
     }
     throw new Error("Nenhum embedding retornado pela API");

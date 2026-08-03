@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JusCore AI - Social Manager Dashboard</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Premium Ambient Background Glows -->
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo-area">
+                <img src="/assets/juscore.svg" alt="JusCore AI Logo" class="brand-logo">
+                <div class="brand-text">
+                    <h1>JUSCORE <span>AI</span></h1>
+                    <p class="subtitle">Social Manager Autonomous Agent</p>
+                </div>
+            </div>
+            <div class="system-status">
+                <div class="status-indicator active">
+                    <span class="status-dot"></span>
+                    Agent operational
+                </div>
+                <div class="status-badge">
+                    <i class="fa-solid fa-server"></i> FastAPI: <span id="server-status">Online</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Panel: Creator & Control Panel -->
+            <section class="control-panel glass-card">
+                <div class="card-header">
+                    <i class="fa-solid fa-wand-magic-sparkles icon-gold"></i>
+                    <h2>Gerador de Postagens</h2>
+                </div>
+                <p class="section-desc">Instrua o Hermes Agent para idealizar e formatar uma nova publicação com IA.</p>
+                
+                <form id="generate-post-form">
+                    <div class="form-group">
+                        <label class="form-label">Selecione o Pilar de Conteúdo</label>
+                        <div class="pilar-selector">
+                            <label class="pilar-card" data-pilar="tcc">
+                                <input type="radio" name="pilar" value="tcc" checked>
+                                <span class="pilar-card-content">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                    <strong>TCC / ABNT</strong>
+                                </span>
+                            </label>
+                            <label class="pilar-card" data-pilar="oab">
+                                <input type="radio" name="pilar" value="oab">
+                                <span class="pilar-card-content">
+                                    <i class="fa-solid fa-scale-balanced"></i>
+                                    <strong>Prova da OAB</strong>
+                                </span>
+                            </label>
+                            <label class="pilar-card" data-pilar="produtividade">
+                                <input type="radio" name="pilar" value="produtividade">
+                                <span class="pilar-card-content">
+                                    <i class="fa-solid fa-bolt"></i>
+                                    <strong>Produtividade</strong>
+                                </span>
+                            </label>
+                            <label class="pilar-card" data-pilar="estagio">
+                                <input type="radio" name="pilar" value="estagio">
+                                <span class="pilar-card-content">
+                                    <i class="fa-solid fa-file-signature"></i>
+                                    <strong>Peças / Estágio</strong>
+                                </span>
+                            </label>
+                            <label class="pilar-card" data-pilar="chat">
+                                <input type="radio" name="pilar" value="chat">
+                                <span class="pilar-card-content">
+                                    <i class="fa-solid fa-robot"></i>
+                                    <strong>IA Didática</strong>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="user_input" class="form-label">Briefing / Direcionamento Especial (Opcional)</label>
+                        <textarea id="user_input" name="user_input" placeholder="Ex: Focar na dor do estudante que perde noites formatando referências ABNT na mão..." rows="4"></textarea>
+                    </div>
+
+                    <button type="submit" id="btn-generate" class="btn btn-gold">
+                        <span class="btn-text"><i class="fa-solid fa-gears"></i> Acionar Hermes Agent</span>
+                        <span class="btn-loader hidden"><i class="fa-solid fa-circle-notch fa-spin"></i> Gerando (2-3 min no OpenRouter)...</span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Right Panel: Fila de Moderação (Pending Posts) -->
+            <section class="moderation-panel glass-card">
+                <div class="card-header">
+                    <i class="fa-solid fa-hourglass-half icon-gold"></i>
+                    <h2>Fila de Posts Pendentes</h2>
+                    <span class="badge" id="pending-count">0</span>
+                </div>
+                <p class="section-desc">Revise as copies do Hermes Agent, escute a narração gerada por IA e aprove ou descarte.</p>
+                
+                <div id="pending-posts-container" class="posts-list">
+                    <!-- Dynamic content will be injected here -->
+                    <div class="empty-state">
+                        <i class="fa-solid fa-inbox"></i>
+                        <p>Nenhuma postagem aguardando moderação.</p>
+                        <p class="sub">Selecione um pilar e clique em "Acionar Hermes Agent" acima para gerar uma.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Gallery: Rendered Videos & History -->
+        <section class="gallery-section glass-card">
+            <div class="card-header">
+                <i class="fa-solid fa-clapperboard icon-gold"></i>
+                <h2>Galeria de Vídeos Renderizados & Histórico</h2>
+            </div>
+            <p class="section-desc">Monitore o progresso do Remotion Render e assista às produções audiovisuais prontas para as redes.</p>
+
+            <div id="history-container" class="history-grid">
+                <!-- Dynamic history content will be injected here -->
+                <div class="empty-state-horizontal">
+                    <i class="fa-solid fa-film"></i>
+                    <div>
+                        <p>Nenhum vídeo renderizado ou postagem aprovada no histórico.</p>
+                        <p class="sub">Quando você aprova um post pendente, ele inicia a renderização no Remotion em background.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Video Modal Viewer -->
+    <div id="video-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content glass-card">
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="modal-title">Reprodutor de Vídeo JusCore AI</h3>
+            <div class="video-container">
+                <video id="modal-video-player" controls>
+                    <source src="" type="video/mp4">
+                    Seu navegador não suporta a exibição de vídeos.
+                </video>
+            </div>
+            <div class="modal-meta">
+                <p class="modal-pilar">Pilar: <span id="modal-pilar-text">-</span></p>
+                <div class="modal-caption-container">
+                    <strong>Copy Final:</strong>
+                    <div id="modal-caption-text"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

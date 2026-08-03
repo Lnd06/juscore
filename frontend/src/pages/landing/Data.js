@@ -28,7 +28,7 @@ export const plans = [
       "6 mensagens",
       "2 petições com marca d'água",
     ],
-    notIncluded: ["Gestão de Múltiplos Usuários"],
+    notIncluded: [],
     cta: "Assinar Agora",
     popular: false,
   },
@@ -49,7 +49,6 @@ export const plans = [
     notIncluded: [
       "Simulador OAB / TCC",
       "IA com Visão (Ler Documentos)",
-      "Gestão de Clientes",
     ],
     cta: "Assine Agora",
     popular: false,
@@ -70,10 +69,7 @@ export const plans = [
       "8 documentos por dia",
       "Deep Research (1/dia)",
     ],
-    notIncluded: [
-      "Gestão de Clientes e Processos",
-      "Gerador Judicial Automatizado",
-    ],
+    notIncluded: [],
     cta: "Assine Agora",
     popular: true,
   },

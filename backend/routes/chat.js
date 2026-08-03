@@ -159,23 +159,40 @@ router.post("/", auth, usageLimiter("conversations"), async (req, res) => {
     const isVisionContext = msgs.some((m) => Array.isArray(m.content));
     const isDeepResearchModel = (req.body.model === "deep-research") || (resolvedModel && resolvedModel.includes("deep-research"));
 
-    // 3. --- AGREGAR CONTEXTO EXTERNO EM TEMPO REAL ---
-    const {
-      contextoPlanalto,
-      atosDOU,
-      contextoDOU,
-      contextoBiblioteca,
-      aborted
-    } = await obterContextoExterno({
-      mensagem,
-      analise,
-      model: resolvedModel,
-      isVisionContext,
-      isDeepResearchModel,
-      cancelledCheck: () => cancelled
-    });
+    // 3. --- OTIMIZAÇÃO: PULAR BUSCAS EXTERNAS EM MENSAGENS TRIVIAIS ---
+    const TRIVIAL_PATTERNS = /^(oi|ol[áa]|bom dia|boa tarde|boa noite|obrigad[oa]|valeu|tchau|at[ée]|ok|tudo bem|blz|beleza|s[ií]m|n[ãa]o|entendi|show|perfeito|pode ser|claro|certo|uhum|hm+|ah+|legal|top|massa|nice)[\s!?.]*$/i;
+    const isTrivialMessage = TRIVIAL_PATTERNS.test(mensagem.trim());
 
-    if (aborted || cancelled) {
+    let contextoPlanalto = "";
+    let atosDOU = [];
+    let contextoDOU = "";
+    let contextoBiblioteca = "";
+
+    if (isTrivialMessage) {
+      console.log("⚡ [OTIMIZAÇÃO] Mensagem trivial detectada — pulando buscas externas (RAG/DOU/Planalto).");
+    } else {
+      // 3.5 --- AGREGAR CONTEXTO EXTERNO EM TEMPO REAL ---
+      const externalCtx = await obterContextoExterno({
+        mensagem,
+        analise,
+        model: resolvedModel,
+        isVisionContext,
+        isDeepResearchModel,
+        cancelledCheck: () => cancelled
+      });
+
+      contextoPlanalto = externalCtx.contextoPlanalto;
+      atosDOU = externalCtx.atosDOU;
+      contextoDOU = externalCtx.contextoDOU;
+      contextoBiblioteca = externalCtx.contextoBiblioteca;
+
+      if (externalCtx.aborted || cancelled) {
+        console.log("⛔ CANCELADO - Abortando processamento por desconexão do cliente.");
+        return;
+      }
+    }
+
+    if (cancelled) {
       console.log("⛔ CANCELADO - Abortando processamento por desconexão do cliente.");
       return;
     }
@@ -329,6 +346,10 @@ router.post("/", auth, usageLimiter("conversations"), async (req, res) => {
 
 
 
+    // 📊 Log de estimativa de tokens para monitoramento de custos
+    const inputTokenEstimate = Math.round(JSON.stringify(anonymizedMessages).length / 4);
+    console.log(`📊 [CUSTO] ~${inputTokenEstimate} tokens input | Modelo: ${resolvedModel} | Trivial: ${isTrivialMessage} | RAG: ${!!contextoBiblioteca} | Usuário: ${userId}`);
+
     const shouldStream = req.body.stream === true;
     let rawResposta = "";
 
@@ -409,10 +430,14 @@ router.post("/", auth, usageLimiter("conversations"), async (req, res) => {
   } catch (error) {
     console.error("❌ ERRO NO CHAT:", error);
     console.error(error.stack);
-    res.status(500).json({
-      error: "Erro ao processar mensagem",
-      resposta: "⚠️ Serviço temporariamente indisponível. Tente novamente.",
-    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: "Erro ao processar mensagem",
+        resposta: "⚠️ Serviço temporariamente indisponível. Tente novamente.",
+      });
+    } else {
+      res.end();
+    }
   }
 });
 

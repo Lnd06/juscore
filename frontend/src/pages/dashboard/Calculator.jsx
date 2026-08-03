@@ -23,11 +23,17 @@ import CorrectionCalculator from './calculator/CorrectionCalculator';
 import SimpleCalculator from './calculator/SimpleCalculator';
 import AlimonyCalculator from './calculator/AlimonyCalculator';
 
-const Calculator = ({ mode = 'private' }) => {
-  const [activeTab, setActiveTab] = useState('interest');
+const Calculator = ({ mode = 'private', defaultTab = 'interest' }) => {
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [usageCount, setUsageCount] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [defaultTab]);
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];

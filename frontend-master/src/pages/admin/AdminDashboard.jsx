@@ -156,7 +156,8 @@ const AdminDashboard = () => {
     contact_email: '',
     contact_whatsapp: '',
     contact_instagram: '',
-    contact_github: ''
+    contact_tiktok: '',
+    contact_linkedin: ''
   });
   const [libraryEnabled, setLibraryEnabled] = useState(false);
   const [loadingLibrary, setLoadingLibrary] = useState(false);
@@ -822,10 +823,16 @@ const AdminDashboard = () => {
                 placeholder="https://instagram.com/..."
               />
               <Input 
-                label="Link do GitHub" 
-                value={contactSettings.contact_github} 
-                onChange={(e) => setContactSettings({...contactSettings, contact_github: e.target.value})}
-                placeholder="https://github.com/..."
+                label="Link do TikTok" 
+                value={contactSettings.contact_tiktok} 
+                onChange={(e) => setContactSettings({...contactSettings, contact_tiktok: e.target.value})}
+                placeholder="https://tiktok.com/@..."
+              />
+              <Input 
+                label="Link do LinkedIn" 
+                value={contactSettings.contact_linkedin} 
+                onChange={(e) => setContactSettings({...contactSettings, contact_linkedin: e.target.value})}
+                placeholder="https://linkedin.com/company/..."
               />
               <div className="flex justify-end pt-4 border-t border-brand-border dark:border-brand-border/50">
                  <Button type="submit">Salvar Configurações</Button>

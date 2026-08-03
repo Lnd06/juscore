@@ -4,3 +4,5 @@ export * from "./Card";
 export * from "./Modal";
 export * from "./Loader";
 export * from "./Logo";
+export * from "./SearchableDropdown";
+

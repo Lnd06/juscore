@@ -48,7 +48,8 @@ export function formatarProcessoVinculado(procData) {
  * @returns {Array} - Histórico truncado seguro.
  */
 export function recortarHistoricoSeguro(msgs) {
-  const history = msgs.slice(-20);
+  // Mantém os últimos 2 turnos (4 mensagens) para economizar tokens
+  const history = msgs.slice(-4);
   let charCount = 0;
   const safeHistory = [];
 
@@ -58,11 +59,21 @@ export function recortarHistoricoSeguro(msgs) {
       ? JSON.stringify(msg.content)
       : String(msg.content);
 
-    if (safeHistory.length > 0 && charCount + contentStr.length > 1000000)
+    // Limite otimizado de caracteres do histórico para economizar tokens (~2k tokens)
+    if (safeHistory.length > 0 && charCount + contentStr.length > 8000)
       break;
 
     charCount += contentStr.length;
-    safeHistory.unshift(msg);
+
+    // Truncar respostas longas do assistente no histórico para economizar contexto
+    if (msg.role === "assistant" && contentStr.length > 2000) {
+      safeHistory.unshift({
+        ...msg,
+        content: contentStr.substring(0, 2000) + "\n[...resposta anterior truncada]",
+      });
+    } else {
+      safeHistory.unshift(msg);
+    }
   }
 
   return safeHistory;

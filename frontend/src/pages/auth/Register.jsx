@@ -97,6 +97,7 @@ const Register = () => {
               value={formData.nome}
               onChange={handleChange}
               placeholder="João Silva"
+              maxLength={100}
               required
             />
           </div>
@@ -111,6 +112,7 @@ const Register = () => {
               value={formData.apelido}
               onChange={handleChange}
               placeholder="João"
+              maxLength={50}
               required
             />
           </div>
@@ -125,6 +127,7 @@ const Register = () => {
               value={formData.email}
               onChange={handleChange}
               placeholder="seuemail@exemplo.com"
+              maxLength={255}
               required
             />
           </div>
@@ -137,6 +140,7 @@ const Register = () => {
               icon={Lock}
               value={formData.senha}
               onChange={handleChange}
+              maxLength={100}
               required
             />
             <Input
@@ -147,6 +151,7 @@ const Register = () => {
               icon={Lock}
               value={formData.confirmSenha}
               onChange={handleChange}
+              maxLength={100}
               required
             />
           </div>
@@ -179,6 +184,7 @@ const Register = () => {
             placeholder="Ex: Pesquisa para TCC, análise de contratos..."
             value={formData.finalidade}
             onChange={handleChange}
+            maxLength={255}
           />
           
           <div className="flex flex-col gap-3">

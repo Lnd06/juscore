@@ -3,15 +3,16 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
-import { Button, Input, Card, Logo } from '../../components/ui';
+import { Button, Input } from '../../components/ui';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, loginWithToken } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -42,6 +43,7 @@ const Login = () => {
             placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            maxLength={255}
             required
             autoComplete="email"
           />
@@ -52,13 +54,14 @@ const Login = () => {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              maxLength={100}
               required
               autoComplete="current-password"
             />
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-1">
               <Link 
                 to="/forgot-password" 
-                className="text-sm font-medium text-primary-600 hover:text-accent-dark dark:text-primary-400"
+                className="text-xs font-semibold text-accent hover:text-[#CAA453] transition-colors"
               >
                 Esqueceu a senha?
               </Link>
@@ -67,14 +70,19 @@ const Login = () => {
         </div>
 
         {error && (
-          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm border border-red-200 dark:border-red-800 animate-pulse">
+          <motion.div 
+            initial={{ x: -10, opacity: 0 }}
+            animate={{ x: [0, -8, 8, -6, 6, -4, 4, 0], opacity: 1 }}
+            transition={{ duration: 0.45 }}
+            className="p-3 rounded-lg bg-red-900/10 text-red-400 text-xs border border-red-950/40"
+          >
             {error}
-          </div>
+          </motion.div>
         )}
 
         <Button 
           type="submit" 
-          className="w-full" 
+          className="w-full text-sm font-bold bg-accent hover:bg-accent-dark text-slate-950 rounded-xl h-12" 
           size="lg" 
           isLoading={loading}
         >
@@ -83,10 +91,10 @@ const Login = () => {
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
+            <div className="w-full border-t border-white/5"></div>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-[#0f172a] text-gray-500">
+          <div className="relative flex justify-center text-xs">
+            <span className="px-2.5 bg-[#0B0F19] text-gray-500 font-medium">
               Ou continue com
             </span>
           </div>
@@ -96,11 +104,9 @@ const Login = () => {
           type="button"
           onClick={async () => {
             try {
-              // 1. Traz a URL do backend
               const res = await axios.get(`/api/auth/google/url?t=${Date.now()}`);
               const { url } = res.data;
 
-              // 2. Redireciona a janela atual (sem popup, mais seguro)
               if (url && typeof url === 'string' && url.startsWith('https://')) {
                 window.location.href = url;
               } else {
@@ -110,7 +116,7 @@ const Login = () => {
               setError('Erro ao iniciar login com Google');
             }
           }}
-          className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 dark:border-white/5 bg-white dark:bg-[#131B2E] text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors font-semibold text-sm"
+          className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-white/5 bg-[#131B2E] text-gray-200 rounded-xl hover:bg-white/5 transition-colors font-semibold text-sm h-12"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -133,9 +139,9 @@ const Login = () => {
           Google
         </button>
 
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-center text-xs text-gray-400">
           Não tem uma conta?{' '}
-          <Link to="/register" className="font-bold text-primary-600 hover:text-accent-dark dark:text-primary-400 transition-colors">
+          <Link to="/register" className="font-bold text-accent hover:text-[#CAA453] transition-colors">
             Criar conta gratuita
           </Link>
         </p>

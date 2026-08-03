@@ -28,8 +28,8 @@ export async function buscarNaBiblioteca(termoParaBusca, mensagem, precisaBiblio
     try {
       console.log(`📚 [RAG] Iniciando Busca Semântica no Pinecone para: "${mensagem.substring(0, 50)}..."`);
       
-      // Tenta a busca vetorial semântica no Pinecone
-      const contextoSemantico = await buscarContextoSemantico(mensagem, activeIds, 3);
+      // Tenta a busca vetorial semântica no Pinecone (limite otimizado para 2 documentos)
+      const contextoSemantico = await buscarContextoSemantico(mensagem, activeIds, 2);
       if (contextoSemantico) {
         return contextoSemantico;
       }
@@ -67,7 +67,7 @@ export async function buscarNaBiblioteca(termoParaBusca, mensagem, precisaBiblio
           }
           return terms.length > 0 && matchCount >= Math.ceil(terms.length * 0.5);
         })
-        .slice(0, 3);
+        .slice(0, 2);
 
       const books = matchedMeta.map((meta) => ({
         title: meta.title,
@@ -94,8 +94,8 @@ export async function buscarNaBiblioteca(termoParaBusca, mensagem, precisaBiblio
 
           let snippet = "";
           if (bestIndex !== -1) {
-            const start = Math.max(0, bestIndex - 700);
-            const end = Math.min(book.content.length, bestIndex + 1500);
+            const start = Math.max(0, bestIndex - 100);
+            const end = Math.min(book.content.length, bestIndex + 500);
             snippet = book.content
               .substring(start, end)
               .replace(/\s+/g, " ");
@@ -103,7 +103,7 @@ export async function buscarNaBiblioteca(termoParaBusca, mensagem, precisaBiblio
             if (end < book.content.length) snippet = snippet + "...";
           } else {
             snippet =
-              book.content.substring(0, 1500).replace(/\s+/g, " ") + "...";
+              book.content.substring(0, 500).replace(/\s+/g, " ") + "...";
           }
 
           contextoBiblioteca += `\n[Fonte: "${book.title}"]\n"${snippet}"\n`;
@@ -134,7 +134,7 @@ export function buscarPorCategoria(categoria, limite = 3) {
 
     return matched.map((meta) => ({
       title: meta.title,
-      content: (getDocumentContent(meta.filename) || "").slice(0, 6000), // Larger slice for templates
+      content: (getDocumentContent(meta.filename) || "").slice(0, 3500), // Optimized slice for templates
     }));
   } catch (err) {
     console.warn(`Erro ao buscar contexto ${categoria}:`, err.message);
