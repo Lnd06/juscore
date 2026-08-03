@@ -1,193 +1,97 @@
-⚖️ Juri_AI v1.6.5
+# ⚖️ JusCore.net v1.6.5 (Legal-Tech SaaS)
 
-Assistente Jurídico Inteligente com MongoDB, autenticação, gestão de documentos e painel administrativo.
+Plataforma SaaS de Inteligência Artificial Jurídica de alta performance para advogados, estudantes de Direito e pesquisadores jurídicos no Brasil.
 
-## 🚀 Funcionalidades
+---
 
-- **🤖 Chat Inteligente**: Integração com Groq (Llama 3.1) para respostas jurídicas precisas
-- **📚 Biblioteca de Documentos**: Upload de PDFs como modelos para geração de documentos
-- **👤 Sistema de Usuários**: 
-  - Login/Registro com JWT
-  - Perfis: Comum, Especial e Admin
-  - Apelido personalizado para a IA usar
-  - Histórico das últimas 10 conversas
-- **📊 Painel Administrativo** (usuários especiais):
-  - Estatísticas de uso em tempo real
-  - Upload de modelos de documentos
-  - Cadastro de novos usuários especiais
-  - Gráficos de atividade
-- **🎨 Interface Moderna**:
-  - Offcanvas lateral com histórico
-  - Tema claro/escuro
-  - Design responsivo com Tailwind CSS
-  - Animações suaves
+## 🌟 Visão Geral & Arquitetura
 
-## 📁 Estrutura do Projeto
+O **JusCore.net** combina uma interface **Editorial Escura (Dark Mode)** minimalista e responsiva com um ecossistema RAG (Retrieval-Augmented Generation) de alto desempenho integrado ao **Pinecone Serverless** e **Google Gemini**.
+
+### 🛠️ Stack Tecnológica
+
+- **Frontend**: React, React Router (`App.jsx`), Tailwind CSS, Lucide Icons & Ativos Institucionais SVG.
+- **Editor Físico A4**: Interface split-screen 50/50 no desktop com editor A4 integrado para formatação ABNT em tempo real.
+- **Backend**: Node.js, Express, MySQL / Sequelize ORM, JWT Auth, Asaas Payment Gateway Integration.
+- **Engine RAG & Vetorial**: Pinecone Serverless (AWS), embeddings via `gemini-embedding-001` (3072 dimensões).
+- **Vídeo Promocional & Marketing**: Remotion v4 (React 19 + TypeScript + Tailwind CSS v4) com suporte a narrações e síntese de áudio.
+- **Exportação & Documentos**: Suporte a exportação PDF ABNT com `html2pdf.js`.
+
+---
+
+## 🚀 Funcionalidades Principais (v1.6.5)
+
+### 1. 💬 Workspace Bilateral Split-Screen (Chat + Editor A4)
+- **Chat Jurídico Contextual**: Chat sem balões genéricos, alinhado à estética editorial jurídica.
+- **Editor A4 em Tempo Real**: Folha física A4 com margens ABNT (3cm sup/esq, 2cm inf/dir) e fonte Times New Roman.
+- **Integração Direta**: Botão "Editar no Documento A4" para transferir peças e pesquisas da IA diretamente ao editor.
+
+### 2. 🏛️ Simulador OAB (Segunda Fase)
+- Avaliação automatizada de peças práticas e questões discursivas baseadas no gabarito oficial da FGV.
+- Transição interativa com notas progressivas, gráfico de desempenho e feedback detalhado por critérios.
+
+### 3. 🎓 Assistente de TCC & Pesquisa Científica
+- Estruturação de capítulos, citações NBR 10520 e bibliografia NBR 6023.
+- Busca jurisprudencial e doutrinária integrada para teses de graduação e pós-graduação.
+
+### 4. 🧮 Calculadoras Jurídicas & Ferramentas Públicas
+- Cálculo de prazos processuais (CPC/CPP/CLT), honorários advocatícios e atualização monetária.
+- Rotas públicas demonstrativas para captura de leads e testes interativos.
+
+### 5. 🎬 Módulo Remotion & Automação de Marketing
+- Projetos em `remotion/` para renderização de vídeos institucionais, reels para redes sociais e apresentações do produto.
+
+---
+
+## 📁 Estrutura do Repositório
 
 ```
-JURI_AI_v1.6.5/
-├── backend/
-│   ├── server.js              # Servidor Express principal
-│   ├── package.json           # Dependências Node.js
-│   ├── .env                   # Variáveis de ambiente
-│   ├── models/                # Schemas MongoDB
-│   │   ├── User.js           # Usuários (nome, email, senha, apelido, tipo)
-│   │   ├── Conversation.js   # Histórico de conversas
-│   │   ├── Document.js       # Modelos de documentos PDF
-│   │   └── Stats.js          # Estatísticas de uso
-│   ├── routes/               # Rotas da API
-│   │   ├── auth.js          # Autenticação (login/registro)
-│   │   ├── chat.js          # Chat com IA
-│   │   ├── documents.js     # Gestão de documentos
-│   │   ├── admin.js         # Painel administrativo
-│   │   └── user.js          # Perfil e histórico
-│   ├── middleware/
-│   │   └── auth.js          # Verificação JWT
-│   ├── services/
-│   │   ├── dou.js           # Busca no Diário Oficial
-│   │   └── planalto.js      # Scraping do Planalto
-│   └── uploads/documents/   # PDFs armazenados
-│
-└── frontend/
-    ├── index.html            # Chat principal (com offcanvas)
-    ├── login.html            # Tela de login
-    ├── register.html         # Criar conta
-    ├── admin.html            # Painel especial/admin
-    └── app.js                # JavaScript principal
+v1.6.5_anty/
+├── backend/                  # Servidor Express, Rotas API, Services & RAG
+│   ├── prompts/              # System Prompts & Regras de Personas
+│   ├── routes/               # Endpoints REST (auth, chat, admin, public, etc.)
+│   ├── services/             # Gemini AI, Pinecone Vector DB, RAG Engine
+│   └── scripts/              # Migrações e indexação de acervo jurídico
+├── frontend/                 # Aplicação React SPA Principal
+│   ├── src/
+│   │   ├── components/       # Layout (Header, Sidebar, CustomDocEditor) & UI
+│   │   ├── pages/            # Landing, Chat, OAB Simulator, TCC, Calculadoras
+│   │   ├── context/          # AuthContext, ThemeContext (Fixed Dark Mode)
+│   │   └── hooks/            # Hooks customizados (useChat, etc.)
+│   └── public/               # Ativos institucionais e favicons
+├── remotion/                 # Módulo de Vídeo e Animações Remotion v4
+│   ├── src/                  # Composições de vídeo (JuscoreIntro, OabPovReels, etc.)
+│   └── marketing/            # Scripts de automação de marketing e narração
+├── documentation/            # Especificações de funcionalidades, planos e arquitetura
+└── .agents/                  # Memória técnica e skills personalizadas do agente
 ```
 
-## 🛠️ Instalação
+---
 
-### 1. Requisitos
-- Node.js 18+
-- MongoDB (local ou Atlas)
-- Chave de API do Groq
+## 🔒 Segurança & Privacidade
 
-### 2. Configurar Backend
+- **Variáveis de Ambiente**: Arquivos `.env`, credenciais VPS e chaves privadas estão strictamente excluídos pelo `.gitignore`.
+- **Sanitização de Código**: Scripts temporários de manutenção (`scratch/`), arquivos de análise (`graphify-out/`), ambientes virtuais (`.venv/`) e caches (`__pycache__/`) não são rastreados.
+- **Autenticação**: Hash de senha via `bcrypt` e tokens `JWT` para controle de sessão.
 
+---
+
+## ⚡ Guia Rápido de Execução
+
+### Backend
 ```bash
 cd backend
 npm install
-```
-
-Crie o arquivo `.env`:
-```env
-PORT=3000
-MONGODB_URI=mongodb://127.0.0.1:27017/juri_ai
-JWT_SECRET=sua_chave_secreta_aqui_muito_segura_2024
-GROQ_API_KEY=gsk_sua_chave_groq_aqui
-MAX_TEXTO_PLANALTO=8000
-```
-
-### 3. Iniciar MongoDB
-
-**Local:**
-```bash
-mongod --dbpath /caminho/para/dados
-```
-
-**Ou use MongoDB Atlas:**
-- Crie cluster gratuito em mongodb.com
-- Substitua `MONGODB_URI` pela string de conexão
-
-### 4. Iniciar Servidor
-
-```bash
 npm start
-# ou para desenvolvimento:
+```
+
+### Frontend
+```bash
+cd frontend
+npm install
 npm run dev
 ```
 
-Servidor estará rodando em `http://localhost:3000`
-
-### 5. Acessar Aplicação
-
-Abra no navegador: `http://localhost:3000`
-
-## 👥 Fluxo de Uso
-
-### Usuário Comum
-1. Acesse `/register` para criar conta (nome, email, senha, apelido)
-2. Faça login em `/login`
-3. Use o chat com o Juri_AI
-4. Veja histórico no offcanvas lateral
-5. Acesse modelos de documentos
-
-### Usuário Especial/Admin
-1. Faça login com conta especial
-2. Acesse `/admin` para:
-   - Ver estatísticas de uso
-   - Upload de PDFs para biblioteca
-   - Criar novos usuários especiais
-   - Visualizar todos os usuários
-
-## 📚 Sistema de Documentos
-
-### Upload de Modelos (apenas especial)
-1. Vá em `/admin`
-2. Preencha título e categoria
-3. Selecione PDF com variáveis no formato `{{nome_variavel}}`
-4. O sistema detecta automaticamente as variáveis
-
-### Uso no Chat
-- Usuários podem solicitar: *"Quero usar o modelo de petição inicial"*
-- A IA ajuda a preencher as variáveis
-- Gera documento personalizado
-
-## 🔒 Segurança
-
-- Senhas hasheadas com bcrypt
-- JWT para autenticação
-- Middleware de proteção por nível de acesso
-- Rate limiting implícito
-
-## 🎨 Personalização
-
-### Cores
-Editar em `frontend/index.html`:
-```javascript
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        primary: { 600: '#2563eb' },
-        juri: { 600: '#0284c7' }
-      }
-    }
-  }
-}
-```
-
-## 🐛 Troubleshooting
-
-**Erro de conexão MongoDB:**
-```bash
-# Verifique se o MongoDB está rodando
-sudo systemctl status mongod
-# ou
-mongosh --eval "db.adminCommand('ping')"
-```
-
-**Erro Groq API:**
-- Verifique sua chave em `https://console.groq.com`
-- Verifique limites de rate
-
-**PDF não processa:**
-- Verifique se é PDF válido
-- Tamanho máximo: 10MB
-- Deve conter texto (não imagem escaneada)
-
-## 📈 Próximas Versões
-
-- [ ] Exportar conversas em PDF
-- [ ] Busca vetorial nos documentos
-- [ ] Integração com mais APIs jurídicas
-- [ ] Notificações de atualizações DOU
-- [ ] App mobile
-
-## 📄 Licença
-
-MIT - Sistema desenvolvido para facilitar o acesso ao Direito Brasileiro.
-
 ---
-**Versão 1.6.5** | ⚖️ Juri_AI - Justiça Inteligente
+
+**JusCore.net v1.6.5** | *Tecnologia e Inteligência Artificial para o Direito Brasileiro*
