@@ -1,14 +1,14 @@
-# ⚖️ JusCore.net v1.6.5 (Legal-Tech SaaS)
+# JusCore.net v1.6.5 (Legal-Tech SaaS)
 
 Plataforma SaaS de Inteligência Artificial Jurídica de alta performance para advogados, estudantes de Direito e pesquisadores jurídicos no Brasil.
 
 ---
 
-## 🌟 Visão Geral & Arquitetura
+## Visão Geral & Arquitetura
 
 O **JusCore.net** combina uma interface **Editorial Escura (Dark Mode)** minimalista e responsiva com um ecossistema RAG (Retrieval-Augmented Generation) de alto desempenho integrado ao **Pinecone Serverless** e **Google Gemini**.
 
-### 🛠️ Stack Tecnológica
+### Stack Tecnológica
 
 - **Frontend**: React, React Router (`App.jsx`), Tailwind CSS, Lucide Icons & Ativos Institucionais SVG.
 - **Editor Físico A4**: Interface split-screen 50/50 no desktop com editor A4 integrado para formatação ABNT em tempo real.
@@ -17,7 +17,7 @@ O **JusCore.net** combina uma interface **Editorial Escura (Dark Mode)** minimal
 - **Vídeo Promocional & Marketing**: Remotion v4 (React 19 + TypeScript + Tailwind CSS v4) com suporte a narrações e síntese de áudio.
 - **Exportação & Documentos**: Suporte a exportação PDF ABNT com `html2pdf.js`.
 
-### 📐 Fluxo de Arquitetura & Execução (Pipeline RAG)
+### Fluxo de Arquitetura & Execução (Pipeline RAG)
 
 ```mermaid
 graph TD
@@ -56,40 +56,40 @@ graph TD
     I -->|Exportação ABNT| J[Exportador PDF - html2pdf.js]
 ```
 
-### 🕸️ Grafo de Conhecimento da Arquitetura (Graphify)
+### Grafo de Conhecimento da Arquitetura (Graphify)
 
 <p align="center">
   <img src="./docs/assets/graphify-1.png" alt="Mapeamento Graphify 1" width="49%" align="top" style="max-width: 600px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" />
-  <img src="./docs/assets/graphify-2.png" alt="Mapeamento Graphify 2" width="49%" align="top" style="max-width: 600px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" />
+  <img src="./docs/assets/graphify-2.jpg" alt="Mapeamento Graphify 2" width="49%" align="top" style="max-width: 600px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" />
 </p>
 
 ---
 
-## 🚀 Funcionalidades Principais (v1.6.5)
+## Funcionalidades Principais (v1.6.5)
 
-### 1. 💬 Workspace Bilateral Split-Screen (Chat + Editor A4)
+### 1. Workspace Bilateral Split-Screen (Chat + Editor A4)
 - **Chat Jurídico Contextual**: Chat sem balões genéricos, alinhado à estética editorial jurídica.
 - **Editor A4 em Tempo Real**: Folha física A4 com margens ABNT (3cm sup/esq, 2cm inf/dir) e fonte Times New Roman.
 - **Integração Direta**: Botão "Editar no Documento A4" para transferir peças e pesquisas da IA diretamente ao editor.
 
-### 2. 🏛️ Simulador OAB (Segunda Fase)
+### 2. Simulador OAB (Segunda Fase)
 - Avaliação automatizada de peças práticas e questões discursivas baseadas no gabarito oficial da FGV.
 - Transição interativa com notas progressivas, gráfico de desempenho e feedback detalhado por critérios.
 
-### 3. 🎓 Assistente de TCC & Pesquisa Científica
+### 3. Assistente de TCC & Pesquisa Científica
 - Estruturação de capítulos, citações NBR 10520 e bibliografia NBR 6023.
 - Busca jurisprudencial e doutrinária integrada para teses de graduação e pós-graduação.
 
-### 4. 🧮 Calculadoras Jurídicas & Ferramentas Públicas
+### 4. Calculadoras Jurídicas & Ferramentas Públicas
 - Cálculo de prazos processuais (CPC/CPP/CLT), honorários advocatícios e atualização monetária.
 - Rotas públicas demonstrativas para captura de leads e testes interativos.
 
-### 5. 🎬 Módulo Remotion & Automação de Marketing
+### 5. Módulo Remotion & Automação de Marketing
 - Projetos em `remotion/` para renderização de vídeos institucionais, reels para redes sociais e apresentações do produto.
 
 ---
 
-## 📁 Estrutura do Repositório
+## Estrutura do Repositório
 
 ```
 v1.6.5_anty/
@@ -114,7 +114,7 @@ v1.6.5_anty/
 
 ---
 
-## 🔒 Segurança & Privacidade
+## Segurança & Privacidade
 
 - **Variáveis de Ambiente**: Arquivos `.env`, credenciais VPS e chaves privadas estão estritamente excluídos pelo `.gitignore`.
 - **Sanitização de Código**: Scripts temporários de manutenção (`scratch/`), arquivos de análise (`graphify-out/`), ambientes virtuais (`.venv/`) e caches (`__pycache__/`) não são rastreados.
@@ -122,7 +122,7 @@ v1.6.5_anty/
 
 ---
 
-## ⚡ Guia Rápido de Execução
+## Guia Rápido de Execução
 
 ### Backend
 ```bash
