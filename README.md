@@ -14,7 +14,6 @@ O **JusCore.net** combina uma interface **Editorial Escura (Dark Mode)** minimal
 - **Editor Físico A4**: Interface split-screen 50/50 no desktop com editor A4 integrado para formatação ABNT em tempo real.
 - **Backend**: Node.js, Express, MySQL / Sequelize ORM, JWT Auth, Asaas Payment Gateway Integration.
 - **Engine RAG & Vetorial**: Pinecone Serverless (AWS), embeddings via `gemini-embedding-001` (3072 dimensões).
-- **Vídeo Promocional & Marketing**: Remotion v4 (React 19 + TypeScript + Tailwind CSS v4) com suporte a narrações e síntese de áudio.
 - **Exportação & Documentos**: Suporte a exportação PDF ABNT com `html2pdf.js`.
 
 ### Fluxo de Arquitetura & Execução (Pipeline RAG)
@@ -84,9 +83,6 @@ graph TD
 - Cálculo de prazos processuais (CPC/CPP/CLT), honorários advocatícios e atualização monetária.
 - Rotas públicas demonstrativas para captura de leads e testes interativos.
 
-### 5. Módulo Remotion & Automação de Marketing
-- Projetos em `remotion/` para renderização de vídeos institucionais, reels para redes sociais e apresentações do produto.
-
 ---
 
 ## Estrutura do Repositório
@@ -105,9 +101,6 @@ v1.6.5_anty/
 │   │   ├── context/          # AuthContext, ThemeContext (Fixed Dark Mode)
 │   │   └── hooks/            # Hooks customizados (useChat, etc.)
 │   └── public/               # Ativos institucionais e favicons
-├── remotion/                 # Módulo de Vídeo e Animações Remotion v4
-│   ├── src/                  # Composições de vídeo (JuscoreIntro, OabPovReels, etc.)
-│   └── marketing/            # Scripts de automação de marketing e narração
 ├── documentation/            # Especificações de funcionalidades, planos e arquitetura
 └── .agents/                  # Memória técnica e skills personalizadas do agente
 ```

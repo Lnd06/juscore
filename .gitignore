@@ -67,6 +67,7 @@ temp_calc_backup.txt
 # SCRIPTS TEMPORÁRIOS E TESTES
 # ============================================
 scratch/
+remotion/
 graphify-out/
 **/graphify-out/
 check.cjs
