@@ -27,7 +27,7 @@ graph TD
     C -->|Não Autorizado| D[Erro HTTP 401 / 403 / 429]
     C -->|Autorizado| E[Chat & RAG Controller]
     
-    subgraph RAG_Engine ["🔍 Camada RAG & Contexto"]
+    subgraph RAG_Engine ["Camada RAG & Contexto"]
         F[(Banco MySQL - Histórico & Perfil)]
         G[(Pinecone DB - Doutrina & Vetores)]
         K[APIs Planalto & DOU - Leis em Tempo Real]
@@ -37,7 +37,7 @@ graph TD
     E -->|Busca Vetores 3072d| G
     E -->|Busca Legislação Atualizada| K
 
-    subgraph Security_AI ["🛡️ Segurança LGPD & Processamento IA"]
+    subgraph Security_AI ["Segurança LGPD & Processamento IA"]
         L[Anonymizer Service - Proteção LGPD]
         H[LLM Engine - Gemini 2.0 Flash / Deep Research]
         M[Desanonimizador & Formatador]
