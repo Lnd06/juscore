@@ -21,30 +21,39 @@ O **JusCore.net** combina uma interface **Editorial Escura (Dark Mode)** minimal
 
 ```mermaid
 graph TD
-    A[Frontend React - JusCore.net] -->|1. Envia mensagem + Token JWT| B(Backend Express API)
-    B -->|2. Auth JWT, Rate Limit & Controle de Planos| C{Middleware & Guardrails}
+    A[Frontend React - JusCore.net] -->|1. Requisição + Token JWT| B(Backend Express API)
+    B -->|2. Middleware Auth & Planos| C{Guardrails & Limites}
     
-    C -->|Não Autorizado / Limite Excedido| D[Retorna HTTP 401/403/429 - Modal Upgrade/Login]
-    C -->|Requisição Autorizada| E[Chat & RAG Controller]
+    C -->|Não Autorizado| D[Erro HTTP 401 / 403 / 429]
+    C -->|Autorizado| E[Chat & RAG Controller]
     
-    E -->|3. Busca Perfil, Histórico, Processos & Clientes| F[(Banco de Dados MySQL)]
-    E -->|4. RAG Vetorial - Embeddings 3072d| G[(Pinecone Vector Database)]
-    E -->|5. RAG em Tempo Real - Leis & Diário Oficial| K[API Planalto & DOU Services]
+    subgraph RAG_Engine ["🔍 Camada RAG & Contexto"]
+        F[(Banco MySQL - Histórico & Perfil)]
+        G[(Pinecone DB - Doutrina & Vetores)]
+        K[APIs Planalto & DOU - Leis em Tempo Real]
+    end
+
+    E -->|Busca Dados| F
+    E -->|Busca Vetores 3072d| G
+    E -->|Busca Legislação Atualizada| K
+
+    subgraph Security_AI ["🛡️ Segurança LGPD & Processamento IA"]
+        L[Anonymizer Service - Proteção LGPD]
+        H[LLM Engine - Gemini 2.0 Flash / Deep Research]
+        M[Desanonimizador & Formatador]
+    end
+
+    F --> L
+    G --> L
+    K --> L
+    L -->|Prompt Sanitizado| H
+    H -->|Resposta IA| M
     
-    G -->|Doutrina, Livros & Súmulas| E
-    K -->|Legislação Atualizada & Atos DOU| E
+    M -->|Salva Resposta| N[(Persistência MySQL)]
+    N -->|Resposta Estruturada| A
     
-    E -->|6. Anonimização LGPD de Dados Sensíveis| L[Anonymizer Service]
-    L -->|7. Compila System Prompt + Contexto RAG| H[LLM Engine - Google Gemini 2.0 Flash / Deep Research]
-    
-    H -->|8. Resposta Gerada - Stream / Text| L
-    L -->|9. Desanonimização & Restauração dos Dados| E
-    
-    E -->|10. Registra Uso & Salva Conversa| F
-    E -->|11. Resposta Legal-Tech + Ações Rápidas| A
-    
-    A -->|12. Ação Editar no Documento A4| I[Editor Lateral A4 - CustomDocEditor]
-    I -->|13. Exportação com Margens ABNT| J[Exportador PDF - html2pdf.js]
+    A -->|Ação Editar no A4| I[Editor Lateral A4]
+    I -->|Exportação ABNT| J[Exportador PDF - html2pdf.js]
 ```
 
 ---
