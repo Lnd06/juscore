@@ -21,7 +21,7 @@ O **JusCore.net** combina uma interface **Editorial Escura (Dark Mode)** minimal
 
 ```mermaid
 graph TD
-    A[Frontend React - JusCore.net] -->|1. Requisição + Token JWT| B(Backend Express API)
+    A[Frontend React] -->|1. Requisição + Token JWT| B(Backend Express API)
     B -->|2. Middleware Auth & Planos| C{Guardrails & Limites}
     
     C -->|Não Autorizado| D[Erro HTTP 401 / 403 / 429]
