@@ -56,6 +56,13 @@ graph TD
     I -->|Exportação ABNT| J[Exportador PDF - html2pdf.js]
 ```
 
+### 🕸️ Grafo de Conhecimento da Arquitetura (Graphify)
+
+<p align="center">
+  <img src="./docs/assets/graphify-1.png" alt="Mapeamento Graphify 1" width="49%" align="top" style="max-width: 600px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" />
+  <img src="./docs/assets/graphify-2.png" alt="Mapeamento Graphify 2" width="49%" align="top" style="max-width: 600px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" />
+</p>
+
 ---
 
 ## 🚀 Funcionalidades Principais (v1.6.5)
