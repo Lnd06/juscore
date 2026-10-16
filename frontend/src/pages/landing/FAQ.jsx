@@ -53,28 +53,28 @@ const FAQ = ({ onSupportClick }) => {
           </p>
         </ScrollReveal>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {faqData.map((faq, index) => {
             const isOpen = openIndex === index;
             return (
               <ScrollReveal key={index} delay={index * 100} direction="up">
                 <div 
-                  className={`rounded-[24px] border transition-all duration-300 overflow-hidden ${
+                  className={`rounded-xl border transition-all duration-200 overflow-hidden ${
                     isOpen 
-                      ? 'border-accent/40 bg-accent/5 shadow-lg shadow-accent/5 dark:bg-gray-900/60' 
-                      : 'border-white/[0.06] bg-juri-900/20 hover:border-white/15'
+                      ? 'border-accent/35 bg-[#0D1322]' 
+                      : 'border-white/[0.06] bg-[#0B0F19] hover:border-white/[0.12]'
                   }`}
                 >
                   <button
                     onClick={() => toggleFaq(index)}
-                    className="w-full flex items-center justify-between p-6 md:p-8 text-left focus:outline-none"
+                    className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
                     aria-expanded={isOpen}
                   >
-                    <span className="font-display font-bold text-base md:text-lg text-white tracking-tight pr-4">
+                    <span className="font-display font-semibold text-base text-white tracking-tight pr-4">
                       {faq.question}
                     </span>
-                    <div className={`w-8 h-8 rounded-full border border-white/[0.06] flex items-center justify-center transition-transform duration-300 ${
-                      isOpen ? 'rotate-180 border-accent/40 text-accent bg-accent/10' : 'text-gray-450'
+                    <div className={`w-7 h-7 rounded-lg border border-white/[0.06] flex items-center justify-center transition-transform duration-200 ${
+                      isOpen ? 'rotate-180 border-accent/35 text-accent bg-accent/10' : 'text-gray-400'
                     }`}>
                       <ChevronDown className="w-4 h-4" />
                     </div>
@@ -86,10 +86,10 @@ const FAQ = ({ onSupportClick }) => {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
                         className="overflow-hidden border-t border-white/[0.06]"
                       >
-                        <p className="p-6 md:p-8 text-sm md:text-base text-gray-400 leading-relaxed font-normal">
+                        <p className="p-6 text-sm text-gray-400 leading-relaxed font-normal">
                           {faq.answer}
                         </p>
                       </motion.div>

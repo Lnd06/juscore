@@ -192,9 +192,9 @@ const Header = ({ onMenuClick, pageTitle = 'Dashboard' }) => {
                     setIsDropdownOpen(false);
                     setIsFeedbackOpen(true);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-accent transition-colors text-left"
                 >
-                  <Bug className="w-4 h-4" />
+                  <Bug className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                   <span>Reportar Bug / Ideia</span>
                 </button>
               </div>

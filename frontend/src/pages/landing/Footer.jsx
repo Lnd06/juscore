@@ -10,7 +10,7 @@ const Footer = ({ onCtaClick, onSupportClick, links }) => {
   const whatsapp = links?.contact_whatsapp ? `https://wa.me/${links.contact_whatsapp.replace(/\D/g, '')}` : '#';
 
   return (
-    <footer className="bg-gray-900 text-white pt-20 pb-10 px-6">
+    <footer className="bg-[#060911] border-t border-white/[0.06] text-white pt-20 pb-10 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
           <div className="col-span-1 md:col-span-2">

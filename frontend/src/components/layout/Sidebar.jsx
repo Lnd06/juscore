@@ -289,11 +289,11 @@ const Sidebar = ({ isOpen, setIsOpen, mobile }) => {
           <button
             onClick={handleNewChat}
             className={cn(
-              "w-full flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-accent to-yellow-500 hover:from-accent-dark hover:to-yellow-600 text-white font-bold transition-all duration-300 shadow-md shadow-accent/15 hover:shadow-lg hover:shadow-accent/25 hover:-translate-y-0.5 active:translate-y-0",
-              isOpen || mobile ? "px-4 py-3 justify-start text-sm" : "p-3 justify-center"
+              "w-full flex items-center gap-2.5 rounded-xl bg-accent hover:bg-accent-dark text-slate-950 font-semibold transition-all duration-200 shadow-sm",
+              isOpen || mobile ? "px-4 py-2.5 justify-start text-sm" : "p-2.5 justify-center"
             )}
           >
-            <Sparkles className="w-[18px] h-[18px] min-w-[18px]" />
+            <Plus className="w-[18px] h-[18px] min-w-[18px]" />
             <span className={cn("whitespace-nowrap transition-all duration-150", !isOpen && !mobile && "opacity-0 w-0 overflow-hidden")}>
               Nova Conversa
             </span>

@@ -54,27 +54,27 @@ const Navbar = () => {
         </div>
 
         {/* Desktop CTA */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3">
           {user ? (
             <Button 
               variant="outline"
               onClick={() => navigate('/dashboard')}
-              className="text-xs font-display font-bold text-gray-300 border-accent/40 hover:border-accent hover:bg-accent/5 px-6 h-12 rounded-full"
+              className="text-xs font-display font-semibold text-gray-200 border-white/10 hover:border-accent/50 hover:bg-white/[0.04] px-5 h-10 rounded-xl"
             >
-              Entrar ({user.name || user.email?.split('@')[0]})
+              Painel ({user.name || user.nome?.split(' ')[0] || user.email?.split('@')[0]})
             </Button>
           ) : (
             <>
               <Button 
                 variant="outline"
                 onClick={() => navigate('/login')}
-                className="text-xs font-display font-bold text-gray-300 border-white/10 hover:border-accent/50 hover:bg-white/5 px-6 h-12 rounded-full"
+                className="text-xs font-display font-semibold text-gray-300 border-white/10 hover:border-white/25 hover:bg-white/[0.04] px-5 h-10 rounded-xl"
               >
                 Entrar
               </Button>
               <Button 
                 onClick={() => navigate('/register')}
-                className="bg-gradient-to-r from-accent to-yellow-500 hover:from-accent-dark hover:to-yellow-600 text-white rounded-full px-8 h-12 font-display font-bold shadow-lg shadow-accent/20 hover:shadow-accent/40 hover:-translate-y-0.5 transition-all duration-300 text-xs uppercase tracking-wider"
+                className="bg-accent hover:bg-accent-dark text-slate-950 rounded-xl px-6 h-10 font-display font-bold shadow-sm transition-all duration-200 text-xs tracking-wide"
               >
                 Começar Grátis
               </Button>
@@ -88,15 +88,15 @@ const Navbar = () => {
             <Button 
               variant="outline"
               onClick={() => navigate('/dashboard')}
-              className="text-xs font-display font-bold text-gray-350 border-accent/40 hover:border-accent hover:bg-accent/5 px-4 h-9 rounded-full"
+              className="text-xs font-display font-semibold text-gray-200 border-accent/30 hover:border-accent px-4 h-9 rounded-lg"
             >
-              Entrar
+              Painel
             </Button>
           ) : (
             <Button 
               variant="outline"
               onClick={() => navigate('/login')}
-              className="text-xs font-display font-bold text-gray-350 border-white/10 hover:border-accent/50 hover:bg-white/5 px-4 h-9 rounded-full"
+              className="text-xs font-display font-semibold text-gray-300 border-white/10 hover:border-accent/40 px-4 h-9 rounded-lg"
             >
               Entrar
             </Button>

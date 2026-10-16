@@ -24,24 +24,21 @@ const Features = () => {
 
       {/* Marquee Container */}
       <div className="relative flex overflow-hidden">
-        <div className="flex animate-marquee gap-8 py-4 px-4">
+        <div className="flex animate-marquee gap-6 py-4 px-4">
           {doubledCards.map((feature, i) => {
             const Icon = feature.icon;
-            const colors = colorMap[feature.color];
             return (
               <div 
                 key={i} 
-                className="w-[380px] shrink-0 p-8 rounded-[32px] bg-juri-900/40 border border-white/[0.06] hover:border-accent/40 transition-all duration-500 hover:shadow-2xl hover:shadow-accent/5 group relative overflow-hidden backdrop-blur-md"
+                className="w-[360px] shrink-0 p-7 rounded-2xl bg-[#0B0F19] border border-white/[0.06] hover:border-accent/30 transition-all duration-300 group relative overflow-hidden"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                
-                <div className={`w-14 h-14 ${colors.bg} ${colors.text} rounded-2xl flex items-center justify-center mb-6 border ${colors.border} relative z-10 group-hover:scale-110 transition-transform shadow-lg`}>
-                  <Icon className="w-7 h-7" />
+                <div className="w-11 h-11 bg-accent/10 text-accent rounded-xl flex items-center justify-center mb-6 border border-accent/20 relative z-10 group-hover:bg-accent/15 transition-colors">
+                  <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl font-display font-bold text-white mb-4 relative z-10 group-hover:text-accent transition-colors tracking-tight">
+                <h3 className="text-lg font-display font-bold text-white mb-3 relative z-10 group-hover:text-accent transition-colors tracking-tight">
                   {feature.title}
                 </h3>
-                <p className="text-gray-400 leading-relaxed relative z-10 font-medium text-sm">
+                <p className="text-gray-400 leading-relaxed relative z-10 text-sm">
                   {feature.desc}
                 </p>
               </div>
