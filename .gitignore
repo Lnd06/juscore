@@ -126,3 +126,4 @@ coverage/
 *.cert
 *.crt
 secrets/
+.neon

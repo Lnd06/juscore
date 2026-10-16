@@ -6,7 +6,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables
+// Load environment variables (.env.local from Neon CLI first, then backend/.env)
+dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 // Validador de Configuração de Segurança Inicial (Proteção criptográfica em boot)
@@ -249,6 +250,7 @@ const cleanDuplicateIndexes = async () => {
 const startServer = async () => {
   try {
     const isVercel = Boolean(process.env.VERCEL);
+    const isMysql = sequelize.getDialect() === "mysql";
     const shouldRunBootMigrations = !isVercel || process.env.RUN_BOOT_MIGRATIONS === "true";
 
     // Inicia o listener HTTP imediatamente para passar no health check de containers (Vercel / Cloud Run)
@@ -277,73 +279,75 @@ const startServer = async () => {
         await sequelize.authenticate(); // Check connection first
 
         if (shouldRunBootMigrations) {
-          await cleanDuplicateIndexes(); // Always clean before sync
+          if (isMysql) {
+            await cleanDuplicateIndexes(); // Always clean before sync (MySQL only)
 
-          // Ensure signerName column exists (safety patch for Sequelize alter:true bypass issues)
-          try {
-            await sequelize.query(
-              "ALTER TABLE SignatureRequests ADD COLUMN signerName VARCHAR(255) NULL;",
-            );
-            console.log("Schema Patch: signerName column injected.");
-          } catch (colErr) {
-            // Ignores error if column already exists
-          }
-
-          try {
-            await sequelize.query(
-              "ALTER TABLE SignatureRequests ADD COLUMN signatureImage LONGTEXT NULL;",
-            );
-            console.log("Schema Patch: signatureImage column injected.");
-          } catch (colErr) {
-            // Ignores error if column already exists
-          }
-
-          try {
-            await sequelize.query(
-              "ALTER TABLE SignatureRequests ADD COLUMN lawyerSignatureImage LONGTEXT NULL;",
-            );
-            console.log("Schema Patch: lawyerSignatureImage column injected.");
-          } catch (colErr) {
-            // Ignores error if column already exists
-          }
-
-          try {
-            await sequelize.query(
-              "ALTER TABLE Users ADD COLUMN oab VARCHAR(255) NULL;",
-            );
-            console.log("Schema Patch: oab column injected in Users table.");
-          } catch (colErr) {
-            // Ignores error if column already exists
-          }
-
-          // Schema Patch for UserUsages dailyDeepResearch column
-          try {
-            await sequelize.query(
-              "ALTER TABLE UserUsages ADD COLUMN dailyDeepResearch INT DEFAULT 0;",
-            );
-            console.log("Schema Patch: dailyDeepResearch column injected in UserUsages table.");
-          } catch (colErr) {
-            // Ignores error if column already exists
-          }
-
-          // Signature v2 patches (crypto + identity fields)
-          const sigV2Cols = [
-            "signerEmail VARCHAR(255) NULL",
-            "signerPhone VARCHAR(50) NULL",
-            "signerUserAgent TEXT NULL",
-            "documentHash VARCHAR(128) NULL",
-            "signatureHash VARCHAR(128) NULL",
-            "verificationCode VARCHAR(16) NULL",
-          ];
-          for (const col of sigV2Cols) {
+            // Ensure signerName column exists (safety patch for Sequelize alter:true bypass issues)
             try {
-              await sequelize.query(`ALTER TABLE SignatureRequests ADD COLUMN ${col};`);
-              console.log(`Schema Patch: ${col.split(" ")[0]} injected.`);
-            } catch { /* column already exists */ }
+              await sequelize.query(
+                "ALTER TABLE SignatureRequests ADD COLUMN signerName VARCHAR(255) NULL;",
+              );
+              console.log("Schema Patch: signerName column injected.");
+            } catch (colErr) {
+              // Ignores error if column already exists
+            }
+
+            try {
+              await sequelize.query(
+                "ALTER TABLE SignatureRequests ADD COLUMN signatureImage LONGTEXT NULL;",
+              );
+              console.log("Schema Patch: signatureImage column injected.");
+            } catch (colErr) {
+              // Ignores error if column already exists
+            }
+
+            try {
+              await sequelize.query(
+                "ALTER TABLE SignatureRequests ADD COLUMN lawyerSignatureImage LONGTEXT NULL;",
+              );
+              console.log("Schema Patch: lawyerSignatureImage column injected.");
+            } catch (colErr) {
+              // Ignores error if column already exists
+            }
+
+            try {
+              await sequelize.query(
+                "ALTER TABLE Users ADD COLUMN oab VARCHAR(255) NULL;",
+              );
+              console.log("Schema Patch: oab column injected in Users table.");
+            } catch (colErr) {
+              // Ignores error if column already exists
+            }
+
+            // Schema Patch for UserUsages dailyDeepResearch column
+            try {
+              await sequelize.query(
+                "ALTER TABLE UserUsages ADD COLUMN dailyDeepResearch INT DEFAULT 0;",
+              );
+              console.log("Schema Patch: dailyDeepResearch column injected in UserUsages table.");
+            } catch (colErr) {
+              // Ignores error if column already exists
+            }
+
+            // Signature v2 patches (crypto + identity fields)
+            const sigV2Cols = [
+              "signerEmail VARCHAR(255) NULL",
+              "signerPhone VARCHAR(50) NULL",
+              "signerUserAgent TEXT NULL",
+              "documentHash VARCHAR(128) NULL",
+              "signatureHash VARCHAR(128) NULL",
+              "verificationCode VARCHAR(16) NULL",
+            ];
+            for (const col of sigV2Cols) {
+              try {
+                await sequelize.query(`ALTER TABLE SignatureRequests ADD COLUMN ${col};`);
+                console.log(`Schema Patch: ${col.split(" ")[0]} injected.`);
+              } catch { /* column already exists */ }
+            }
           }
 
           await sequelize.sync();
-          console.log("MySQL conectado e sincronizado");
+          console.log(`Banco de dados (${sequelize.getDialect()}) conectado e sincronizado`);
 
           // Auto-seed visible_plans if not exists
           try {
@@ -390,18 +394,18 @@ const startServer = async () => {
             console.error("Failed to seed contact_linkedin:", seedErr.message);
           }
         } else {
-          console.log("MySQL conectado (modo rápido Vercel - migrações de boot ignoradas)");
+          console.log(`Banco de dados (${sequelize.getDialect()}) conectado (modo rápido Vercel - migrações de boot ignoradas)`);
         }
 
         connected = true;
       } catch (err) {
-        console.error("Falha na conexao com MySQL:", err.message);
+        console.error(`Falha na conexao com ${sequelize.getDialect()}:`, err.message);
         console.log("Tentando reconectar em 5 segundos...");
         await new Promise((resolve) => setTimeout(resolve, 5000));
       }
     }
 
-    if (shouldRunBootMigrations) {
+    if (shouldRunBootMigrations && isMysql) {
       // Critical: Increase max_allowed_packet for large PDF content
       try {
         await sequelize.query("SET GLOBAL max_allowed_packet=67108864;"); // 64MB

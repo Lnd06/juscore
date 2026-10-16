@@ -8,8 +8,9 @@ RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /v
 # Copiar manifestos de dependências
 COPY package*.json ./
 
-# Instalação limpa das dependências de produção e remoção de arquivos de tipagem/mapas para economizar Images Storage na Vercel
+# Instalação limpa das dependências de produção e remoção de APIs não usadas do googleapis + arquivos de tipagem/mapas para economizar Images Storage na Vercel
 RUN npm ci --omit=dev \
+    && find node_modules/googleapis/build/src/apis -mindepth 1 -maxdepth 1 -type d ! -name "calendar" ! -name "oauth2" -exec rm -rf {} + \
     && find node_modules \( -name "*.d.ts" -o -name "*.d.mts" -o -name "*.map" -o -name "*.md" \) -type f -delete \
     && npm cache clean --force
 

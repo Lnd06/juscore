@@ -1,5 +1,13 @@
-import { google } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
+import { calendar as googleCalendarApi } from "googleapis/build/src/apis/calendar/index.js";
+import { oauth2 as googleOauth2Api } from "googleapis/build/src/apis/oauth2/index.js";
 import { User } from "../models/index.js";
+
+const google = {
+  auth: { OAuth2: OAuth2Client },
+  calendar: googleCalendarApi,
+  oauth2: googleOauth2Api,
+};
 
 const getOAuth2Client = () => {
   console.log(

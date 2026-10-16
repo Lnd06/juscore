@@ -9,6 +9,7 @@
     "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend && npm install --prefix frontend-master",
     "dev:client": "npm run dev --prefix frontend",
     "dev:master": "npm run dev --prefix frontend-master",
+    "build": "npm run build:prod",
     "build:client": "npm run build --prefix frontend",
     "build:master": "npm run build --prefix frontend-master",
     "sync:public": "node scripts/sync-frontend-public.js",
@@ -16,6 +17,8 @@
     "install-prod": "cd backend && npm install"
   },
   "dependencies": {
+    "@neon/config": "^1.9.2",
+    "@neon/env": "^1.6.3",
     "@ngrok/ngrok": "^1.7.0",
     "axios": "^1.13.5",
     "bcryptjs": "^2.4.3",
