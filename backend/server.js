@@ -251,6 +251,25 @@ const startServer = async () => {
     const isVercel = Boolean(process.env.VERCEL);
     const shouldRunBootMigrations = !isVercel || process.env.RUN_BOOT_MIGRATIONS === "true";
 
+    // Inicia o listener HTTP imediatamente para passar no health check de containers (Vercel / Cloud Run)
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`JusCore AI v1.7 rodando em http://0.0.0.0:${PORT}`);
+      console.log(`Frontend: http://localhost:${PORT}`);
+      console.log(`Login: http://localhost:${PORT}/login`);
+      console.log(`Health Check: http://localhost:${PORT}/health`);
+      console.log("JusCore AI - Sistema Ativo\n");
+    });
+
+    // Biblioteca Jurídica agora opera via sistema de arquivos local (backend/livros/)
+    console.log("Biblioteca Jurídica operando via File System (backend/livros/).");
+
+    // Inicializar o banco de dados vetorial Pinecone
+    try {
+      await inicializarPinecone();
+    } catch (pineconeErr) {
+      console.error("❌ Falha ao conectar/inicializar o Pinecone no arranque:", pineconeErr.message);
+    }
+
     // Retry logic for database connection
     let connected = false;
     while (!connected) {
@@ -395,29 +414,10 @@ const startServer = async () => {
       }
     }
 
-    // Biblioteca Jurídica agora opera via sistema de arquivos local (backend/livros/)
-    console.log("Biblioteca Jurídica operando via File System (backend/livros/).");
-
-    // Inicializar o banco de dados vetorial Pinecone
-    try {
-      await inicializarPinecone();
-    } catch (pineconeErr) {
-      console.error("❌ Falha ao conectar/inicializar o Pinecone no arranque:", pineconeErr.message);
+    // Inicializar agendador automático de sincronização de processos apenas fora de containers serverless efêmeros
+    if (!isVercel) {
+      initSyncScheduler();
     }
-
-    // Start server after database connection
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`JusCore AI v1.7 rodando em http://0.0.0.0:${PORT}`);
-      console.log(`Frontend: http://localhost:${PORT}`);
-      console.log(`Login: http://localhost:${PORT}/login`);
-      console.log(`Health Check: http://localhost:${PORT}/health`);
-      console.log("JusCore AI - Sistema Ativo\n");
-      
-      // Inicializar agendador automático de sincronização de processos apenas fora de containers serverless efêmeros
-      if (!isVercel) {
-        initSyncScheduler();
-      }
-    });
   } catch (err) {
     console.error("Erro fatal ao iniciar servidor:", err.message);
     process.exit(1);
