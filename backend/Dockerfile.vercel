@@ -1,0 +1,29 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Dependências do sistema (SSL e certificados CA)
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+
+# Copiar manifestos de dependências
+COPY package*.json ./
+
+# Instalação limpa das dependências de produção e remoção de arquivos de tipagem/mapas para economizar Images Storage na Vercel
+RUN npm ci --omit=dev \
+    && find node_modules \( -name "*.d.ts" -o -name "*.d.mts" -o -name "*.map" -o -name "*.md" \) -type f -delete \
+    && npm cache clean --force
+
+# Copiar código-fonte do backend (filtrado pelo .dockerignore)
+COPY . .
+
+# Copiar os arquivos estáticos compilados do frontend
+COPY public ./public/
+
+# Configurações de ambiente
+ENV NODE_ENV=production
+ENV VERCEL=1
+
+# A Vercel injeta a porta automaticamente via variável $PORT (geralmente 8080)
+EXPOSE 8080
+
+CMD ["node", "server.js"]

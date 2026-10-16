@@ -11,6 +11,8 @@
 .env.*.local
 .env.vps
 backend/.env.vps
+.env.vercel
+backend/.env.vercel
 
 # ============================================
 # DEPENDÊNCIAS & VENV

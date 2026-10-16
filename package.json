@@ -11,6 +11,8 @@
     "dev:master": "npm run dev --prefix frontend-master",
     "build:client": "npm run build --prefix frontend",
     "build:master": "npm run build --prefix frontend-master",
+    "sync:public": "node scripts/sync-frontend-public.js",
+    "build:prod": "npm run build:client && npm run sync:public",
     "install-prod": "cd backend && npm install"
   },
   "dependencies": {

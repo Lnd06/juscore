@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -60,7 +61,7 @@ import { inicializarPinecone } from "./services/pineconeService.js";
 // MongoDB removido — Biblioteca Jurídica agora é 100% baseada em arquivos locais (backend/livros/)
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // Middleware
 app.set("trust proxy", 1);
@@ -124,6 +125,7 @@ app.use(
         origin.startsWith("http://localhost:") ||
         origin.startsWith("https://localhost:") ||
         origin.startsWith("http://127.0.0.1:") ||
+        origin.endsWith(".vercel.app") ||
         origin.endsWith("juscore.net") ||
         /187\.77\.226\.73/.test(origin);
 
@@ -162,13 +164,32 @@ app.use("/api/feedback", feedbackRoutes);
 app.use("/api/announcements", announcementsRoutes);
 app.use("/api/signatures", signaturesRoutes);
 
-// Serve o frontend construído no próprio backend (para ambiente local ou quando Nginx não for usado)
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", service: "JusCore AI" });
+});
+
+// Serve o frontend construído no próprio backend (suporta backend/public na Vercel e ../frontend/dist localmente)
+const publicDir = fs.existsSync(path.join(__dirname, "public"))
+  ? path.join(__dirname, "public")
+  : path.join(__dirname, "../frontend/dist");
+
+app.use(
+  "/assets",
+  express.static(path.join(publicDir, "assets"), {
+    maxAge: "1y",
+    immutable: true,
+  }),
+);
+app.use(express.static(publicDir));
 
 // Resposta para React Router - Todas as rotas não-API enviam para o index.html
 app.get("*", (req, res, next) => {
-  if (req.url.startsWith("/api/")) return next();
-  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  if (req.url.startsWith("/api/") || req.url.startsWith("/uploads/")) return next();
+  const indexPath = path.join(publicDir, "index.html");
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  res.status(200).send("JusCore AI API Online. (Frontend build pendente)");
 });
 // Error handler
 app.use((err, req, res, next) => {
@@ -227,122 +248,130 @@ const cleanDuplicateIndexes = async () => {
 // Database sync and server start
 const startServer = async () => {
   try {
+    const isVercel = Boolean(process.env.VERCEL);
+    const shouldRunBootMigrations = !isVercel || process.env.RUN_BOOT_MIGRATIONS === "true";
+
     // Retry logic for database connection
     let connected = false;
     while (!connected) {
       try {
         await sequelize.authenticate(); // Check connection first
-        await cleanDuplicateIndexes(); // Always clean before sync
 
-        // Ensure signerName column exists (safety patch for Sequelize alter:true bypass issues)
-        try {
-          await sequelize.query(
-            "ALTER TABLE SignatureRequests ADD COLUMN signerName VARCHAR(255) NULL;",
-          );
-          console.log("Schema Patch: signerName column injected.");
-        } catch (colErr) {
-          // Ignores error if column already exists
-        }
+        if (shouldRunBootMigrations) {
+          await cleanDuplicateIndexes(); // Always clean before sync
 
-        try {
-          await sequelize.query(
-            "ALTER TABLE SignatureRequests ADD COLUMN signatureImage LONGTEXT NULL;",
-          );
-          console.log("Schema Patch: signatureImage column injected.");
-        } catch (colErr) {
-          // Ignores error if column already exists
-        }
-
-        try {
-          await sequelize.query(
-            "ALTER TABLE SignatureRequests ADD COLUMN lawyerSignatureImage LONGTEXT NULL;",
-          );
-          console.log("Schema Patch: lawyerSignatureImage column injected.");
-        } catch (colErr) {
-          // Ignores error if column already exists
-        }
-
-        try {
-          await sequelize.query(
-            "ALTER TABLE Users ADD COLUMN oab VARCHAR(255) NULL;",
-          );
-          console.log("Schema Patch: oab column injected in Users table.");
-        } catch (colErr) {
-          // Ignores error if column already exists
-        }
-
-        // Schema Patch for UserUsages dailyDeepResearch column
-        try {
-          await sequelize.query(
-            "ALTER TABLE UserUsages ADD COLUMN dailyDeepResearch INT DEFAULT 0;",
-          );
-          console.log("Schema Patch: dailyDeepResearch column injected in UserUsages table.");
-        } catch (colErr) {
-          // Ignores error if column already exists
-        }
-
-        // Signature v2 patches (crypto + identity fields)
-        const sigV2Cols = [
-          "signerEmail VARCHAR(255) NULL",
-          "signerPhone VARCHAR(50) NULL",
-          "signerUserAgent TEXT NULL",
-          "documentHash VARCHAR(128) NULL",
-          "signatureHash VARCHAR(128) NULL",
-          "verificationCode VARCHAR(16) NULL",
-        ];
-        for (const col of sigV2Cols) {
+          // Ensure signerName column exists (safety patch for Sequelize alter:true bypass issues)
           try {
-            await sequelize.query(`ALTER TABLE SignatureRequests ADD COLUMN ${col};`);
-            console.log(`Schema Patch: ${col.split(" ")[0]} injected.`);
-          } catch { /* column already exists */ }
-        }
-
-        await sequelize.sync();
-        console.log("MySQL conectado e sincronizado");
-
-        // Auto-seed visible_plans if not exists
-        try {
-          const { Setting } = await import("./models/index.js");
-          const exists = await Setting.findOne({ where: { key: "visible_plans" } });
-          if (!exists) {
-            await Setting.create({
-              key: "visible_plans",
-              value: JSON.stringify(["free", "student_basic", "student_pro", "student_master", "enterprise"])
-            });
-            console.log("Database Seed: visible_plans default seeded.");
+            await sequelize.query(
+              "ALTER TABLE SignatureRequests ADD COLUMN signerName VARCHAR(255) NULL;",
+            );
+            console.log("Schema Patch: signerName column injected.");
+          } catch (colErr) {
+            // Ignores error if column already exists
           }
-        } catch (seedErr) {
-          console.error("Failed to seed visible_plans:", seedErr.message);
-        }
 
-        // Auto-seed contact_tiktok if not exists
-        try {
-          const { Setting } = await import("./models/index.js");
-          const exists = await Setting.findOne({ where: { key: "contact_tiktok" } });
-          if (!exists) {
-            await Setting.create({
-              key: "contact_tiktok",
-              value: "https://tiktok.com/@juscore"
-            });
-            console.log("Database Seed: contact_tiktok default seeded.");
+          try {
+            await sequelize.query(
+              "ALTER TABLE SignatureRequests ADD COLUMN signatureImage LONGTEXT NULL;",
+            );
+            console.log("Schema Patch: signatureImage column injected.");
+          } catch (colErr) {
+            // Ignores error if column already exists
           }
-        } catch (seedErr) {
-          console.error("Failed to seed contact_tiktok:", seedErr.message);
-        }
 
-        // Auto-seed contact_linkedin if not exists
-        try {
-          const { Setting } = await import("./models/index.js");
-          const exists = await Setting.findOne({ where: { key: "contact_linkedin" } });
-          if (!exists) {
-            await Setting.create({
-              key: "contact_linkedin",
-              value: "https://linkedin.com/company/juscore"
-            });
-            console.log("Database Seed: contact_linkedin default seeded.");
+          try {
+            await sequelize.query(
+              "ALTER TABLE SignatureRequests ADD COLUMN lawyerSignatureImage LONGTEXT NULL;",
+            );
+            console.log("Schema Patch: lawyerSignatureImage column injected.");
+          } catch (colErr) {
+            // Ignores error if column already exists
           }
-        } catch (seedErr) {
-          console.error("Failed to seed contact_linkedin:", seedErr.message);
+
+          try {
+            await sequelize.query(
+              "ALTER TABLE Users ADD COLUMN oab VARCHAR(255) NULL;",
+            );
+            console.log("Schema Patch: oab column injected in Users table.");
+          } catch (colErr) {
+            // Ignores error if column already exists
+          }
+
+          // Schema Patch for UserUsages dailyDeepResearch column
+          try {
+            await sequelize.query(
+              "ALTER TABLE UserUsages ADD COLUMN dailyDeepResearch INT DEFAULT 0;",
+            );
+            console.log("Schema Patch: dailyDeepResearch column injected in UserUsages table.");
+          } catch (colErr) {
+            // Ignores error if column already exists
+          }
+
+          // Signature v2 patches (crypto + identity fields)
+          const sigV2Cols = [
+            "signerEmail VARCHAR(255) NULL",
+            "signerPhone VARCHAR(50) NULL",
+            "signerUserAgent TEXT NULL",
+            "documentHash VARCHAR(128) NULL",
+            "signatureHash VARCHAR(128) NULL",
+            "verificationCode VARCHAR(16) NULL",
+          ];
+          for (const col of sigV2Cols) {
+            try {
+              await sequelize.query(`ALTER TABLE SignatureRequests ADD COLUMN ${col};`);
+              console.log(`Schema Patch: ${col.split(" ")[0]} injected.`);
+            } catch { /* column already exists */ }
+          }
+
+          await sequelize.sync();
+          console.log("MySQL conectado e sincronizado");
+
+          // Auto-seed visible_plans if not exists
+          try {
+            const { Setting } = await import("./models/index.js");
+            const exists = await Setting.findOne({ where: { key: "visible_plans" } });
+            if (!exists) {
+              await Setting.create({
+                key: "visible_plans",
+                value: JSON.stringify(["free", "student_basic", "student_pro", "student_master", "enterprise"])
+              });
+              console.log("Database Seed: visible_plans default seeded.");
+            }
+          } catch (seedErr) {
+            console.error("Failed to seed visible_plans:", seedErr.message);
+          }
+
+          // Auto-seed contact_tiktok if not exists
+          try {
+            const { Setting } = await import("./models/index.js");
+            const exists = await Setting.findOne({ where: { key: "contact_tiktok" } });
+            if (!exists) {
+              await Setting.create({
+                key: "contact_tiktok",
+                value: "https://tiktok.com/@juscore"
+              });
+              console.log("Database Seed: contact_tiktok default seeded.");
+            }
+          } catch (seedErr) {
+            console.error("Failed to seed contact_tiktok:", seedErr.message);
+          }
+
+          // Auto-seed contact_linkedin if not exists
+          try {
+            const { Setting } = await import("./models/index.js");
+            const exists = await Setting.findOne({ where: { key: "contact_linkedin" } });
+            if (!exists) {
+              await Setting.create({
+                key: "contact_linkedin",
+                value: "https://linkedin.com/company/juscore"
+              });
+              console.log("Database Seed: contact_linkedin default seeded.");
+            }
+          } catch (seedErr) {
+            console.error("Failed to seed contact_linkedin:", seedErr.message);
+          }
+        } else {
+          console.log("MySQL conectado (modo rápido Vercel - migrações de boot ignoradas)");
         }
 
         connected = true;
@@ -353,15 +382,17 @@ const startServer = async () => {
       }
     }
 
-    // Critical: Increase max_allowed_packet for large PDF content
-    try {
-      await sequelize.query("SET GLOBAL max_allowed_packet=67108864;"); // 64MB
-      console.log("MySQL max_allowed_packet set to 64MB");
-    } catch (dbErr) {
-      console.warn(
-        "Failed to set max_allowed_packet. Uploads > 1MB may fail.",
-        dbErr.message,
-      );
+    if (shouldRunBootMigrations) {
+      // Critical: Increase max_allowed_packet for large PDF content
+      try {
+        await sequelize.query("SET GLOBAL max_allowed_packet=67108864;"); // 64MB
+        console.log("MySQL max_allowed_packet set to 64MB");
+      } catch (dbErr) {
+        console.warn(
+          "Failed to set max_allowed_packet. Uploads > 1MB may fail.",
+          dbErr.message,
+        );
+      }
     }
 
     // Biblioteca Jurídica agora opera via sistema de arquivos local (backend/livros/)
@@ -375,15 +406,17 @@ const startServer = async () => {
     }
 
     // Start server after database connection
-    app.listen(PORT, () => {
-      console.log(`JusCore AI v1.7 rodando em http://localhost:${PORT}`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`JusCore AI v1.7 rodando em http://0.0.0.0:${PORT}`);
       console.log(`Frontend: http://localhost:${PORT}`);
       console.log(`Login: http://localhost:${PORT}/login`);
       console.log(`Health Check: http://localhost:${PORT}/health`);
       console.log("JusCore AI - Sistema Ativo\n");
       
-      // Inicializar agendador automático de sincronização de processos
-      initSyncScheduler();
+      // Inicializar agendador automático de sincronização de processos apenas fora de containers serverless efêmeros
+      if (!isVercel) {
+        initSyncScheduler();
+      }
     });
   } catch (err) {
     console.error("Erro fatal ao iniciar servidor:", err.message);
