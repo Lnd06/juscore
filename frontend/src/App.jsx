@@ -35,6 +35,40 @@ import Signatures from './pages/dashboard/legal/Signatures';
 import SignDocument from './pages/public/SignDocument';
 import PublicCalculatorPage from './pages/public/PublicCalculatorPage';
 import PublicAbout from './pages/public/PublicAbout';
+import AdminLayout from './components/layout/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import Library from './pages/admin/Library';
+import Finance from './pages/admin/Finance';
+import AdminFeedbacks from './pages/admin/AdminFeedbacks';
+import BrowserErrorPage from './components/ui/BrowserErrorPage';
+import ConfirmIdentity from './components/ui/ConfirmIdentity';
+
+const MasterPortalGuard = ({ children }) => {
+  const { user, loading } = useAuth();
+  const [confirmed, setConfirmed] = React.useState(
+    () => sessionStorage.getItem('master_confirmed') === 'true'
+  );
+
+  if (loading) return <Loader text="Carregando..." />;
+
+  if (!user || user.tipo !== 'master') {
+    return <BrowserErrorPage />;
+  }
+
+  if (!confirmed) {
+    return (
+      <ConfirmIdentity
+        user={user}
+        onConfirm={() => {
+          sessionStorage.setItem('master_confirmed', 'true');
+          setConfirmed(true);
+        }}
+      />
+    );
+  }
+
+  return children;
+};
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -201,11 +235,20 @@ function App() {
         <Route path="signatures" element={<SignaturesRoute><Signatures /></SignaturesRoute>} />
       </Route>
 
-
-
-
-
-
+      {/* Painel Administrativo Master (/master-panel) */}
+      <Route
+        path="/master-panel"
+        element={
+          <MasterPortalGuard>
+            <AdminLayout />
+          </MasterPortalGuard>
+        }
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path="library" element={<Library />} />
+        <Route path="finance" element={<Finance />} />
+        <Route path="feedbacks" element={<AdminFeedbacks />} />
+      </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
