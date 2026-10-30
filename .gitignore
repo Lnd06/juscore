@@ -90,6 +90,7 @@ query.sql
 analise_financeira_juri_ai.csv
 google_slides_script.js
 frontend-legacy/
+frontend-master/
 juscore.conf
 nginx.conf
 remote_googleAuth.js
