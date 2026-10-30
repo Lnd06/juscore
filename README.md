@@ -115,22 +115,4 @@ v1.6.5_anty/
 
 ---
 
-## Guia Rápido de Execução
-
-### Backend
-```bash
-cd backend
-npm install
-npm start
-```
-
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
----
-
 **JusCore.net v1.6.5** | *Tecnologia e Inteligência Artificial para o Direito Brasileiro*
